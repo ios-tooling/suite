@@ -10,7 +10,7 @@ import SwiftUI
 #if !os(visionOS)
 
 
-@available(iOS 16.0, macOS 13, *)
+@available(iOS 16.0, macOS 13, watchOS 9.0,*)
 public extension View {
 	func backingNavigationLink<Value: Hashable>(for value: Value) -> some View {
 		self

@@ -20,7 +20,7 @@ public extension EnvironmentValues {
 
 public extension View {
 	@ViewBuilder func debugLabel(_ label: String? = nil) -> some View {
-		if #available(iOS 15.0, macOS 12.0, *) {
+		if #available(iOS 15.0, macOS 12.0, watchOS 8.0, *) {
 			DebugLabeledView(view: self, label: label ?? String(describing: self))
 		} else {
 			self
@@ -28,7 +28,7 @@ public extension View {
 	}
 }
 
-@available(iOS 15.0, macOS 12.0, *)
+@available(iOS 15.0, macOS 12.0, watchOS 8.0,*)
 struct DebugLabeledView<Content: View>: View {
 	let view: Content
 	let label: String

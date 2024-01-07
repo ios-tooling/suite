@@ -8,6 +8,7 @@
 import Foundation
 import AVFoundation
 
+#if !os(watchOS)
 public extension URL {
 	var audioDuration: TimeInterval? {
 		let asset = AVURLAsset(url: self)
@@ -16,6 +17,7 @@ public extension URL {
 		return reader.asset.duration.seconds
 	}
 }
+#endif
 
 public extension URL {
 	static func systemDirectoryURL(which: FileManager.SearchPathDirectory) -> URL? {

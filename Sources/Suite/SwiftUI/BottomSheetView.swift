@@ -10,7 +10,8 @@
 import SwiftUI
 import Studio
 
-@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
+#if os(iOS) || os(macOS)
+@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 99, *)
 public struct SimpleOverlayModifer<Overlay: View>: ViewModifier {
 	@Binding var isPresented: Bool
 	
@@ -30,7 +31,7 @@ public struct SimpleOverlayModifer<Overlay: View>: ViewModifier {
 	}
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
+@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 99, *)
 public  struct OverlayModifer<Overlay: View, Item>: ViewModifier {
 	@Binding var item: Item?
 	#if swift(>=5.4)
@@ -49,7 +50,7 @@ public  struct OverlayModifer<Overlay: View, Item>: ViewModifier {
 	}
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
+@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 99, *)
 extension OverlayModifer where Item == Int {
 	init(isPresented: Binding<Bool>, @ViewBuilder overlay: @escaping () -> Overlay) {
 		self._item = Binding<Int?>(get: { isPresented.wrappedValue ? 1 : nil }) { new in
@@ -59,7 +60,7 @@ extension OverlayModifer where Item == Int {
 	}
 }
 
-@available(OSX 11, iOS 14.0, tvOS 13, watchOS 6, *)
+@available(OSX 11, iOS 14.0, tvOS 13, watchOS 99, *)
 public extension View {
 	func presentDimmedOverlay<Content: View, Item>(item: Binding<Item?>, tapToDismiss: Bool = true, animation: Animation = .linear, @ViewBuilder overlayBuilder: @escaping (Item) -> Content) -> some View {
 		self
@@ -118,7 +119,7 @@ public extension View {
 	}
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
+@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 99, *)
 public struct BottomSheet<Content: View, Background: View>: View {
 	var backgroundView: Background
 	var content: () -> Content
@@ -146,7 +147,7 @@ public struct BottomSheet<Content: View, Background: View>: View {
 	}
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
+@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 99, *)
 extension BottomSheet where Background == Color {
 	public init(animation: Animation = .easeOut, _ background: Color = .systemBackground, _ content: @escaping () -> Content) {
 		self.backgroundView = background
@@ -155,5 +156,6 @@ extension BottomSheet where Background == Color {
 	}
 }
 
+#endif
 #endif
 #endif

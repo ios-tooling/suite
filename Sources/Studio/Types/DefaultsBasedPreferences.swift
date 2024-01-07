@@ -31,7 +31,7 @@ public protocol PreferencesKeyProvider: AnyObject {
 		super.init()
 		
 		load()
-		#if canImport(UIKit)
+		#if os(iOS)
 			addAsObserver(of: UIApplication.willEnterForegroundNotification, selector: #selector(willEnterForeground))
 		#endif
 	}

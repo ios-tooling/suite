@@ -17,6 +17,11 @@ public extension WidgetFamily {
 			return CGSize(width: 170, height: 170)
 		}
 	#endif
+	
+	#if os(watchOS)
+		var size: CGSize { .init(width: 40, height: 40) }
+	#endif
+	
 	#if os(iOS)
 		var size: CGSize {
 			switch self {
