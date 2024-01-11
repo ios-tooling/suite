@@ -8,11 +8,15 @@
 import Foundation
 
 #if os(iOS)
+import UIKit
+
 public struct OnDemandFetcher {
 	struct StoredDictionary: Codable {
 		let version: Int
 		let dictionary: [String: String]
 	}
+	
+	enum OnDemandResourceError: Error { case resourceNotFound }
 	
 	public static func fetchDictionary(key: String, version: Int = 1) async throws -> [String: String] {
 		let keychainKey = "ondemand_\(key)"
@@ -21,11 +25,12 @@ public struct OnDemandFetcher {
 		}
 		
 		let request = NSBundleResourceRequest(tags: [key], bundle: .main)
+		request.loadingPriority = 1
 		try await request.beginAccessingResources()
 		
-		let url = Bundle.main.url(forResource: "Keys", withExtension: "json")!
-		let data = try Data(contentsOf: url)
-		let json = try JSONDecoder().decode([String: String].self, from: data)
+		guard let asset = NSDataAsset(name: key) else { throw OnDemandResourceError.resourceNotFound }
+		
+		let json = try JSONDecoder().decode([String: String].self, from: asset.data)
 		let cache = StoredDictionary(version: version, dictionary: json)
 		
 		if let cacheData = try? JSONEncoder().encode(cache) {
