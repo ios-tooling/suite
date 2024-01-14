@@ -27,9 +27,9 @@ public extension WidgetFamily {
 			switch self {
 			case .systemSmall:
 				switch UIScreen.main.bounds.size.screenSize {
-				case .iPhone14ProMax, .iPhone12ProMax: return CGSize(width: 170, height: 170)
-				case .iPhone14Pro, .iPhone12: return CGSize(width: 158, height: 158)
-				case .iPhone11ProMax: return CGSize(width: 169, height: 169)
+				case .iPhone14ProMax, .iPhone12ProMax, .iPhone15ProMax: return CGSize(width: 170, height: 170)
+				case .iPhone14Pro, .iPhone12, .iPhone15Pro: return CGSize(width: 158, height: 158)
+				case .iPhone11Pro: return CGSize(width: 169, height: 169)
 				case .iPhoneX: return CGSize(width: 155, height: 155)
 				case .iPhoneSixPlus: return CGSize(width: 159, height: 159)
 				case .iPhoneSix: return CGSize(width: 148, height: 148)
@@ -48,9 +48,9 @@ public extension WidgetFamily {
 			
 			case .systemMedium:
 				switch UIScreen.main.bounds.size.screenSize {
-				case .iPhone12ProMax: return CGSize(width: 364, height: 170)
-				case .iPhone12: return CGSize(width: 338, height: 158)
-				case .iPhone11ProMax: return CGSize(width: 360, height: 169)
+				case .iPhone12ProMax, .iPhone15ProMax: return CGSize(width: 364, height: 170)
+				case .iPhone12, .iPhone15Pro: return CGSize(width: 338, height: 158)
+				case .iPhone11Pro: return CGSize(width: 360, height: 169)
 				case .iPhoneX: return CGSize(width: 329, height: 155)
 				case .iPhoneSixPlus: return CGSize(width: 348, height: 159)
 				case .iPhoneSix: return CGSize(width: 321, height: 148)
@@ -84,9 +84,9 @@ public extension WidgetFamily {
 			case .systemLarge: fallthrough
 			default:
 				switch UIScreen.main.bounds.size.screenSize {
-				case .iPhone12ProMax: return CGSize(width: 364, height: 382)
-				case .iPhone12: return CGSize(width: 338, height: 354)
-				case .iPhone11ProMax: return CGSize(width: 360, height: 379)
+				case .iPhone12ProMax, .iPhone15ProMax, .iPhone14ProMax: return CGSize(width: 364, height: 382)
+				case .iPhone12, .iPhone15Pro, .iPhone14Pro: return CGSize(width: 338, height: 354)
+				case .iPhone11Pro: return CGSize(width: 360, height: 379)
 				case .iPhoneX: return CGSize(width: 329, height: 345)
 				case .iPhoneSixPlus: return CGSize(width: 348, height: 357)
 				case .iPhoneSix: return CGSize(width: 321, height: 324)

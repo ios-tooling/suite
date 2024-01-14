@@ -15,11 +15,13 @@ public extension CGSize {
 }
 
 public extension IntSize {
+	static let iPhone15ProMax = IntSize(screenW: 430, 932)
+	static let iPhone15Pro = IntSize(screenW: 393, 852)
 	static let iPhone14ProMax = IntSize(screenW: 430, 932)
-	static let iPhone12ProMax = IntSize(screenW: 428, 926)
 	static let iPhone14Pro = IntSize(screenW: 393, 852)
+	static let iPhone12ProMax = IntSize(screenW: 428, 926)
 	static let iPhone12 = IntSize(screenW: 390, 844)
-	static let iPhone11ProMax = IntSize(screenW: 414, 896)
+	static let iPhone11Pro = IntSize(screenW: 414, 896)
 	static let iPhoneX = IntSize(screenW: 375, 812)				// also IntSize(screenW: 360, 780)
 	static let iPhoneSixPlus = IntSize(screenW: 414, 736)
 	static let iPhoneSix = IntSize(screenW: 375, 667)
@@ -36,7 +38,7 @@ public extension IntSize {
 	static let iPadMini_6thGen = IntSize(screenW: 744, 1133)
 	static let iPadPro10_5_MoreSpace = IntSize(screenW: 954, 1373)		// also IntSize(screenW: 970, 1389)
 
-	static let phones: [IntSize] = [.iPhone, .iPhone5, .iPhoneSix, .iPhoneSixPlus, .iPhoneX, .iPhone11ProMax, .iPhone12, .iPhone12ProMax, .iPhone14Pro, .iPhone14ProMax]
+	static let phones: [IntSize] = [.iPhone, .iPhone5, .iPhoneSix, .iPhoneSixPlus, .iPhoneX, .iPhone11Pro, .iPhone12, .iPhone12ProMax, .iPhone14Pro, .iPhone14ProMax, iPhone15Pro, iPhone15ProMax]
 	static let pads: [IntSize] = [.iPadPro11, .iPadPro10_5, .iPadPro12_9, .iPadAir_4thGen, .iPad_7thGen, .iPad, .iPadPro12_9_MoreSpace, .iPadMini_6thGen, .iPadPro10_5_MoreSpace]
 
 	static func nearest(to size: CGSize) -> IntSize {
