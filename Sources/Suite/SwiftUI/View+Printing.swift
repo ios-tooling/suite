@@ -9,23 +9,25 @@ import SwiftUI
 
 let letterPageSize = CGSize(width: 612, height: 792)
 
-#if os(iOS) || os(macOS)
+#if os(iOS)
 public extension View {
-	@available(iOS 16.0, macOS 13.0, watchOS 99.0, *)
+	@available(iOS 16.0, macOS 99.0, watchOS 99.0, *)
 	@MainActor func imageForPrinting() -> UIImage? {
 		ImageRenderer(content: self.frame(width: letterPageSize.width, height: letterPageSize.height)).uiImage
 	}
 }
+#endif
 
+#if os(iOS) || os(macOS)
 public extension View {
 	@available(iOS 16.0, macOS 13.0, watchOS 99.0, *)
-    @MainActor func urlForPrintedPage(named: String, ignoreCache: Bool = false) -> URL? {
+	 @MainActor func urlForPrintedPage(named: String, ignoreCache: Bool = false) -> URL? {
 		let url = URL.cache(named: named)
 		if !ignoreCache, FileManager.default.fileExists(at: url) { return url }
 		guard let image = imageForPrinting() else { return nil }
 		
-        try? FileManager.default.removeItem(at: url)
-        guard let data = image.pngData() else { return nil }
+		  try? FileManager.default.removeItem(at: url)
+		  guard let data = image.pngData() else { return nil }
 		
 		do {
 			try data.write(to: url)

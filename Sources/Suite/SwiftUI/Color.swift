@@ -117,17 +117,6 @@ public extension Color {
 	}
 #endif
 
-#if os(macOS)
-import UIKit
-
-@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
-extension Color {
-	public static var systemBackground: Color { Color(UIColor.systemBackground) }
-	public static var systemLabel: Color { Color(UIColor.label) }
-	public static var tertiaryText: Color { Color(UIColor.tertiaryLabel) }
-}
-#endif
-
 #if os(iOS) || os(watchOS)
 	@available(iOS 14.0, tvOS 13, watchOS 7, *)
 	public extension Color {
