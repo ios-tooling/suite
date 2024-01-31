@@ -41,7 +41,7 @@ public extension Color {
 		Color(red: Int.random(in: 0...255), green: Int.random(in: 0...255), blue: Int.random(in: 0...255))
 	}
 
-	#if os(iOS) || os(macOS)
+	#if os(iOS) || os(macOS) || os(visionOS)
 		static func random(using rng: inout SeededRandomNumberGenerator) -> Color {
 			Color(red: Int.random(in: 0...255, using: &rng), green: Int.random(in: 0...255, using: &rng), blue: Int.random(in: 0...255, using: &rng))
 		}
@@ -106,7 +106,7 @@ public extension Color {
 
 #endif
 
-#if os(iOS)
+#if os(iOS) || os(visionOS)
 	import UIKit
 
 	@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
@@ -117,7 +117,7 @@ public extension Color {
 	}
 #endif
 
-#if os(iOS) || os(watchOS)
+#if os(iOS) || os(watchOS) || os(visionOS)
 	@available(iOS 14.0, tvOS 13, watchOS 7, *)
 	public extension Color {
 		var hex: String? {

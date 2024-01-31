@@ -26,7 +26,7 @@ public struct ImprovedFont {
 	}
 	
     public init(systemSize: CGFloat, weight: Font.Weight = .regular, design: Font.Design = .default) {
-        #if os(iOS)
+        #if os(iOS) || os(visionOS)
             family = UIFont.systemFont(ofSize: systemSize).familyName
         #endif
         #if os(OSX)

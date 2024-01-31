@@ -25,7 +25,7 @@ extension Color: Codable {
 	public func encode(to encoder: Encoder) throws {
 		var container = encoder.singleValueContainer()
 		
-		if let hex = self.hex {
+		if let hex {
 			try container.encode(hex)
 		}
 	}

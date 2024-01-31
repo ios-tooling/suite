@@ -8,7 +8,7 @@
 
 import Foundation
 
-#if os(iOS)
+#if os(iOS) || os(visionOS)
 	import UIKit
 #endif
 
@@ -72,7 +72,7 @@ public struct Gestalt {
 			} else {
 				return nil
 			}
-		#elseif os(iOS)
+		#elseif os(iOS) || os(visionOS)
 			return UIDevice.current.identifierForVendor?.uuidString
 		#elseif  os(macOS)
 			return serialNumber
@@ -115,7 +115,7 @@ public struct Gestalt {
 	#endif
 
 	
-	#if os(iOS)
+	#if os(iOS) || os(visionOS)
 		static public var sleepDisabled: Bool {
 			get { UIApplication.shared.isIdleTimerDisabled }
 			set { UIApplication.shared.isIdleTimerDisabled = newValue }

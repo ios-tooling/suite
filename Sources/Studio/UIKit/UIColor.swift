@@ -203,7 +203,7 @@ public extension String {
 	}
 }
 
-#if os(iOS) || os(watchOS)
+#if os(iOS) || os(watchOS) || os(visionOS)
 public extension Array where Element == UIColor {
 	var averageColor: UIColor? {
 		guard !isEmpty else { return nil }
