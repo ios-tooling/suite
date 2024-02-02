@@ -44,19 +44,31 @@ public struct SimpleWebViewWrapper: NSViewRepresentable {
 
 #if os(iOS) || os(visionOS)
 public struct SimpleWebViewWrapper: UIViewRepresentable {
-	let url: URL
+	let request: URLRequest
+	@State private var loadedRequest: URLRequest?
 	
 	public func updateUIView(_ uiView: UIViewType, context: Context) {
-		context.coordinator.webView.load(URLRequest(url: url))
+		load(request, into: context)
 	}
 	
 	public init(url: URL) {
-		self.url = url
+		self.request = URLRequest(url: url)
+	}
+	
+	public init(request: URLRequest) {
+		self.request = request
 	}
 	
 	public func makeUIView(context: Context) -> some UIView {
-		context.coordinator.webView.load(URLRequest(url: url))
+		load(request, into: context)
 		return context.coordinator.webView
+	}
+	
+	func load(_ request: URLRequest, into context: Context) {
+		if loadedRequest == request { return }
+		
+		loadedRequest = request
+		context.coordinator.webView.load(request)
 	}
 	
 	public func makeCoordinator() -> Coordinator {
