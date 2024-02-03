@@ -12,8 +12,8 @@ import SwiftUI
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
 public extension View {
-    #if os(iOS)
-	func toImage() -> UIImage? {
+    #if os(iOS) || os(visionOS)
+	func toImage(scale: CGFloat? = nil) -> UIImage? {
 		let controller = UIHostingController(rootView: self.edgesIgnoringSafeArea(.all))
 		let view = controller.view
 
@@ -21,7 +21,9 @@ public extension View {
 		view?.bounds = CGRect(origin: .zero, size: targetSize)
 		view?.backgroundColor = .clear
 
-		let renderer = UIGraphicsImageRenderer(size: targetSize)
+		let format = UIGraphicsImageRendererFormat()
+		if let scale { format.scale = scale }
+		let renderer = UIGraphicsImageRenderer(size: targetSize, format: format)
 
 		let image = renderer.image { _ in
 			 view?.drawHierarchy(in: controller.view.bounds, afterScreenUpdates: true)
