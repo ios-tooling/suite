@@ -1,6 +1,6 @@
 //
 //  Debouncer.swift
-//  
+//
 //
 //  Created by Ben Gottlieb on 11/28/22.
 //
@@ -13,6 +13,13 @@ public class Debouncer<Value>: ObservableObject {
 	@Published public var output: Value
 	
 	private var debounce: AnyCancellable?
+	
+	public func setInput(_ newInput: Value, withoutBounce: Bool) {
+		input = newInput
+		if withoutBounce {
+			output = newInput
+		}
+	}
 	
 	public init(initialValue: Value, delay: Double = 1) {
 		self.input = initialValue
