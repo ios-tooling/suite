@@ -14,9 +14,9 @@ public class Debouncer<Value>: ObservableObject {
 	
 	private var debounce: AnyCancellable?
 	
-	public func setInput(_ newInput: Value, withoutBounce: Bool) {
+	public func setInput(_ newInput: Value, withoutDebounce: Bool) {
 		input = newInput
-		if withoutBounce {
+		if withoutDebounce {
 			output = newInput
 		}
 	}
