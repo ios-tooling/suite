@@ -98,24 +98,35 @@ public struct Gestalt {
 	#if os(macOS)
 		public static var isOnIPad: Bool { false }
 		public static var isOnIPhone: Bool { false }
+		public static var isOnVision: Bool { false }
 	#endif
 	
 	#if os(watchOS)
 		public static var isOnWatch: Bool { true }
 		public static var isOnIPad: Bool { false }
 		public static var isOnIPhone: Bool { false }
+		public static var isOnVision: Bool { false }
 	#else
 		public static var isOnWatch: Bool { false }
 	#endif
 	
 	#if os(tvOS)
 		public static var isOnTV: Bool { true }
+		public static var isOnVision: Bool { false }
 	#else
 		public static var isOnTV: Bool { false }
 	#endif
 
 	
 	#if os(iOS) || os(visionOS)
+	
+		public static var isOnVision: Bool { 
+			if #available(iOS 17.0, *) {
+				UIDevice.current.userInterfaceIdiom == .vision
+			} else {
+				false
+			}
+		}
 		static public var sleepDisabled: Bool {
 			get { UIApplication.shared.isIdleTimerDisabled }
 			set { UIApplication.shared.isIdleTimerDisabled = newValue }
