@@ -196,6 +196,12 @@ public extension Date {
 	var hour: Int { self.components(which: .hour).hour ?? 0 }
 	var minute: Int { self.components(which: .minute).minute ?? 0 }
 	var second: Int { self.components(which: .second).second ?? 0 }
+	var doubleSecond: TimeInterval {
+		let interval = timeIntervalSinceReferenceDate
+		
+		return Double(second) + (interval - floor(interval))
+	}
+	
 	var dayOfWeek: DayOfWeek { DayOfWeek(rawValue: self.components(which: .weekday).weekday!) ?? .sunday }
 	var dayOfMonth: Int {
 		let date = Calendar.current.component(.day, from: self)
