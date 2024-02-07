@@ -169,11 +169,13 @@ extension WebConsole: WKNavigationDelegate {
 		originalNavigationDelegate?.webViewWebContentProcessDidTerminate?(webView)
 	}
 
+	@available(iOS 14.5, macOS 12, *)
 	public func webView(_ webView: WKWebView, navigationAction: WKNavigationAction, didBecome download: WKDownload) {
 		log(#function)
 		originalNavigationDelegate?.webView?(webView, navigationAction: navigationAction, didBecome: download)
 	}
 
+	@available(iOS 14.5, macOS 12, *)
 	public func webView(_ webView: WKWebView, navigationResponse: WKNavigationResponse, didBecome download: WKDownload) {
 		log(#function)
 		originalNavigationDelegate?.webView?(webView, navigationResponse: navigationResponse, didBecome: download)
