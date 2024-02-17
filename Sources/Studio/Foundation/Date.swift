@@ -105,6 +105,13 @@ public extension Date {
 	var isInPast: Bool {
 		timeIntervalSinceNow < 0
 	}
+	
+	var filename: String {
+		DateFormatter.iso8601
+			.string(from: self)
+			.replacingOccurrences(of: ":", with: "-")
+			.replacingOccurrences(of: "/", with: "-")
+	}
 }
 
 public func ≈≈(lhs: Date, rhs: Date) -> Bool {
