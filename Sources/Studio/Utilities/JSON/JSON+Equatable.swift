@@ -14,7 +14,10 @@ fileprivate extension Dictionary where Key == String {
 public func compareTwoJSONValues(lValue: Any?, rValue: Any?) -> Bool {
 	guard let lValue, let rValue else { return lValue == nil && rValue == nil }
 	
-	if let lInt = lValue as? Int, let rInt = rValue as? Int {
+	if let lBool = lValue as? Bool, let rBool = rValue as? Bool {
+		return lBool == rBool
+	}
+	if let lInt = integer(from: lValue), let rInt = integer(from: rValue) {
 		return lInt == rInt
 	}
 	if let lString = lValue as? String, let rString = rValue as? String {
@@ -41,13 +44,22 @@ public func compareTwoJSONValues(lValue: Any?, rValue: Any?) -> Bool {
 	return false
 }
 
+fileprivate func integer(from value: Any) -> Int? {
+	if let int = value as? Int { return int }
+	if let double = value as? Double, double == floor(double) { return Int(double) }
+	if let float = value as? Float, float == floor(float) { return Int(float) }
+	return nil
+}
+
 
 public func compareTwoJSONDictionaries(lDictionary: [String: Any]?, rDictionary: [String: Any]?) -> Bool {
 	guard let lDictionary, let rDictionary else { return lDictionary == nil && rDictionary == nil }
 	if lDictionary.sortedKeys != rDictionary.sortedKeys { return false }
 	
 	for (key, lValue) in lDictionary {
-		if !compareTwoJSONValues(lValue: lValue, rValue: rDictionary[key]) { return false }
+		if !compareTwoJSONValues(lValue: lValue, rValue: rDictionary[key]) {
+			return false
+		}
 	}
 	return true
 }
@@ -57,7 +69,9 @@ public func compareTwoJSONArrays(lArray: [Any]?, rArray: [Any]?) -> Bool {
 	if lArray.count != rArray.count { return false }
 	
 	for index in lArray.indices {
-		if !compareTwoJSONValues(lValue: lArray[index], rValue: rArray[index]) { return false }
+		if !compareTwoJSONValues(lValue: lArray[index], rValue: rArray[index]) {
+			return false
+		}
 	}
 	return true
 }

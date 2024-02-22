@@ -18,6 +18,20 @@ extension Data: JSONDataType { }
 extension Dictionary: JSONDataType where Key == String, Value: JSONDataType { }
 extension Array: JSONDataType where Element: JSONDataType { }
 
+
+public func isJSON(_ any: Any) -> Bool {
+	if let dict = any as? [String: Any] {
+		for (_, value) in dict { if !isJSON(value) { return false }}
+		return true
+	}
+
+	if let array = any as? [Any] {
+		for value in array { if !isJSON(value) { return false }}
+		return true
+	}
+	return any is JSONDataType
+}
+
 public typealias JSONDictionary = [String: Any]
 
 public extension JSONDictionary {
