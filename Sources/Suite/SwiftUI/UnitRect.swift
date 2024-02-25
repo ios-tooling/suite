@@ -7,6 +7,14 @@
 
 import SwiftUI
 
+public func +(lhs: UnitPoint, rhs: UnitSize) -> UnitPoint {
+	UnitPoint(x: lhs.x + rhs.width, y: lhs.y + rhs.height)
+}
+
+public func +=(lhs: inout UnitPoint, rhs: UnitSize) {
+	lhs = lhs + rhs
+}
+
 public struct UnitSize: Hashable, Sendable, Equatable, CustomStringConvertible, Codable {
 	public var width: CGFloat
 	public var height: CGFloat
@@ -14,6 +22,10 @@ public struct UnitSize: Hashable, Sendable, Equatable, CustomStringConvertible, 
 	public init(width: CGFloat, height: CGFloat) {
 		self.width = width
 		self.height = height
+	}
+	
+	public init(_ child: CGSize, in parent: CGRect) {
+		self.init(width: child.width / parent.width, height: child.height / parent.height)
 	}
 	
 	public static var full = UnitSize(width: 1.0, height: 1.0)
