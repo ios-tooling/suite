@@ -17,6 +17,7 @@ public extension CGSize {
 
     var largestDimension: CGFloat { max(width, height) }
     var smallestDimension: CGFloat { min(width, height) }
+	 var magnitude: CGFloat { sqrt(pow(width, 2) + pow(height, 2)) }
 
     enum AspectRatioType: Int { case portrait, landscape, square }
     func scaled(within limit: CGSize) -> CGSize {
@@ -33,9 +34,9 @@ public extension CGSize {
     }
     
     var isSquare: Bool { return self.width > 0 && self.width == self.height }
-    var rect: CGRect { return CGRect(x: 0, y: 0, width: self.width, height: self.height) }
+    var rect: CGRect { return CGRect(x: 0, y: 0, width: width, height: height) }
 
-    func rounded() -> CGSize { return CGSize(width: roundcgf(value: self.width), height: roundcgf(value: self.height) )}
+    func rounded() -> CGSize { return CGSize(width: roundcgf(value: width), height: roundcgf(value: height) )}
 
     var aspectRatio: CGFloat { return self.width / self.height }
     var aspectRatioType: AspectRatioType {

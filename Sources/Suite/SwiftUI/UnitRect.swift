@@ -24,7 +24,7 @@ public struct UnitSize: Hashable, Sendable, Equatable, CustomStringConvertible, 
 		self.height = height
 	}
 	
-	public init(_ child: CGSize, in parent: CGRect) {
+	public init(_ child: CGSize, in parent: CGSize) {
 		self.init(width: child.width / parent.width, height: child.height / parent.height)
 	}
 	
