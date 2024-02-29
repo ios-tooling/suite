@@ -27,6 +27,8 @@ public struct IntPoint: Codable, Equatable, CustomStringConvertible {
 	public init(_ x: Int, _ y: Int) { self.x = x; self.y = y }
 	public static let zero = IntPoint(0, 0)
 	public var description: String { "(\(x), \(y))" }
+	
+	public var magnitude: Int { x * y }
 }
 
 extension IntSize {
