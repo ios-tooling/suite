@@ -24,6 +24,11 @@ public struct UnitSize: Hashable, Sendable, Equatable, CustomStringConvertible, 
 		self.height = height
 	}
 	
+	public init(_ width: CGFloat, _ height: CGFloat) {
+		self.width = width
+		self.height = height
+	}
+	
 	public init(_ child: CGSize, in parent: CGSize) {
 		self.init(width: child.width / parent.width, height: child.height / parent.height)
 	}
@@ -32,6 +37,9 @@ public struct UnitSize: Hashable, Sendable, Equatable, CustomStringConvertible, 
 	public static var zero = UnitSize(width: 0, height: 0)
 	
 	public var description: String { "\(width.pretty()) x \(height.pretty())"}
+	public func atLeast(_ size: UnitSize) -> UnitSize {
+		.init(width: max(size.width, width), height: max(size.height, height))
+	}
 }
 
 public struct UnitRect: Hashable, Sendable, Equatable, CustomStringConvertible, Codable {

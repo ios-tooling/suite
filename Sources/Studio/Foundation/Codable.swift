@@ -233,25 +233,25 @@ public extension Decodable where Self: Encodable {
 	}
 }
 
-enum RawRepresentableError: Error { case unknownRawValue(Any.Type, String) }
-
-extension RawRepresentable where RawValue == String, Self: Codable {
-	public init(from decoder: Decoder) throws {
-		let container = try decoder.singleValueContainer()
-		let rawValue = try container.decode(String.self)
-
-		if let newValue = Self.init(rawValue: rawValue) {
-			self = newValue
-		} else {
-			throw RawRepresentableError.unknownRawValue(Self.self, rawValue)
-		}
-	}
-	
-	public func encode(to encoder: Encoder) throws {
-		var container = encoder.singleValueContainer()
-		try container.encode(rawValue)
-	}
-}
+//enum RawRepresentableError: Error { case unknownRawValue(Any.Type, String) }
+//
+//extension RawRepresentable where RawValue == String, Self: Codable {
+//	public init(from decoder: Decoder) throws {
+//		let container = try decoder.singleValueContainer()
+//		let rawValue = try container.decode(String.self)
+//
+//		if let newValue = Self.init(rawValue: rawValue) {
+//			self = newValue
+//		} else {
+//			throw RawRepresentableError.unknownRawValue(Self.self, rawValue)
+//		}
+//	}
+//	
+//	public func encode(to encoder: Encoder) throws {
+//		var container = encoder.singleValueContainer()
+//		try container.encode(rawValue)
+//	}
+//}
 
 extension RawRepresentable where RawValue == Int, Self: Codable {
 	public init(from decoder: Decoder) throws {
