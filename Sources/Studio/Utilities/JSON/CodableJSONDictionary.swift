@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct CodableJSONDictionary: Codable, Equatable {
+public struct CodableJSONDictionary: Codable, Equatable, Hashable {
 	public static func == (lhs: CodableJSONDictionary, rhs: CodableJSONDictionary) -> Bool {
 		compareTwoJSONDictionaries(lDictionary: lhs.backing, rDictionary: rhs.backing)
 	}
@@ -19,6 +19,15 @@ public struct CodableJSONDictionary: Codable, Equatable {
 		set {
 			if let newValue, !isJSON(newValue) { dlogg("Trying to assign a non-JSON value: \(key): \(newValue)") }
 			backing[key] = newValue
+		}
+	}
+	
+	public func hash(into hasher: inout Hasher) {
+		for (key, value) in dictionary {
+			hasher.combine(key)
+			if let hash = value as? any Hashable {
+				hasher.combine(hash)
+			}
 		}
 	}
 	
