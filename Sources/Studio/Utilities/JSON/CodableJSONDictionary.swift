@@ -14,6 +14,9 @@ public struct CodableJSONDictionary: Codable, Equatable, Hashable {
 	
 	public var dictionary: [String: Any] { backing }
 	
+	public init() { backing = [:] }
+	public static var empty = CodableJSONDictionary()
+	
 	public subscript(key: String) -> Any? {
 		get { backing[key] }
 		set {
@@ -33,9 +36,15 @@ public struct CodableJSONDictionary: Codable, Equatable, Hashable {
 	
 	var backing: [String: Any]
 	
+	public init(_ json: [String: Any]) {
+		backing = json.filter { key, value in
+			value is JSONDataType
+		}
+	}
+	
 	public init?(_ json: [String: Any]?) {
 		guard let json else { return nil }
-		backing = json
+		self.init(json)
 	}
 	
 	public init(from decoder: Decoder) throws {
@@ -47,6 +56,14 @@ public struct CodableJSONDictionary: Codable, Equatable, Hashable {
 	public func encode(to encoder: Encoder) throws {
 		var container = encoder.container(keyedBy: JSONCodingKey.self)
 		try container.encode(backing)
+	}
+}
+
+extension CodableJSONDictionary: ExpressibleByDictionaryLiteral {
+	public init(dictionaryLiteral elements: (String, Any)...) {
+		let dict = elements.reduce(into: [:]) { $0[$1.0] = $1.1 }
+		
+		self.init(dict)
 	}
 }
 
