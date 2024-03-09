@@ -22,7 +22,7 @@ extension KeyedDecodingContainer where K == JSONCodingKey {
 	func decodeJSONValue(forKey codingKey: JSONCodingKey, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .iso8601) throws -> Any {
 		if let string = try? decode(String.self, forKey: codingKey) {
 			if let date = dateDecodingStrategy.date(from: string) { return date }
-			if let data = Data(base64Encoded: string) { return data }
+			if CodableJSONDictionary.dataKeyNames.contains(codingKey.stringValue), let data = Data(base64Encoded: string) { return data }
 			return string
 		}
 

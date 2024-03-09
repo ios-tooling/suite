@@ -13,6 +13,7 @@ public struct CodableJSONDictionary: Codable, Equatable, Hashable {
 	}
 	
 	public var dictionary: [String: Any] { backing }
+	public static var dataKeyNames: [String] = []
 	
 	public init() { backing = [:] }
 	public static var empty = CodableJSONDictionary()
