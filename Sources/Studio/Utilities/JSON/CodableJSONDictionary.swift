@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct CodableJSONDictionary: Codable, Equatable, Hashable {
+public struct CodableJSONDictionary: Codable, Equatable, Hashable, Sendable {
 	public static func == (lhs: CodableJSONDictionary, rhs: CodableJSONDictionary) -> Bool {
 		compareTwoJSONDictionaries(lDictionary: lhs.backing, rDictionary: rhs.backing)
 	}
@@ -35,7 +35,7 @@ public struct CodableJSONDictionary: Codable, Equatable, Hashable {
 		}
 	}
 	
-	var backing: [String: Any]
+	var backing: [String: any Sendable]
 	
 	public init(_ json: [String: Any]) {
 		backing = json.filter { key, value in

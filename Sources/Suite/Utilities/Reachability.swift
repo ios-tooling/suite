@@ -2,7 +2,7 @@ import Network
 import Foundation
 
 @available(macOS 10.14, iOS 12.0, watchOS 5.0, tvOS 12.0, *)
-public class Reachability: ObservableObject {
+@MainActor public class Reachability: ObservableObject {
 	public static let instance = Reachability()
 
 	private let pathMonitor = NWPathMonitor()
@@ -13,7 +13,7 @@ public class Reachability: ObservableObject {
 	
 	init(queue: DispatchQueue = .main) {
 		self.queue = queue
-		start()
+		Task { await start() }
 	}
 
 	public func setup() { }
@@ -26,7 +26,7 @@ public class Reachability: ObservableObject {
 		}
 	}
 	
-	func start() {
+	func start() async {
 		if isMonitoring { return }
 		pathMonitor.pathUpdateHandler = { [weak self] path in
 			self?.objectWillChange.sendOnMain()
@@ -34,12 +34,11 @@ public class Reachability: ObservableObject {
 		}
 		isMonitoring = true
 		objectWillChange.sendOnMain()
-		DispatchQueue.main.async(after: 0.25) {
-			self.objectWillChange.send()
-			self.isStartingUp = false
-			self.startupContinuation?.resume(returning: !self.isOffline)
-			self.startupContinuation = nil
-		}
+		try? await Task.sleep(nanoseconds: 250_000_000)
+		self.isStartingUp = false
+		self.startupContinuation?.resume(returning: !self.isOffline)
+		self.startupContinuation = nil
+		objectWillChange.send()
 		pathMonitor.start(queue: queue)
 	}
 	
