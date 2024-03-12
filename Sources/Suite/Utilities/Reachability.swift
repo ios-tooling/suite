@@ -73,7 +73,7 @@ public extension Reachability {
 	}
 	var isOffline: Bool { return connection == .unavailable }
 
-	enum Connection: CustomStringConvertible {
+	enum Connection: CustomStringConvertible, Sendable {
 		case none, unavailable, wifi, cellular, ethernet, loopback, other
 		public var description: String {
 			switch self {

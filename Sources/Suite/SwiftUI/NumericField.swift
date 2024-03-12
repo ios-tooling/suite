@@ -70,7 +70,7 @@ extension NSNumber {
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
 public struct NumericField<Number: NumericFieldNumber>: View {
-    public enum AllowedSigns { case negative, positive, both }
+	public enum AllowedSigns: Sendable { case negative, positive, both }
 	public var placeholder: String
 	@Binding public var number: Number
 	public var formatter: NumberFormatter

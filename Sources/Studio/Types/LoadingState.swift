@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum LoadingState<Value> { case idle, loading, empty, failed(Error), loaded(Value)
+public enum LoadingState<Value: Sendable>: Sendable { case idle, loading, empty, failed(Error), loaded(Value)
 	public static func ==(lhs: LoadingState, rhs: LoadingState) -> Bool {
 		switch (lhs, rhs) {
 		case (.idle, .idle): return true

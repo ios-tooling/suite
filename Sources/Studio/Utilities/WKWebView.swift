@@ -8,7 +8,7 @@
 import Foundation
 import WebKit
 
-enum WKWebViewError: Error { case unableToExtractHTML, noDataReturned, badDataReturned }
+enum WKWebViewError: Error, Sendable { case unableToExtractHTML, noDataReturned, badDataReturned }
 
 public extension WKWebView {
 	@MainActor var html: String {

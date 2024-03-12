@@ -90,7 +90,7 @@ public class DataCache: Cache<Data> {
 }
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
-public enum CacheError: Error, LocalizedError { case noURL, notFound(URL), unknownResponse(URL?), noLocalItemFound(URL), failedToDecode(URL, URL, Error), failedToUnCache(URL), failedToUnCacheFromDisk(URL), failedToDownload(URL, Data), failedToDownloadServerError(URL, Error)
+public enum CacheError: Error, LocalizedError, Sendable { case noURL, notFound(URL), unknownResponse(URL?), noLocalItemFound(URL), failedToDecode(URL, URL, Error), failedToUnCache(URL), failedToUnCacheFromDisk(URL), failedToDownload(URL, Data), failedToDownloadServerError(URL, Error)
 	public var errorDescription: String? {
 		switch self {
         case CacheError.noURL: return "no URL provided"

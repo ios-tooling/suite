@@ -25,7 +25,7 @@ open class URLImporter {
 
 	public init() { }
 	
-	public enum State { case idle, importing }
+	public enum State: Sendable { case idle, importing }
 	
 	weak var importTimer: Timer?
 	var pendingURLs: [URL] = []

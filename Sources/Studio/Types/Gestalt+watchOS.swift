@@ -10,7 +10,7 @@ import Foundation
 import WatchKit
 
 public extension Gestalt {
-	enum WatchCaseSize: Int { case watch38mm = 38, watch40mm = 40, watch41mm = 41, watch42mm = 42, watch44mm = 44, watch45mm = 45, larger = 100 }
+	enum WatchCaseSize: Int, Sendable { case watch38mm = 38, watch40mm = 40, watch41mm = 41, watch42mm = 42, watch44mm = 44, watch45mm = 45, larger = 100 }
 	
 	static var caseSize: WatchCaseSize {
 		if let raw = modelName.components(separatedBy: " ").last?.trimmingCharacters(in: .init(charactersIn: "m")), let size = Int(raw), let caseSize = WatchCaseSize(rawValue: size) { return caseSize }

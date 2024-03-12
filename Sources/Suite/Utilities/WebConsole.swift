@@ -12,7 +12,7 @@ import WebKit
 public class WebConsole: NSObject, ObservableObject {
 	public private(set) var webView: WKWebView?
 	
-	public enum State { case idle, starting(URL?), loading(URLRequest?), loaded(URLRequest?), failed(URLRequest?, Error) }
+	public enum State: Sendable { case idle, starting(URL?), loading(URLRequest?), loaded(URLRequest?), failed(URLRequest?, Error) }
 	
 	@Published public var state: State = .idle
 	@Published public var loadedURL: URL?

@@ -8,7 +8,7 @@
 import Foundation
 
 public extension Date {
-	enum DateTagStyle: String {
+	enum DateTagStyle: String, Sendable {
 		case compact = "%d-%d-%d.%d.%d"
 		case seconds = "%d-%d-%d.%d.%d.%d"
 

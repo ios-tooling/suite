@@ -64,8 +64,8 @@ public class SuiteLogger {
 		redirected = block
 	}
 	
-	public enum Special { case `break` }
-	public enum Level: Int, Comparable {
+	public enum Special: Sendable { case `break` }
+	public enum Level: Int, Comparable, Sendable {
 		case off, quiet, mild, loud, verbose
 		public static func <(lhs: Level, rhs: Level) -> Bool { return lhs.rawValue < rhs.rawValue }
 	}

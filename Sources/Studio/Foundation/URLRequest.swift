@@ -8,7 +8,7 @@
 import Foundation
 
 public extension URLRequest {
-	enum RequestMethod: String { case get, put, post, delete, head, connect, patch, options, trace }
+	enum RequestMethod: String, Sendable { case get, put, post, delete, head, connect, patch, options, trace }
 	
 	var requestMethod: RequestMethod {
 		get { RequestMethod(rawValue: httpMethod?.lowercased() ?? "") ?? .get }

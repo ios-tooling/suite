@@ -16,7 +16,7 @@ public struct OnDemandFetcher {
 		let dictionary: [String: String]
 	}
 	
-	enum OnDemandResourceError: Error { case resourceNotFound }
+	enum OnDemandResourceError: Error, Sendable { case resourceNotFound }
 	
 	public static func fetchDictionary(key: String, version: Int = 1) async throws -> [String: String] {
 		let keychainKey = "ondemand_\(key)"

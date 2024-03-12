@@ -19,7 +19,7 @@ public extension CGSize {
     var smallestDimension: CGFloat { min(width, height) }
 	 var magnitude: CGFloat { sqrt(pow(width, 2) + pow(height, 2)) }
 
-    enum AspectRatioType: Int { case portrait, landscape, square }
+    enum AspectRatioType: Int, Sendable { case portrait, landscape, square }
     func scaled(within limit: CGSize) -> CGSize {
         let myAspectRatio = self.width / self.height
         let theirAspectRatio = limit.width / limit.height

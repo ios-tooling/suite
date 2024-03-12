@@ -16,7 +16,7 @@ public extension Optional where Wrapped: Comparable {
 }
 
 public extension Optional {
-	enum UnwrappedOptionalError: Error { case failedToUnwrap }
+	enum UnwrappedOptionalError: Error, Sendable { case failedToUnwrap }
 	func unwrap() throws -> Wrapped {
 		switch self {
 		case .none: throw UnwrappedOptionalError.failedToUnwrap

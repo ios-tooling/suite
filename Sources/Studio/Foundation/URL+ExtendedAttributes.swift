@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum ExtendedAttributeError: Error {
+public enum ExtendedAttributeError: Error, Sendable {
 	case notAFile
 	case noAttributeFound
 	case posixError(Int32)

@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum JSONDecodingError: Error { case invalidKey, noJSONValueFound }
+enum JSONDecodingError: Error, Sendable { case invalidKey, noJSONValueFound }
 
 extension KeyedDecodingContainer where K == JSONCodingKey {
 	func decodeJSONDictionary(dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .iso8601) throws -> [String: Any] {

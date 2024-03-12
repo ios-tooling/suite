@@ -8,7 +8,7 @@
 import Foundation
 
 public extension Date {
-	enum DateStringStyle { case none, minimal, abbr, short, medium, long, full
+	enum DateStringStyle: Sendable { case none, minimal, abbr, short, medium, long, full
 		var dateFormatterStyle: DateFormatter.Style {
 			switch self {
 			case .none: return .none

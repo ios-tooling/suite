@@ -113,7 +113,7 @@ public struct RefreshableScrollView<Content: View>: View {
 }
 
 struct RefreshableKeyTypes {
-	enum ViewType: Int {
+	enum ViewType: Int, Sendable {
 		case scrollTracking
 		case boundsTracking
 	}

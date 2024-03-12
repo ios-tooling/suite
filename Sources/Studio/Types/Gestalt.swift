@@ -22,7 +22,7 @@ import Foundation
 
 
 public struct Gestalt {
-	public enum Distribution { case development, testflight, appStore }
+	public enum Distribution: Sendable { case development, testflight, appStore }
 	
 	
 	public static var distribution: Distribution {
@@ -42,7 +42,7 @@ public struct Gestalt {
 			#endif
 		#endif
 	}
-	public enum DebugLevel: Int, Comparable { case none, testFlight, internalTesting, debugging
+	public enum DebugLevel: Int, Comparable, Sendable { case none, testFlight, internalTesting, debugging
 		public static func < (lhs: Gestalt.DebugLevel, rhs: Gestalt.DebugLevel) -> Bool { return lhs.rawValue < rhs.rawValue }
 	}
 	public static var debugLevel = Gestalt.isAttachedToDebugger ? DebugLevel.debugging : DebugLevel.none
@@ -144,7 +144,7 @@ public struct Gestalt {
 			return Int(UIDevice.current.systemVersion.components(separatedBy: ".").first ?? "") ?? 0
 		}()
 	
-		enum SimulatorHostInfo: Int, CaseIterable { case sysname = 0, nodename, release, version, machine }
+		enum SimulatorHostInfo: Int, CaseIterable, Sendable { case sysname = 0, nodename, release, version, machine }
 		static func getSimulatorHostInfo(which: SimulatorHostInfo) -> String? {
 			let structSize = MemoryLayout<utsname>.size
 			let fieldSize = structSize / SimulatorHostInfo.allCases.count

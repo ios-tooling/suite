@@ -24,9 +24,9 @@ extension Date: Identifiable {
 
 
 public extension Date {
-	enum StringLength: Int { case normal, short, veryShort }
+	enum StringLength: Int, Sendable { case normal, short, veryShort }
 	
-	enum DayOfWeek: Int, CaseIterable, Codable, Comparable, CustomStringConvertible { case sunday = 1, monday, tuesday, wednesday, thursday, friday, saturday
+	enum DayOfWeek: Int, CaseIterable, Codable, Comparable, CustomStringConvertible, Sendable { case sunday = 1, monday, tuesday, wednesday, thursday, friday, saturday
 		public var nextDay: DayOfWeek { increment(count: 1) }
 		public var previousDay: DayOfWeek { increment(count: 6) }
 		public func increment(count: Int) -> DayOfWeek { return DayOfWeek(rawValue: (self.rawValue + count - 1) % 7 + 1)! }
@@ -63,7 +63,7 @@ public extension Date {
 		}
 	}
 	
-	enum Month: Int, CaseIterable, Codable, Comparable { case jan = 1, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec
+	enum Month: Int, CaseIterable, Codable, Comparable, Sendable { case jan = 1, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec
 		public var nextMonth: Month { return self.increment(by: 1) }
 		public func increment(by: Int) -> Month { return Month(rawValue: (self.rawValue + by - 1) % 12 + 1)! }
 		public var abbrev: String { return Calendar.current.veryShortMonthSymbols[self.rawValue] }
@@ -550,7 +550,7 @@ extension Set where Element == Calendar.Component {
 }
 
 public extension Date {
-	enum Meridian { case am, pm }
+	enum Meridian: Sendable { case am, pm }
 	
 	var meridian: Meridian {
 		get { hour < 12 ? .am : .pm }

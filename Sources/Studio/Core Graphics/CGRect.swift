@@ -31,7 +31,7 @@ public extension CGRect {
 	#if os(iOS)
 		typealias Placement = UIView.ContentMode
 	#else
-		enum Placement: Int { case scaleToFill, scaleAspectFit, scaleAspectFill, none, center, top, bottom, left, right, topLeft, topRight, bottomLeft, bottomRight }
+		enum Placement: Int, Sendable { case scaleToFill, scaleAspectFit, scaleAspectFill, none, center, top, bottom, left, right, topLeft, topRight, bottomLeft, bottomRight }
 	#endif
 	
 	var xRange: Range<Double> { minX..<maxX }
@@ -64,7 +64,7 @@ extension CGRect: StringInitializable {
 }
 
 extension CGRect.Placement: Codable {
-    public enum PlacementError: Error { case invalidIntegerValue, invalidStringValue, noValue }
+    public enum PlacementError: Error, Sendable { case invalidIntegerValue, invalidStringValue, noValue }
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         if let int = try? container.decode(Int.self) {

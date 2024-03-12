@@ -86,7 +86,7 @@ public extension Data {
 }
 
 public extension Data {
-	enum DataReadError: Error { case tooShort }
+	enum DataReadError: Error, Sendable { case tooShort }
 	func peek<DataStructure>(type: DataStructure.Type) throws -> DataStructure {
 		let size = MemoryLayout<DataStructure>.size
 		if count < size { throw DataReadError.tooShort }

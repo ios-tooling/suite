@@ -201,7 +201,7 @@ public extension JSONEncoder {
 public extension JSONDecoder {
 	static var `default` = JSONDecoder()
 	
-	enum DecodingError: Error { case unknownKey(String), badString, jsonDecodeFailed, fileNotFound }
+	enum DecodingError: Error, Sendable { case unknownKey(String), badString, jsonDecodeFailed, fileNotFound }
 }
 
 @available(iOS 10.0, *)

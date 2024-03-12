@@ -13,7 +13,7 @@ public struct SideDrawerContainer<Content: View>: View {
 	let side: Side
 	let content: (Binding<Bool>) -> Content
 
-	public enum Side { case leading, trailing }
+	public enum Side: Sendable { case leading, trailing }
 	
 	public init(isShown: Binding<Bool>, side: Side = .leading, content: @escaping (Binding<Bool>) -> Content) {
 		self.content = content

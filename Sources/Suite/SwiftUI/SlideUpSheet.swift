@@ -64,7 +64,7 @@ extension EnvironmentValues {
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
 @available(iOSApplicationExtension, unavailable)
 public struct SlideUpSheet<Content: View>: View {
-	public enum DragStyle { case handle, noHandle, noDrag }
+	public enum DragStyle: Sendable { case handle, noHandle, noDrag }
 	let dragStyle: DragStyle
 	let blockBackground: Bool
 	@Binding var show: Bool

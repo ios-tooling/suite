@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-enum ViewPDFError: Error { case unableToCreateContext }
+enum ViewPDFError: Error, Sendable { case unableToCreateContext }
 
 @available(iOS 16.0, macOS 14, watchOS 10, *)
 @MainActor public extension View {

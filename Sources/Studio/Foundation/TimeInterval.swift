@@ -26,7 +26,7 @@ public extension TimeInterval {
 	var leftoverMinutes: Int { return Int(self / .minute) % 60 }
 	var leftoverSeconds: Int { return Int(self) % 60 }
 
-	enum DurationStyle { case hours, minutes, secondsMaybeHours, secondsNoHours, seconds, deciseconds, centiseconds, milliseconds }
+	enum DurationStyle: Sendable { case hours, minutes, secondsMaybeHours, secondsNoHours, seconds, deciseconds, centiseconds, milliseconds }
 	
 	static var durationFormatter = DateComponentsFormatter()
 	static var centisecondFormatter: NumberFormatter = {
@@ -104,7 +104,7 @@ public extension TimeInterval {
 		(self).truncatingRemainder(dividingBy: 1)
 	}
 
-	enum DurationAbbreviation { case none, short, veryShort
+	enum DurationAbbreviation: Sendable { case none, short, veryShort
 		var hour: String {
 			switch self {
 			case .none: return "hour"

@@ -130,7 +130,7 @@ public extension UnitPoint {
 }
 
 extension UnitPoint: Codable {
-    enum CodingKeys: String, CodingKey { case x, y }
+    enum CodingKeys: String, CodingKey, Sendable { case x, y }
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         

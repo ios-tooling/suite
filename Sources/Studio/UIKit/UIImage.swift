@@ -8,7 +8,7 @@
 #if canImport(UIKit)
 import UIKit
 
-public enum ImageFormat: String { case PNG = "png", JPEG = "jpeg"
+public enum ImageFormat: String, Sendable { case PNG = "png", JPEG = "jpeg"
 	public var mimeType: String {
 		switch self {
 		case .PNG: return "image/png"
@@ -26,7 +26,7 @@ public extension UIImage {
 }
 
 public extension UIImage {
-	enum ImageStoreError: Error { case nonLocalURL, unableToConverToData }
+	enum ImageStoreError: Error, Sendable { case nonLocalURL, unableToConverToData }
 	func store(in url: URL) throws {
 		if !url.isFileURL { throw ImageStoreError.nonLocalURL }
 		guard let data = self.pngData() else { throw ImageStoreError.unableToConverToData }
