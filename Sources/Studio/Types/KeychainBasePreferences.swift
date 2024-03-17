@@ -38,9 +38,9 @@ import Foundation
 			for child in mirror.children {
 				guard let label = child.label, let key = key(from: child.label) else { continue }
 				
-				if let value = Keychain.instance.string(forKey: key) {
+				if let value = Keychain.string(forKey: key) {
 					self.setValue(value, forKey: label)
-				} else if let value = Keychain.instance.data(forKey: key) {
+				} else if let value = Keychain.data(forKey: key) {
 					self.setValue(value, forKey: label)
 				}
 
@@ -59,7 +59,7 @@ import Foundation
 	}
 	
 	open func clearValue(forKey key: String) {
-		Keychain.instance.delete(key)
+		Keychain.delete(key)
 	}
 	
 	open override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
@@ -71,11 +71,11 @@ import Foundation
 				let keychainKey = key
 				let newValue = change?[.newKey]
 				if let value = newValue as? String {
-					Keychain.instance.set(value, forKey: keychainKey)
+					Keychain.set(value, forKey: keychainKey)
 				} else if let value = newValue as? Data {
-					Keychain.instance.set(value, forKey: keychainKey)
+					Keychain.set(value, forKey: keychainKey)
 				} else {
-					Keychain.instance.delete(keychainKey)
+					Keychain.delete(keychainKey)
 				}
 				Notification.postOnMainThread(name: self.notificationName(forKey: key))
 				return

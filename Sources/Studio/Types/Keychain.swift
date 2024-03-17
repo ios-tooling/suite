@@ -1,21 +1,36 @@
 import Security
 import Foundation
-
+import Combine
 
 open class Keychain {
-	public static let instance = Keychain()
-	/// Contains result code from the last operation. Value is noErr (0) for a successful result.
-	open var lastResultCode: OSStatus = noErr
+	public static let lastResultCodeSubject: CurrentValueSubject<OSStatus, Never> = .init(OSStatus(noErr))
+	public static var lastResultCode: OSStatus {
+		get { lastResultCodeSubject.value }
+		set { lastResultCodeSubject.value = newValue }
+	}
+
 	
+	///Specify an access group that will be used to access keychain items. Access groups can be used to share keychain items between applications. When access group value is nil all application access groups are being accessed. Access group name is used by all functions: set, get, delete and clear.
 	
-	/**
-	
-	Specify an access group that will be used to access keychain items. Access groups can be used to share keychain items between applications. When access group value is nil all application access groups are being accessed. Access group name is used by all functions: set, get, delete and clear.
-	
-	*/
-	open var accessGroup: String?
-	
-	
+	public static let accessGroupSubject: CurrentValueSubject<String?, Never> = .init(nil)
+	public static var accessGroup: String? {
+		get { accessGroupSubject.value }
+		set { accessGroupSubject.value = newValue }
+	}
+
+	public static let keyPrefixSubject: CurrentValueSubject<String?, Never> = .init(nil)
+	public static var keyPrefix: String? {
+		get { keyPrefixSubject.value }
+		set { keyPrefixSubject.value = newValue }
+	}
+
+	public static let synchronizableSubject: CurrentValueSubject<Bool, Never> = .init(false)
+	public static var synchronizable: Bool {
+		get { synchronizableSubject.value }
+		set { synchronizableSubject.value = newValue }
+	}
+
+
 	/**
 	
 	Specifies whether the items can be synchronized with other devices through iCloud. Setting this property to true will add the item to other devices with the `set` method and obtain synchronizable items with the `get` command. Deleting synchronizable items will remove them from all devices. In order for keychain synchronization to work the user must enable "Keychain" in iCloud settings.
@@ -23,7 +38,7 @@ open class Keychain {
 	open var synchronizable: Bool = false
 	open var keyPrefix: String?
 	
-	private let queue = DispatchQueue(label: "keychain", qos: .userInteractive)
+	private static let queue = DispatchQueue(label: "keychain", qos: .userInteractive)
 	private init() { }
 	
 	/**
@@ -38,12 +53,12 @@ open class Keychain {
 	
 	*/
 	@discardableResult
-	open func set(_ value: String?, forKey key: String, withAccess access: AccessOptions? = nil) -> Bool {
+	static public func set(_ value: String?, forKey key: String, withAccess access: AccessOptions? = nil) -> Bool {
 		return set(value?.data(using: String.Encoding.utf8), forKey: key, withAccess: access)
 	}
 	
 	@discardableResult
-	open func set(_ value: Double, forKey key: String, withAccess access: AccessOptions? = nil) -> Bool {
+	static public func set(_ value: Double, forKey key: String, withAccess access: AccessOptions? = nil) -> Bool {
 		return set("\(value)", forKey: key, withAccess: access)
 	}
 	
@@ -59,7 +74,7 @@ open class Keychain {
 	
 	*/
 	@discardableResult
-	open func set(_ value: Data?, forKey key: String, withAccess access: AccessOptions? = nil) -> Bool {
+	static public func set(_ value: Data?, forKey key: String, withAccess access: AccessOptions? = nil) -> Bool {
 		guard let value = value else {
 			delete(key)
 			return false
@@ -100,7 +115,7 @@ open class Keychain {
 	- returns: True if the value was successfully written to the keychain.
 	
 	*/
-	@discardableResult open func set(_ value: Bool, forKey key: String, withAccess access: AccessOptions? = nil) -> Bool {
+	@discardableResult static public func set(_ value: Bool, forKey key: String, withAccess access: AccessOptions? = nil) -> Bool {
 		let bytes: [UInt8] = value ? [1] : [0]
 		let data = Data(bytes)
 		
@@ -115,7 +130,7 @@ open class Keychain {
 	- returns: The text value from the keychain. Returns nil if unable to read the item.
 	
 	*/
-	open func string(forKey key: String) -> String? {
+	static public func string(forKey key: String) -> String? {
 		if let data = getData(key) {
 			
 			if let currentString = String(data: data, encoding: .utf8) {
@@ -128,11 +143,11 @@ open class Keychain {
 		return nil
 	}
 	
-	open func data(forKey key: String) -> Data? {
+	static public func data(forKey key: String) -> Data? {
 		return getData(key)
 	}
 	
-	open func double(forKey key: String) -> Double? {
+	static public func double(forKey key: String) -> Double? {
 		if let data = getData(key) {
 			
 			if let currentString = String(data: data, encoding: .utf8) {
@@ -153,7 +168,7 @@ open class Keychain {
 	- returns: The text value from the keychain. Returns nil if unable to read the item.
 	
 	*/
-	open func getData(_ key: String) -> Data? {
+	static public func getData(_ key: String) -> Data? {
 		// The lock prevents the code to be run simlultaneously
 		// from multiple threads which may result in crashing
 		return queue.sync {
@@ -190,7 +205,7 @@ open class Keychain {
 	- returns: The boolean value from the keychain. Returns nil if unable to read the item.
 	
 	*/
-	open func getBool(_ key: String) -> Bool? {
+	static public func getBool(_ key: String) -> Bool? {
 		guard let data = getData(key) else { return nil }
 		guard let firstBit = data.first else { return nil }
 		return firstBit == 1
@@ -204,7 +219,7 @@ open class Keychain {
 	- returns: True if the item was successfully deleted.
 	
 	*/
-	@discardableResult open func delete(_ key: String) -> Bool {
+	@discardableResult static public func delete(_ key: String) -> Bool {
 		let prefixedKey = keyWithPrefix(key)
 		
 		var query: [String: Any] = [
@@ -228,7 +243,7 @@ open class Keychain {
 	- returns: True if the keychain items were successfully deleted.
 	
 	*/
-	@discardableResult open func clear() -> Bool {
+	@discardableResult static public func clear() -> Bool {
 		var query: [String: Any] = [ kSecClass as String: kSecClassGenericPassword ]
 		query = self.addAccessGroupWhenPresent(query)
 		query = self.addSynchronizableIfRequired(query, addingItems: false)
@@ -240,12 +255,12 @@ open class Keychain {
 	}
 	
 	/// Returns the key with currently set prefix.
-	func keyWithPrefix(_ key: String) -> String {
+	static func keyWithPrefix(_ key: String) -> String {
 		return "\(keyPrefix ?? "")\(key)"
 	}
 	
-	func addAccessGroupWhenPresent(_ items: [String: Any]) -> [String: Any] {
-		guard let accessGroup = accessGroup else { return items }
+	static func addAccessGroupWhenPresent(_ items: [String: Any]) -> [String: Any] {
+		guard let accessGroup else { return items }
 		
 		var result: [String: Any] = items
 		result[Constants.accessGroup] = accessGroup
@@ -262,14 +277,14 @@ open class Keychain {
 	- returns: the dictionary with kSecAttrSynchronizable item added if it was requested. Otherwise, it returns the original dictionary.
 	
 	*/
-	func addSynchronizableIfRequired(_ items: [String: Any], addingItems: Bool) -> [String: Any] {
+	static func addSynchronizableIfRequired(_ items: [String: Any], addingItems: Bool) -> [String: Any] {
 		if !synchronizable { return items }
 		var result = items
 		result[Constants.attrSynchronizable] = addingItems == true ? true : kSecAttrSynchronizableAny
 		return result
 	}
 	
-	var lastQueryParameters: [String: Any]? // Used by tests
+	static var lastQueryParameters: [String: Any]? // Used by tests
 }
 
 extension Keychain {
