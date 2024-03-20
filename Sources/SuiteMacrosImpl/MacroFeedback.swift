@@ -9,7 +9,7 @@ import SwiftSyntax
 import SwiftDiagnostics
 
 enum MacroFeedback: String, DiagnosticMessage {
-	 case noDefaultArgument, missingAnnotation, notAnIdentifier
+	 case noDefaultArgument, missingAnnotation, notAnIdentifier, notVariableSyntax
 
 	 var severity: DiagnosticSeverity { return .error }
 
@@ -18,6 +18,7 @@ enum MacroFeedback: String, DiagnosticMessage {
 		  case .noDefaultArgument: "Missing default value."
 		  case .missingAnnotation: "Missing annotation."
 		  case .notAnIdentifier: "Invalid identifier."
+		  case .notVariableSyntax: "Invalid syntax"
 		  }
 	 }
 

@@ -8,12 +8,16 @@
 import SwiftSyntax
 import SwiftSyntaxMacros
 import SwiftDiagnostics
+import Foundation
 
 public struct NonIsolatedActorAccessorGenerator: PeerMacro {
 	public static func expansion(of node: AttributeSyntax, providingPeersOf declaration: some DeclSyntaxProtocol, in context: some MacroExpansionContext) throws -> [DeclSyntax] {
 		
 		// Skip non-variables
-		guard let varDecl = declaration.as(VariableDeclSyntax.self) else { return [] }
+		guard let varDecl = declaration.as(VariableDeclSyntax.self) else { 
+			context.diagnose(Diagnostic(node: Syntax(node), message: MacroFeedback.notVariableSyntax))
+			return []
+		}
 		
 		guard var patternBinding = varDecl.bindings.first?.as(PatternBindingSyntax.self) else {
 			context.diagnose(Diagnostic(node: Syntax(node), message: MacroFeedback.missingAnnotation))
@@ -25,6 +29,7 @@ public struct NonIsolatedActorAccessorGenerator: PeerMacro {
 			return []
 		}
 		
+		let originalPattern = patternBinding.typeAnnotation?.type.root
 		patternBinding.pattern = PatternSyntax(IdentifierPatternSyntax(identifier: .identifier("defaultValue")))
 		//guard let typeAnnotation = patternBinding.typeAnnotation else { return [] }
 		guard let initializer = patternBinding.initializer else { return [] }
@@ -39,6 +44,8 @@ public struct NonIsolatedActorAccessorGenerator: PeerMacro {
 
 		return [
 				"""
+					/* \(raw: varDecl.bindings) */
+					/* \(raw: originalPattern) */
 					private let nonIsolatedActorAccessor_\(raw: identifier) = CurrentValueSubject(value: \(trimmedInitializer))
 				"""
 		]
