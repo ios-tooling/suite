@@ -43,23 +43,27 @@ public struct EnvironmentKeyGenerator: PeerMacro {
 		
 		if patternBinding.isVoidClosure, let initialValue = patternBinding.initializer?.value {
 			if let args, let returnType {
+				context.diagnose(Diagnostic(node: node, message: MacroFeedback.message("Closure args: \(args), return type: \(returnType))")))
 				return [
-	  """
-	  private struct GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
-	  static let defaultValue = BlockWrapper<\(raw: args[0]), \(raw: returnType)>\(raw: initialValue)
-	  }
-	  """
-	  ]
+					  """
+					  private struct GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
+					  static let defaultValue = BlockWrapper<\(raw: args[0]), \(raw: returnType)>\(raw: initialValue)
+					  }
+					  """
+					  ]
 			} else {
+				context.diagnose(Diagnostic(node: node, message: MacroFeedback.message("1. \(varDecl.bindings.first?.as(PatternBindingSyntax.self)?.initializer?.value.as(ClosureExprSyntax.self)?.signature?.parameterClause)")))
+				context.diagnose(Diagnostic(node: node, message: MacroFeedback.message("2. \(varDecl.bindings.first?.as(PatternBindingSyntax.self)?.initializer?.value.as(ClosureExprSyntax.self)?.signature?.parameterClause?.as(ClosureParameterClauseSyntax.self)?.parameters.compactMap { $0.type?.as(IdentifierTypeSyntax.self)?.name })")))
 				return [
-	 """
-	 private struct GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
-	 static let defaultValue = BlockWrapper \(raw: initialValue)
-	 }
-	 """
+					 """
+					 private struct GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
+					 static let defaultValue = BlockWrapper \(raw: initialValue)
+					 }
+					 """
 				]
 			}
 		} else {
+			context.diagnose(Diagnostic(node: node, message: MacroFeedback.message("no default value ")))
 			return [
 				"""
 				private struct GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
@@ -70,6 +74,9 @@ public struct EnvironmentKeyGenerator: PeerMacro {
 		}
 	 }
 }
+
+// 	@GeneratedEnvironmentKey var actionBlock = { (int: Int) -> Int in print("Hello"); return 2 }
+
 
 extension TypeSyntax {
 	var arguments: [String]? {
