@@ -31,24 +31,56 @@ public struct NonIsolatedActorAccessorGenerator: PeerMacro {
 		
 		let originalPattern = patternBinding.typeAnnotation?.type.root
 		patternBinding.pattern = PatternSyntax(IdentifierPatternSyntax(identifier: .identifier("defaultValue")))
-		//guard let typeAnnotation = patternBinding.typeAnnotation else { return [] }
-		guard let initializer = patternBinding.initializer else { return [] }
-		let isOptional = patternBinding.typeAnnotation?.type.is(OptionalTypeSyntax.self) ?? false
-		let hasDefaultValue = patternBinding.initializer != nil
-		let trimmedInitializer = initializer.value
-		
-		guard isOptional || hasDefaultValue else {
-			context.diagnose(Diagnostic(node: Syntax(node), message: MacroFeedback.noDefaultArgument))
-			return []
+
+		if let initializer = patternBinding.initializer {
+			let isOptional = patternBinding.typeAnnotation?.type.is(OptionalTypeSyntax.self) ?? false
+			let hasDefaultValue = patternBinding.initializer != nil
+			let trimmedInitializer = initializer.value
+			
+			guard isOptional || hasDefaultValue else {
+				context.diagnose(Diagnostic(node: Syntax(node), message: MacroFeedback.noDefaultArgument))
+				return []
+			}
+			
+			if let type = varDecl.optionalSyntaxType {
+				return [
+		"""
+		private let nonIsolatedActorAccessor_\(raw: identifier): CurrentValueSubject<\(raw: type)?, Never> = .init(\(trimmedInitializer))
+		"""
+				
+				]
+			}
+
+			
+			return [
+"""
+private let nonIsolatedActorAccessor_\(raw: identifier) = CurrentValueSubject(value: \(trimmedInitializer))
+"""
+			]
 		}
 
-		return [
-				"""
-					/* \(raw: varDecl.bindings) */
-					/* \(raw: originalPattern) */
-					private let nonIsolatedActorAccessor_\(raw: identifier) = CurrentValueSubject(value: \(trimmedInitializer))
-				"""
-		]
+		if let type = varDecl.optionalSyntaxType {
+			return [
+	"""
+	private let nonIsolatedActorAccessor_\(raw: identifier): CurrentValueSubject<\(raw: type)?, Never> = .init(nil)
+	"""
+			
+			]
+		}
+		return []
+	}
+}
+
+extension VariableDeclSyntax {
+	var optionalSyntaxType: TypeSyntax? {
+		bindings.first?.as(PatternBindingSyntax.self)?.typeAnnotation?.type.as(OptionalTypeSyntax.self)?.wrappedType
+	}
+}
+
+extension IdentifierTypeSyntax {
+	 var type: SyntaxProtocol? {
+		  genericArgumentClause?.arguments.first?.as(GenericArgumentSyntax.self)?.argument.as(OptionalTypeSyntax.self)?.wrappedType
+		  ?? genericArgumentClause?.arguments.first?.as(GenericArgumentSyntax.self)
 	 }
 }
 
