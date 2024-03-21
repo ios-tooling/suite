@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import Studio
 
 @available(iOS 14.0, tvOS 13, macOS 11, watchOS 7, *)
 extension Color: Codable {

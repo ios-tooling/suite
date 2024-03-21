@@ -7,7 +7,6 @@
 
 #if canImport(Combine)
 import Combine
-import Studio
 
 @available(iOS 13.0, watchOS 6.0, OSX 10.15, *)
 public extension Publisher {
