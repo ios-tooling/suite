@@ -12,7 +12,6 @@ import SwiftDiagnostics
 public struct EnvironmentKeyGenerator: PeerMacro {
 	public static func expansion(of node: AttributeSyntax, providingPeersOf declaration: some DeclSyntaxProtocol, in context: some MacroExpansionContext) throws -> [DeclSyntax] {
 				
-		// Skip non-variables
 		guard let varDecl = declaration.as(VariableDeclSyntax.self) else { return [] }
 		
 		guard var patternBinding = varDecl.bindings.first?.as(PatternBindingSyntax.self) else {
@@ -34,16 +33,29 @@ public struct EnvironmentKeyGenerator: PeerMacro {
 			context.diagnose(Diagnostic(node: Syntax(node), message: MacroFeedback.noDefaultArgument))
 			return []
 		}
-		
+				
 		if patternBinding.isVoidClosure, let initialValue = patternBinding.initializer?.value {
-			return [
-				"""
-				private struct GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
-				static let defaultValue = BlockWrapper \(raw: initialValue)
-				}
-				"""
-			]
+			if let signature = varDecl.closureSignature(node: node, in: context) {
+				return [
+					  """
+					  private struct GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
+					  static let defaultValue: \(raw: signature) = \(raw: initialValue)
+					  }
+					  """
+					  ]
+			} else {
+				context.diagnose(Diagnostic(node: node, message: MacroFeedback.message("Add a function signature for better type safety")))
+
+				return [
+					 """
+					 private struct GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
+					 static let defaultValue = \(raw: initialValue)
+					 }
+					 """
+				]
+			}
 		} else {
+			context.diagnose(Diagnostic(node: node, message: MacroFeedback.message("no default value ")))
 			return [
 				"""
 				private struct GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
@@ -53,6 +65,44 @@ public struct EnvironmentKeyGenerator: PeerMacro {
 			]
 		}
 	 }
+}
+
+extension VariableDeclSyntax {
+	func closureSignature(node: AttributeSyntax, in context: some MacroExpansionContext) -> String? {
+		guard let raw = self.bindings.first?.typeAnnotation?.description else { return nil }
+		var trimmed = raw.trimmingCharacters(in: .init(charactersIn: ": "))
+		
+		if trimmed.contains("@Sendable") { return trimmed }
+
+		if trimmed.hasPrefix("("), trimmed.hasSuffix(")") { trimmed = String(trimmed.dropFirst().dropLast()) }
+		
+		context.diagnose(Diagnostic(node: node, message: MacroFeedback.message("Make your closure @Sendable for improved concurrency safety: @Sendable \(trimmed)")))
+
+		return "(@Sendable \(trimmed))"
+	}
+}
+
+extension TypeSyntax {
+	var arguments: [String]? {
+		guard let functionType = self.as(FunctionTypeSyntax.self) else { return nil }
+
+		return functionType.parameters.map { "\($0)" }
+	}
+	
+	var returnType: String? {
+		guard let functionType = self.as(FunctionTypeSyntax.self) else { return nil }
+		
+		return "\(functionType.returnClause)".replacingOccurrences(of: "->", with: "")
+	}
+	
+	var functionSignature: String? {
+		guard let functionType = self.as(FunctionTypeSyntax.self), let arguments else { return nil }
+		var result = "(" + arguments.joined() + ")"
+		
+		result.append("\(functionType.returnClause)")
+		
+		return result
+	}
 }
 
 extension PatternBindingSyntax {
@@ -74,7 +124,6 @@ extension PatternBindingSyntax {
 extension EnvironmentKeyGenerator: AccessorMacro {
 	public static func expansion(of node: AttributeSyntax, providingAccessorsOf declaration: some DeclSyntaxProtocol, in context: some MacroExpansionContext) throws -> [AccessorDeclSyntax] {
 		
-		// Skip non-variables
 		guard let varDecl = declaration.as(VariableDeclSyntax.self) else { return [] }
 		
 		guard let patternBinding = varDecl.bindings.first?.as(PatternBindingSyntax.self) else {
@@ -86,18 +135,8 @@ extension EnvironmentKeyGenerator: AccessorMacro {
 			context.diagnose(Diagnostic(node: Syntax(node), message: MacroFeedback.notAnIdentifier))
 			return []
 		}
-		
-		if patternBinding.isVoidClosure {
-			return [
-				 """
-				 get { self[GeneratedEnvironmentKey_\(raw: identifier).self].block }
-				 """,
-				 """
-				 set { self[GeneratedEnvironmentKey_\(raw: identifier).self] = BlockWrapper(block: newValue) }
-				 """
-			]
-		} else {
-			return [
+
+		return [
 				 """
 				 get { self[GeneratedEnvironmentKey_\(raw: identifier).self] }
 				 """,
@@ -106,5 +145,4 @@ extension EnvironmentKeyGenerator: AccessorMacro {
 				 """
 			]
 		}
-	}
 }

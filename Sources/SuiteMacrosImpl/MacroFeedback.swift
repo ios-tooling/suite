@@ -8,20 +8,28 @@
 import SwiftSyntax
 import SwiftDiagnostics
 
-enum MacroFeedback: String, DiagnosticMessage {
-	 case noDefaultArgument, missingAnnotation, notAnIdentifier
+enum MacroFeedback: DiagnosticMessage {
+	 case noDefaultArgument, missingAnnotation, notAnIdentifier, notVariableSyntax
+	 case message(String)
 
-	 var severity: DiagnosticSeverity { return .error }
+	var severity: DiagnosticSeverity {
+		switch self {
+		case .message: .warning
+		default: .error
+		}
+	}
 
 	 var message: String {
 		  switch self {
 		  case .noDefaultArgument: "Missing default value."
 		  case .missingAnnotation: "Missing annotation."
 		  case .notAnIdentifier: "Invalid identifier."
+		  case .notVariableSyntax: "Invalid syntax"
+		  case .message(let msg): msg
 		  }
 	 }
 
 	 var diagnosticID: MessageID {
-		  MessageID(domain: "SuiteMacros", id: rawValue)
+		  MessageID(domain: "SuiteMacros", id: message)
 	 }
 }
