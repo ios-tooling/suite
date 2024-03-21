@@ -13,6 +13,6 @@ public macro GeneratedEnvironmentKey() = #externalMacro(module: "SuiteMacrosImpl
 
 @attached(peer, names: prefixed(nonIsolatedActorAccessor_))
 @attached(accessor, names: named(get), named(set))
-public macro AddIsolatedAccessors() = #externalMacro(module: "SuiteMacrosImpl", type: "NonIsolatedActorAccessorGenerator")
+public macro AddIsolatedAccessors(observing: Bool = false) = #externalMacro(module: "SuiteMacrosImpl", type: "NonIsolatedActorAccessorGenerator")
 
 

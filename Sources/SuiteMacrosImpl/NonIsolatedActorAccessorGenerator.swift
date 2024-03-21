@@ -13,8 +13,9 @@ import Foundation
 public struct NonIsolatedActorAccessorGenerator: PeerMacro {
 	public static func expansion(of node: AttributeSyntax, providingPeersOf declaration: some DeclSyntaxProtocol, in context: some MacroExpansionContext) throws -> [DeclSyntax] {
 		
+		var results: [DeclSyntax] = []
 		// Skip non-variables
-		guard let varDecl = declaration.as(VariableDeclSyntax.self) else { 
+		guard let varDecl = declaration.as(VariableDeclSyntax.self) else {
 			context.diagnose(Diagnostic(node: Syntax(node), message: MacroFeedback.notVariableSyntax))
 			return []
 		}
@@ -40,22 +41,18 @@ public struct NonIsolatedActorAccessorGenerator: PeerMacro {
 			
 			guard isOptional || hasDefaultValue else {
 				context.diagnose(Diagnostic(node: Syntax(node), message: MacroFeedback.noDefaultArgument))
-				return []
+				return results
 			}
 			
 			if let optionalType {
-				return ["\(raw: accessorName): CurrentValueSubject<\(raw: optionalType)?, Never> = .init(\(trimmedInitializer))"]
+				results.append("\(raw: accessorName): CurrentValueSubject<\(raw: optionalType)?, Never> = .init(\(trimmedInitializer))")
+			} else {
+				results.append("\(raw: accessorName) = CurrentValueSubject(value: \(trimmedInitializer))")
 			}
-
-			return ["\(raw: accessorName) = CurrentValueSubject(value: \(trimmedInitializer))"]
+		} else if let optionalType {
+			results.append("\(raw: accessorName): CurrentValueSubject<\(raw: optionalType)?, Never> = .init(nil)")
 		}
-
-		if let optionalType {
-			return [
-				"\(raw: accessorName): CurrentValueSubject<\(raw: optionalType)?, Never> = .init(nil)"
-			]
-		}
-		return []
+		return results
 	}
 }
 
@@ -88,13 +85,26 @@ extension NonIsolatedActorAccessorGenerator: AccessorMacro {
 			return []
 		}
 		
+		var publishChanges = false
+		
+		if let args = node.arguments?.children(viewMode: .sourceAccurate).first?.as(LabeledExprSyntax.self)?.expression.as(BooleanLiteralExprSyntax.self)?.literal {
+				//context.diagnose(Diagnostic(node: node, message: MacroFeedback.message("\(args.text)")))
+			if "\(args)".lowercased() == "true" { publishChanges = true }
+		}
+		
 		return [
 				"""
 				get { nonIsolatedActorAccessor_\(raw: identifier).value }
 				""",
-				"""
-				set { nonIsolatedActorAccessor_\(raw: identifier).value = newValue }
-				"""
-		]
+				 publishChanges ?
+					"""
+					set { nonIsolatedActorAccessor_\(raw: identifier).value = newValue; objectWillChange.sendOnMain() }
+					"""
+				:
+				  """
+				  set { nonIsolatedActorAccessor_\(raw: identifier).value = newValue }
+				  """
+				
+			]
 	}
 }
