@@ -34,30 +34,23 @@ public struct EnvironmentKeyGenerator: PeerMacro {
 			context.diagnose(Diagnostic(node: Syntax(node), message: MacroFeedback.noDefaultArgument))
 			return []
 		}
-		
-//		context.diagnose(Diagnostic(node: node, message: MacroFeedback.message("\(varDecl.nonOptionalSyntaxType)")))
-//		context.diagnose(Diagnostic(node: node, message: MacroFeedback.message("\(varDecl.nonOptionalSyntaxType?.functionSignature)")))
-
-		let args = varDecl.nonOptionalSyntaxType?.arguments
-		let returnType = varDecl.nonOptionalSyntaxType?.returnType
-		
+				
 		if patternBinding.isVoidClosure, let initialValue = patternBinding.initializer?.value {
-			if let args, let returnType {
-				context.diagnose(Diagnostic(node: node, message: MacroFeedback.message("Closure args: \(args), return type: \(returnType))")))
+			if let signature = varDecl.closureSignature(node: node, in: context) {
 				return [
 					  """
 					  private struct GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
-					  static let defaultValue = BlockWrapper<\(raw: args[0]), \(raw: returnType)>\(raw: initialValue)
+					  static let defaultValue: \(raw: signature) = \(raw: initialValue)
 					  }
 					  """
 					  ]
 			} else {
-				context.diagnose(Diagnostic(node: node, message: MacroFeedback.message("1. \(varDecl.bindings.first?.as(PatternBindingSyntax.self)?.initializer?.value.as(ClosureExprSyntax.self)?.signature?.parameterClause)")))
-				context.diagnose(Diagnostic(node: node, message: MacroFeedback.message("2. \(varDecl.bindings.first?.as(PatternBindingSyntax.self)?.initializer?.value.as(ClosureExprSyntax.self)?.signature?.parameterClause?.as(ClosureParameterClauseSyntax.self)?.parameters.compactMap { $0.type?.as(IdentifierTypeSyntax.self)?.name })")))
+				context.diagnose(Diagnostic(node: node, message: MacroFeedback.message("Add a function signature for better type safety")))
+
 				return [
 					 """
 					 private struct GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
-					 static let defaultValue = BlockWrapper \(raw: initialValue)
+					 static let defaultValue = \(raw: initialValue)
 					 }
 					 """
 				]
@@ -75,8 +68,41 @@ public struct EnvironmentKeyGenerator: PeerMacro {
 	 }
 }
 
-// 	@GeneratedEnvironmentKey var actionBlock = { (int: Int) -> Int in print("Hello"); return 2 }
+extension VariableDeclSyntax {
+	func closureSignature(node: AttributeSyntax, in context: some MacroExpansionContext) -> String? {
+		guard let raw = self.bindings.first?.typeAnnotation?.description else { return nil }
+		var trimmed = raw.trimmingCharacters(in: .init(charactersIn: ": "))
+		
+		if trimmed.contains("@Sendable") { return trimmed }
+		context.diagnose(Diagnostic(node: node, message: MacroFeedback.message("Make your closure @Sendable for improved concurrency safety")))
 
+		if trimmed.hasPrefix("("), trimmed.hasSuffix(")") { trimmed = String(trimmed.dropFirst().dropLast()) }
+		
+		return "(@Sendable \(trimmed))"
+	}
+	
+	// 	@GeneratedEnvironmentKey var actionBlock = { (int: Int) -> Int in print("Hello"); return 2 }
+
+	/*
+	func closureArgs(node: AttributeSyntax, in context: some MacroExpansionContext) -> [String]? {
+		guard let parameterClause = self.bindings.first?.as(PatternBindingSyntax.self)?.initializer?.value.as(ClosureExprSyntax.self)?.signature?.parameterClause else { return nil }
+
+		//context.diagnose(Diagnostic(node: node, message: MacroFeedback.message("1. \(parameterClause.debugDescription)")))
+
+	//	if parameterClause.is(ClosureShorthandParameterListSyntax.self) { return [] }
+		//context.diagnose(Diagnostic(node: node, message: MacroFeedback.message("2. \(parameterClause)")))
+		//context.diagnose(Diagnostic(node: node, message: MacroFeedback.message("3. \(parameterClause.as(ClosureParameterClauseSyntax.self)?.parameters.compactMap { $0.type?.as(IdentifierTypeSyntax.self)?.name })")))
+		
+		return nil
+	}
+	
+	func closureReturnType(node: AttributeSyntax, in context: some MacroExpansionContext) -> String? {
+		guard let parameterClause = self.bindings.first?.as(PatternBindingSyntax.self)?.initializer?.value.as(ClosureExprSyntax.self)?.signature?.parameterClause else { return nil }
+
+		return nil
+	}
+	 */
+}
 
 extension TypeSyntax {
 	var arguments: [String]? {
@@ -147,19 +173,19 @@ extension EnvironmentKeyGenerator: AccessorMacro {
 			return []
 		}
 		
-		let args = varDecl.nonOptionalSyntaxType?.arguments
-		let returnType = varDecl.nonOptionalSyntaxType?.returnType
+//		let args = varDecl.nonOptionalSyntaxType?.arguments
+//		let returnType = varDecl.nonOptionalSyntaxType?.returnType
 		
-		if let args, let returnType {
-			return [
-				 """
-				 get { self[GeneratedEnvironmentKey_\(raw: identifier).self].block }
-				 """,
-					"""
-					set { self[GeneratedEnvironmentKey_\(raw: identifier).self] = BlockWrapper<\(raw: args[0]), \(raw: returnType)>(block: newValue) }
-					"""
-			]
-		} else {
+//		if let args, let returnType {
+//			return [
+//				 """
+//				 get { self[GeneratedEnvironmentKey_\(raw: identifier).self].block }
+//				 """,
+//					"""
+//					set { self[GeneratedEnvironmentKey_\(raw: identifier).self] = newValue }
+//					"""
+//			]
+//		} else {
 			return [
 				 """
 				 get { self[GeneratedEnvironmentKey_\(raw: identifier).self] }
@@ -169,5 +195,5 @@ extension EnvironmentKeyGenerator: AccessorMacro {
 				 """
 			]
 		}
-	}
+//	}
 }
