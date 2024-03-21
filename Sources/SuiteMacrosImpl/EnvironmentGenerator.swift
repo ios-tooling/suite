@@ -35,14 +35,30 @@ public struct EnvironmentKeyGenerator: PeerMacro {
 			return []
 		}
 		
+//		context.diagnose(Diagnostic(node: node, message: MacroFeedback.message("\(varDecl.nonOptionalSyntaxType)")))
+//		context.diagnose(Diagnostic(node: node, message: MacroFeedback.message("\(varDecl.nonOptionalSyntaxType?.functionSignature)")))
+
+		let args = varDecl.nonOptionalSyntaxType?.arguments
+		let returnType = varDecl.nonOptionalSyntaxType?.returnType
+		
 		if patternBinding.isVoidClosure, let initialValue = patternBinding.initializer?.value {
-			return [
-				"""
-				private struct GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
-				static let defaultValue = BlockWrapper \(raw: initialValue)
-				}
-				"""
-			]
+			if let args, let returnType {
+				return [
+	  """
+	  private struct GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
+	  static let defaultValue = BlockWrapper<\(raw: args[0]), \(raw: returnType)>\(raw: initialValue)
+	  }
+	  """
+	  ]
+			} else {
+				return [
+	 """
+	 private struct GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
+	 static let defaultValue = BlockWrapper \(raw: initialValue)
+	 }
+	 """
+				]
+			}
 		} else {
 			return [
 				"""
@@ -54,6 +70,43 @@ public struct EnvironmentKeyGenerator: PeerMacro {
 		}
 	 }
 }
+
+extension TypeSyntax {
+	var arguments: [String]? {
+		guard let functionType = self.as(FunctionTypeSyntax.self) else { return nil }
+
+		return functionType.parameters.map { "\($0)" }
+	}
+	
+	var returnType: String? {
+		guard let functionType = self.as(FunctionTypeSyntax.self) else { return nil }
+		
+		return "\(functionType.returnClause)".replacingOccurrences(of: "->", with: "")
+	}
+	
+	var functionSignature: String? {
+		guard let functionType = self.as(FunctionTypeSyntax.self), let arguments else { return nil }
+		var result = "(" + arguments.joined() + ")"
+		
+		result.append("\(functionType.returnClause)")
+		
+		return result
+	}
+}
+
+/*
+ FunctionTypeSyntax
+ ├─leftParen: leftParen
+ ├─parameters: TupleTypeElementListSyntax
+ │ ╰─[0]: TupleTypeElementSyntax
+ │   ╰─type: IdentifierTypeSyntax
+ │     ╰─name: identifier("Int")
+ ├─rightParen: rightParen
+ ╰─returnClause: ReturnClauseSyntax
+	├─arrow: arrow
+	╰─type: IdentifierTypeSyntax
+	  ╰─name: identifier("Bool"))
+ */
 
 extension PatternBindingSyntax {
 	var sendableBlock: String? {
@@ -87,14 +140,17 @@ extension EnvironmentKeyGenerator: AccessorMacro {
 			return []
 		}
 		
-		if patternBinding.isVoidClosure {
+		let args = varDecl.nonOptionalSyntaxType?.arguments
+		let returnType = varDecl.nonOptionalSyntaxType?.returnType
+		
+		if let args, let returnType {
 			return [
 				 """
 				 get { self[GeneratedEnvironmentKey_\(raw: identifier).self].block }
 				 """,
-				 """
-				 set { self[GeneratedEnvironmentKey_\(raw: identifier).self] = BlockWrapper(block: newValue) }
-				 """
+					"""
+					set { self[GeneratedEnvironmentKey_\(raw: identifier).self] = BlockWrapper<\(raw: args[0]), \(raw: returnType)>(block: newValue) }
+					"""
 			]
 		} else {
 			return [

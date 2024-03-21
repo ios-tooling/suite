@@ -7,13 +7,13 @@
 
 import Foundation
 
-public struct BlockWrapper: Sendable, Equatable {
+public struct BlockWrapper<Arg, Result>: Sendable, Equatable {
 	let file: String
 	let line: Int
 	let column: Int
-	public let block: @Sendable () -> Void
+	public let block: @Sendable (Arg) -> Result
 	
-	public init(file: String = #file, line: Int = #line, col: Int = #column, block: @Sendable @escaping () -> Void) {
+	public init(file: String = #file, line: Int = #line, col: Int = #column, block: @Sendable @escaping (Arg) -> Result) {
 		self.file = file
 		self.line = line
 		self.column = col

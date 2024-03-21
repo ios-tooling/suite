@@ -60,6 +60,10 @@ extension VariableDeclSyntax {
 	var optionalSyntaxType: TypeSyntax? {
 		bindings.first?.as(PatternBindingSyntax.self)?.typeAnnotation?.type.as(OptionalTypeSyntax.self)?.wrappedType
 	}
+	
+	var nonOptionalSyntaxType: TypeSyntax? {
+		bindings.first?.as(PatternBindingSyntax.self)?.typeAnnotation?.type.as(TypeSyntax.self)
+	}
 }
 
 extension IdentifierTypeSyntax {
