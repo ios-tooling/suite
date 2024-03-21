@@ -29,7 +29,8 @@ public struct NonIsolatedActorAccessorGenerator: PeerMacro {
 			return []
 		}
 		
-		let originalPattern = patternBinding.typeAnnotation?.type.root
+		let accessorName = "private let nonIsolatedActorAccessor_\(identifier)"
+		let optionalType = varDecl.optionalSyntaxType
 		patternBinding.pattern = PatternSyntax(IdentifierPatternSyntax(identifier: .identifier("defaultValue")))
 
 		if let initializer = patternBinding.initializer {
@@ -42,29 +43,16 @@ public struct NonIsolatedActorAccessorGenerator: PeerMacro {
 				return []
 			}
 			
-			if let type = varDecl.optionalSyntaxType {
-				return [
-		"""
-		private let nonIsolatedActorAccessor_\(raw: identifier): CurrentValueSubject<\(raw: type)?, Never> = .init(\(trimmedInitializer))
-		"""
-				
-				]
+			if let optionalType {
+				return ["\(raw: accessorName): CurrentValueSubject<\(raw: optionalType)?, Never> = .init(\(trimmedInitializer))"]
 			}
 
-			
-			return [
-"""
-private let nonIsolatedActorAccessor_\(raw: identifier) = CurrentValueSubject(value: \(trimmedInitializer))
-"""
-			]
+			return ["\(raw: accessorName) = CurrentValueSubject(value: \(trimmedInitializer))"]
 		}
 
-		if let type = varDecl.optionalSyntaxType {
+		if let optionalType {
 			return [
-	"""
-	private let nonIsolatedActorAccessor_\(raw: identifier): CurrentValueSubject<\(raw: type)?, Never> = .init(nil)
-	"""
-			
+				"\(raw: accessorName): CurrentValueSubject<\(raw: optionalType)?, Never> = .init(nil)"
 			]
 		}
 		return []
