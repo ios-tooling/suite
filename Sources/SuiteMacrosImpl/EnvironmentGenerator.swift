@@ -55,7 +55,6 @@ public struct EnvironmentKeyGenerator: PeerMacro {
 				]
 			}
 		} else {
-			context.diagnose(Diagnostic(node: node, message: MacroFeedback.message("no default value ")))
 			return [
 				"""
 				private struct GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
