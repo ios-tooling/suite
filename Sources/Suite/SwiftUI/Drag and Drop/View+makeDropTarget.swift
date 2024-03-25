@@ -13,9 +13,12 @@ extension CoordinateSpace {
 	static var dragAndDropSpaceCreatedNotification: Notification.Name { Notification.Name("dragAndDropSpaceCreatedNotification") }
 }
 
+public typealias DragHoverCallback = (String, Any, CGPoint?, CGPoint) -> Bool
+public typealias DragDroppedCallback = (String, Any, CGPoint, CGPoint) -> Bool
+
 @available(OSX 13, iOS 15, tvOS 13, watchOS 8, *)
 public extension View {
-	func makeDropTarget(types: [String], showDropPoint: DeviceFilter = .debug, hover: @escaping (String, Any, CGPoint?) -> Bool = { _, _, _ in true }, dropped: @escaping (String, Any, CGPoint) -> Bool) -> some View {
+	func makeDropTarget(types: [String], showDropPoint: DeviceFilter = .debug, hover: @escaping DragHoverCallback = { _, _, _, _ in true }, dropped: @escaping DragDroppedCallback) -> some View {
 		DropTargetView(content: self, types: types, showDropPoint: showDropPoint.matches, hover: hover, dropped: dropped)
 	}
 	
@@ -31,8 +34,8 @@ struct DropTargetView<Content: View>: View {
 	let content: Content
 	let types: [String]
 	let showDropPoint: Bool
-	let hover: (String, Any, CGPoint?) -> Bool
-	let dropped: (String, Any, CGPoint) -> Bool
+	let hover: DragHoverCallback
+	let dropped: DragDroppedCallback
 
 	@EnvironmentObject var dragCoordinator: DragCoordinator
 	@Environment(\.isDragAndDropEnabled) var isDragAndDropEnabled
@@ -84,7 +87,7 @@ struct DropTargetView<Content: View>: View {
 	func dropPositionChanged(to dropPoint: CGPoint?, using geo: GeometryProxy) {
 		guard let dropPoint = convert(point: dropPoint, using: geo) else { return }
 		if let point = dropPosition(at: dropPoint), let type = dragCoordinator.dragType, let object = dragCoordinator.draggedObject {
-			if dropped(type, object, point) {
+			if dropped(type, object, point, dragCoordinator.sourcePoint) {
 				dragCoordinator.acceptedDrop = true
 			}
 		}
@@ -97,13 +100,13 @@ struct DropTargetView<Content: View>: View {
 		}
 
 		if dragCoordinator.cancelledDrop {
-			_ = hover(type, object, nil)
+			_ = hover(type, object, nil, dragCoordinator.sourcePoint)
 		} else if let point = dropPosition(at: dragPosition) {
 			if showDropPoint { dropPoint = point }
 			isDropTarget = true
-			indicateIsDropTarget = hover(type, object, point)
+			indicateIsDropTarget = hover(type, object, point, dragCoordinator.sourcePoint)
 		} else if isDropTarget || dropPoint != nil {
-			_ = hover(type, object, nil)
+			_ = hover(type, object, nil, dragCoordinator.sourcePoint)
 			isDropTarget = false
 			indicateIsDropTarget = false
 			dropPoint = nil

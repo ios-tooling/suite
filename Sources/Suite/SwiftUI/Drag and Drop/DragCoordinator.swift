@@ -27,8 +27,9 @@ public class DragCoordinator: ObservableObject {
 	@Published var cancelledDrop = false
 	@Published var dropScale = 1.0
 	@Published var snapbackDuration = 0.2
+	@Published var sourcePoint = CGPoint.zero
 	
-	func startDragging(at point: CGPoint, source: CGRect?, type: String, object: Any, image: DragImage?) {
+	func startDragging(at point: CGPoint, source: CGRect?, sourcePoint: CGPoint, type: String, object: Any, image: DragImage?) {
 		dropPosition = nil
 		draggedImage = image
 		startPosition = point
@@ -39,6 +40,7 @@ public class DragCoordinator: ObservableObject {
 		acceptedDrop = false
 		dropScale = 1.0
 		cancelledDrop = false
+		self.sourcePoint = sourcePoint
 	}
 	
 	func drop(at point: CGPoint?) {

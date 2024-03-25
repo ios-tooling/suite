@@ -77,7 +77,13 @@ struct DraggableView<Content: View>: View {
 				if !isDragging {
 					isDragging = true
 					let renderer = ImageRenderer(content: dragContent())
-					dragCoordinator.startDragging(at: action.location, source: frame, type: type, object: object, image: renderer.dragImage)
+					var sourcePoint: CGPoint = .zero
+					if let frame {
+						sourcePoint = CGPoint(x: action.location.x - frame.minX, y: action.location.y - frame.minY)
+					} else {
+						sourcePoint = .zero
+					}
+					dragCoordinator.startDragging(at: action.location, source: frame, sourcePoint: sourcePoint, type: type, object: object, image: renderer.dragImage)
 				}
 				dragCoordinator.currentPosition = action.location
 			}
