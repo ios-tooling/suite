@@ -31,6 +31,7 @@ struct DraggableView<Content: View>: View {
 	@Environment(\.isScrolling) var isScrolling
 	@State var frame: CGRect?
 	@State var isDragging = false
+	@Environment(\.dragCoordinatorSnapbackDuration) var snapbackDuration
 	
 	var dragAlpha: CGFloat { hideWhenDragging ? 0 : 0.25 }
 	
@@ -81,7 +82,10 @@ struct DraggableView<Content: View>: View {
 				dragCoordinator.currentPosition = action.location
 			}
 			.onEnded { action in
-				isDragging = false
+				Task {
+					try? await Task.sleep(for: .seconds(snapbackDuration))
+					isDragging = false
+				}
 				dragCoordinator.drop(at: action.location)
 			}
 	}

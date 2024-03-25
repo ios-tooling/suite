@@ -7,6 +7,10 @@
 
 import SwiftUI
 
+extension EnvironmentValues {
+	@GeneratedEnvironmentKey var dragCoordinatorSnapbackDuration = 0.2
+}
+
 @available(OSX 13, iOS 15, tvOS 13, watchOS 8, *)
 public class DragCoordinator: ObservableObject {
 	var containerFrame: CGRect?
@@ -22,6 +26,7 @@ public class DragCoordinator: ObservableObject {
 	@Published var acceptedDrop = false
 	@Published var cancelledDrop = false
 	@Published var dropScale = 1.0
+	@Published var snapbackDuration = 0.2
 	
 	func startDragging(at point: CGPoint, source: CGRect?, type: String, object: Any, image: DragImage?) {
 		dropPosition = nil
@@ -39,15 +44,16 @@ public class DragCoordinator: ObservableObject {
 	func drop(at point: CGPoint?) {
 		if let point, !cancelledDrop {
 			dropPosition = point
-			DispatchQueue.main.async(after: 0.01) {
+			Task { @MainActor in
+				try? await Task.sleep(nanoseconds: 10_000_000)
 				if self.acceptedDrop {
 					self.animateDrop()
 				} else {
-					self.snapback()
+					self.snapback(duration: self.snapbackDuration)
 				}
 			}
 		} else {
-			snapback()
+			snapback(duration: snapbackDuration)
 		}
 	}
 	

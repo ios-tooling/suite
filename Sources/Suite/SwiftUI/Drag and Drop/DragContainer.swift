@@ -10,11 +10,14 @@ import SwiftUI
 @available(OSX 13, iOS 16, tvOS 13, watchOS 8, *)
 public struct DragContainer<Content: View>: View {
 	@ViewBuilder private var content: () -> Content
-	@StateObject private var coordinator = DragCoordinator()
+	@StateObject private var coordinator: DragCoordinator
 	let isDragEnabled: Bool
 	
-	public init(enabled: Bool = true, @ViewBuilder content: @escaping () -> Content) {
+	public init(enabled: Bool = true, snapbackDuration: TimeInterval = 0.2, @ViewBuilder content: @escaping () -> Content) {
 		self.content = content
+		let coordinator = DragCoordinator()
+		coordinator.snapbackDuration = snapbackDuration
+		_coordinator = StateObject(wrappedValue: coordinator)
 		isDragEnabled = enabled
 	}
 	
@@ -44,6 +47,7 @@ public struct DragContainer<Content: View>: View {
 			}
 		}
 		.dragAndDropCoordinateSpace()
+		.environment(\.dragCoordinatorSnapbackDuration, coordinator.snapbackDuration)
 	}
 }
 
