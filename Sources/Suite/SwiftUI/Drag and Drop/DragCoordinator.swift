@@ -28,7 +28,18 @@ public class DragCoordinator: ObservableObject {
 	@Published var dropScale = 1.0
 	@Published var snapbackDuration = 0.2
 	@Published var sourcePoint = CGPoint.zero
+	@Published var dragAcceptance = DragAcceptance.rejected
 	
+	public enum DragAcceptance { case rejected, accepted, acceptedHighlight, acceptedHidden, acceptedHiddenHighlight
+		var showAccepted: Bool {
+			self == .acceptedHighlight || self == .acceptedHiddenHighlight
+		}
+
+		var isHidden: Bool {
+			self == .acceptedHidden || self == .acceptedHiddenHighlight
+		}
+	}
+
 	func startDragging(at point: CGPoint, source: CGRect?, sourcePoint: CGPoint, type: String, object: Any, image: DragImage?) {
 		dropPosition = nil
 		draggedImage = image

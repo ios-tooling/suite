@@ -30,6 +30,7 @@ public struct DragContainer<Content: View>: View {
 					.scaleEffect(coordinator.dropScale)
 					.id("dragged")
 					.offset(offset)
+					.opacity(coordinator.dragAcceptance.isHidden ? 0 : 1)
 			}
 		}
 		.environment(\.isDragAndDropEnabled, isDragEnabled)
