@@ -91,7 +91,7 @@ public extension Array where Element: Equatable {
 }
 
 public extension Array where Element: Identifiable {
-	subscript(elem: Element) -> Element? {
+	subscript(id elem: Element) -> Element? {
 		get {
 			guard let index = identifiableIndex(of: elem) else { return nil }
 			return self[index]
