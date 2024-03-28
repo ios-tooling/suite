@@ -48,7 +48,7 @@ import SwiftUI
 }
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
-extension CodableAppStorage {
+public extension CodableAppStorage {
 	init<OptionalStoredValue>(_ key: String, store: UserDefaults = .standard, _ defaultValue: OptionalStoredValue? = .none) where StoredValue == Optional<OptionalStoredValue> {
 		self.key = key
 		self.store = store
