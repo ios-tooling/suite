@@ -11,13 +11,14 @@ import Foundation
 @attached(accessor, names: named(get), named(set))
 public macro GeneratedEnvironmentKey() = #externalMacro(module: "SuiteMacrosImpl", type: "EnvironmentKeyGenerator")
 
-@attached(peer, names: prefixed(GeneratedPreferenceKey_))
-@attached(accessor, names: named(get))
-public macro GeneratedPreferenceKey() = #externalMacro(module: "SuiteMacrosImpl", type: "PreferenceKeyGenerator")
+@freestanding(declaration, names: arbitrary)
+public macro GeneratedPreferenceKey(name: String, type: Any.Type) = #externalMacro(module: "SuiteMacrosImpl", type: "PreferenceKeyGenerator")
 
 @attached(peer, names: prefixed(nonIsolatedActorAccessor_))
 @attached(accessor, names: named(get), named(set))
 public macro AddIsolatedAccessors(observing: Bool = false) = #externalMacro(module: "SuiteMacrosImpl", type: "NonIsolatedActorAccessorGenerator")
 
 
-public struct PreferenceValues { }
+public struct PreferenceValues {
+	public static let instance = PreferenceValues()
+}
