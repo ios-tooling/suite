@@ -17,8 +17,3 @@ public macro GeneratedPreferenceKey(name: String, type: Any.Type) = #externalMac
 @attached(peer, names: prefixed(nonIsolatedActorAccessor_))
 @attached(accessor, names: named(get), named(set))
 public macro AddIsolatedAccessors(observing: Bool = false) = #externalMacro(module: "SuiteMacrosImpl", type: "NonIsolatedActorAccessorGenerator")
-
-
-public struct PreferenceValues {
-	public static let instance = PreferenceValues()
-}
