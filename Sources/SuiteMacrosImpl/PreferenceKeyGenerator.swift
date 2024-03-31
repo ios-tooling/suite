@@ -14,7 +14,6 @@ public enum PreferenceKeyGenerator: DeclarationMacro {
 	 of node: some FreestandingMacroExpansionSyntax,
 	 in context: some MacroExpansionContext
   ) throws -> [DeclSyntax] {
-
 	  guard let keyName = name(from: node) else {
 		  context.diagnose(Diagnostic(node: Syntax(node), message: MacroFeedback.error("Please provide a name for this key (as a string).")))
 		  return []
@@ -26,22 +25,23 @@ public enum PreferenceKeyGenerator: DeclarationMacro {
 	  
 	  let keyTypeName = "GeneratedPreferenceKey_\(keyName)"
 	  return [
-		"""
-		struct \(raw: keyTypeName): PreferenceKey {
-		static func reduce(value: inout \(raw: keyType), nextValue: () -> \(raw: keyType)) {
-			//value
-		}
-		}
-		var \(raw: keyName): \(raw: keyTypeName).Type {
-			\(raw: keyTypeName).self
-		}
-		"""
+"""
+struct \(raw: keyTypeName): PreferenceKey {
+static func reduce(value: inout \(raw: keyType), nextValue: () -> \(raw: keyType)) {
+	//value
+}
+}
+var \(raw: keyName): \(raw: keyTypeName).Type {
+	\(raw: keyTypeName).self
+}
+"""
 	 ]
   }
 	
 	static func type(from node: some FreestandingMacroExpansionSyntax) -> String? {
+		let args = node.argumentList.children(viewMode: .sourceAccurate)
 		
-		guard let segment = node.argumentList.last?.as(LabeledExprSyntax.self)?.expression else { return nil }
+		guard let segment = args[args.index(after: args.startIndex)].as(LabeledExprSyntax.self)?.expression else { return nil }
 		
 		return segment.description
 	}
