@@ -11,6 +11,9 @@ public struct PreferenceValues {
 	public static let instance = PreferenceValues()
 }
 
+public func preferenceReduce<V>(value: inout V, nextValue: () -> V) {
+}
+
 public func preferenceReduce<V>(value: inout V?, nextValue: () -> V?) {
 	value = value ?? nextValue()
 }

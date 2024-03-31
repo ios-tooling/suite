@@ -26,7 +26,7 @@ public enum PreferenceKeyGenerator: DeclarationMacro {
 
 	  var defaultClause: String?
 	  if let defaultValue = self.defaultValue(from: node) {
-		  defaultClause = "static var defaultValue: \(keyType) = \(defaultValue)"
+		  defaultClause = "public static let defaultValue: \(keyType) = \(defaultValue)"
 	  } else if !keyType.hasSuffix("?") {
 		  context.diagnose(Diagnostic(node: Syntax(node), message: MacroFeedback.error("Non-optional types must provide a defaultValue")))
 		  return []
@@ -36,7 +36,7 @@ public enum PreferenceKeyGenerator: DeclarationMacro {
 """
 struct \(raw: keyTypeName): PreferenceKey {
 \(raw: defaultClause == nil ? "" : defaultClause!)
-static func reduce(value: inout \(raw: keyType), nextValue: () -> \(raw: keyType)) {
+public static func reduce(value: inout \(raw: keyType), nextValue: () -> \(raw: keyType)) {
 		preferenceReduce(value: &value, nextValue: nextValue)
 	}
 }
