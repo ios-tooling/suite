@@ -12,7 +12,7 @@ import Foundation
 public macro GeneratedEnvironmentKey() = #externalMacro(module: "SuiteMacrosImpl", type: "EnvironmentKeyGenerator")
 
 @freestanding(declaration, names: arbitrary)
-public macro GeneratedPreferenceKey(name: String, type: Any.Type) = #externalMacro(module: "SuiteMacrosImpl", type: "PreferenceKeyGenerator")
+public macro GeneratedPreferenceKey<V>(name: String, type: V.Type, defaultValue: V? = nil) = #externalMacro(module: "SuiteMacrosImpl", type: "PreferenceKeyGenerator")
 
 @attached(peer, names: prefixed(nonIsolatedActorAccessor_))
 @attached(accessor, names: named(get), named(set))
