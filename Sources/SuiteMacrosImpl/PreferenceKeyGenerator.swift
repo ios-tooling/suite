@@ -35,14 +35,10 @@ public enum PreferenceKeyGenerator: DeclarationMacro {
 	  return [
 """
 struct \(raw: keyTypeName): PreferenceKey {
-""",
-"""
 \(raw: defaultClause == nil ? "" : defaultClause!)
-""",
-"""
 static func reduce(value: inout \(raw: keyType), nextValue: () -> \(raw: keyType)) {
-preferenceReduce(value: &value, nextValue: nextValue)
-}
+		preferenceReduce(value: &value, nextValue: nextValue)
+	}
 }
 var \(raw: keyName): \(raw: keyTypeName).Type {
 	\(raw: keyTypeName).self

@@ -32,9 +32,10 @@ extension PreferenceValues {
 """
 extension PreferenceValues {
 	struct GeneratedPreferenceKey_Test: PreferenceKey {
-	static func reduce(value: inout String?, nextValue: () -> String?) {
-		preferenceReduce(value: &value, nextValue: nextValue)
-	}
+
+		static func reduce(value: inout String?, nextValue: () -> String?) {
+				preferenceReduce(value: &value, nextValue: nextValue)
+			}
 	}
 	var Test: GeneratedPreferenceKey_Test.Type {
 		GeneratedPreferenceKey_Test.self
