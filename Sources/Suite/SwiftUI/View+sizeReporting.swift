@@ -38,7 +38,7 @@ fileprivate struct FramePreferenceKey: PreferenceKey {
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
 struct SizeReporter<Content: View>: View {
-	@Binding var size: CGSize
+	var size: Binding<CGSize>?
 	let content: Content
 	
 	var body: some View {
@@ -50,7 +50,7 @@ struct SizeReporter<Content: View>: View {
 				}
 			)
 			.onPreferenceChange(SizePreferenceKey.self) { newSize in
-				size = newSize
+				size?.wrappedValue = newSize
 			}
 	}
 }
@@ -87,9 +87,9 @@ public extension View {		// Tracks the size available for the view
 	
 	func sizeReporting(_ callback: @escaping (CGSize) -> Void) -> some View {
 		self.background(
-			GeometryReader() { geo -> Color in
-				DispatchQueue.main.async { callback(geo.size) }
-				return Color.clear
+			GeometryReader() { geo in
+				Color.clear
+					.onAppear { callback(geo.size) }
 			}
 		)
 	}
