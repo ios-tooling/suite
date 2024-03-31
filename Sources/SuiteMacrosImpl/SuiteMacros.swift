@@ -12,6 +12,7 @@ import SwiftSyntaxMacros
 struct SuiteMacros: CompilerPlugin {
 	let providingMacros: [Macro.Type] = [
 		EnvironmentKeyGenerator.self,
-		NonIsolatedActorAccessorGenerator.self
+		NonIsolatedActorAccessorGenerator.self,
+		PreferenceKeyGenerator.self,
 	]
 }
