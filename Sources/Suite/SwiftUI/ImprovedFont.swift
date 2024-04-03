@@ -25,24 +25,24 @@ public struct ImprovedFont {
         isSystem = false
 	}
 	
-    public init(systemSize: CGFloat, weight: Font.Weight = .regular, design: Font.Design = .default) {
+    public init(system: CGFloat, weight: Font.Weight = .regular, design: Font.Design = .default) {
         #if os(iOS) || os(visionOS)
-            family = UIFont.systemFont(ofSize: systemSize).familyName
+            family = UIFont.systemFont(ofSize: system).familyName
         #endif
         #if os(OSX)
-            family = NSFont.systemFont(ofSize: systemSize).familyName!
+            family = NSFont.systemFont(ofSize: system).familyName!
         #endif
 		  #if os(watchOS)
-				family = UIFont.systemFont(ofSize: systemSize).familyName
+				family = UIFont.systemFont(ofSize: system).familyName
 		  #endif
-        size = systemSize
+        size = system
         self.weight = weight
         self.design = design
         isSystem = true
     }
     
     public static func system(size: CGFloat, weight: Font.Weight, design: Font.Design) -> ImprovedFont {
-        ImprovedFont(systemSize: size, weight: weight, design: design)
+        ImprovedFont(system: size, weight: weight, design: design)
     }
     
     #if os(iOS)
