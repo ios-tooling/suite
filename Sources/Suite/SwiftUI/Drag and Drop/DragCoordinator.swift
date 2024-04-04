@@ -24,6 +24,7 @@ public class DragCoordinator: ObservableObject {
 	@Published var dragType: String?
 	@Published var draggedObject: Any?
 	@Published var acceptedDrop = false
+	@Published var currentDropTarget: Any?
 	@Published var cancelledDrop = false
 	@Published var dropScale = 1.0
 	@Published var snapbackDuration = 0.2
@@ -49,6 +50,7 @@ public class DragCoordinator: ObservableObject {
 		dragType = type
 		isDragging = true
 		acceptedDrop = false
+		currentDropTarget = nil
 		dropScale = 1.0
 		cancelledDrop = false
 		self.sourcePoint = sourcePoint

@@ -7,11 +7,26 @@
 
 import SwiftUI
 
+public enum DragPhase: Equatable {
+	case idle, starting, dropped(Any?), cancelled
+		
+	public static func ==(lhs: Self, rhs: Self) -> Bool {
+		switch (lhs, rhs) {
+		case (.idle, .idle): true
+		case (.starting, .starting): true
+		case (.cancelled, .cancelled): true
+		case (.dropped, .dropped): true
+		default: false
+		}
+	}
+}
+public typealias DropPhaseChangedCallback = (@Sendable (DragPhase) -> Void)
+
 @available(OSX 13, iOS 15, tvOS 13, watchOS 9, *)
 public extension View {
-	@ViewBuilder func makeDraggable(type: String, object: Any, hideWhenDragging: Bool = true, draggedOpacity: Double = 1.0) -> some View {
+	@ViewBuilder func makeDraggable(type: String, object: Any, hideWhenDragging: Bool = true, draggedOpacity: Double = 1.0, phaseChanged:  DropPhaseChangedCallback? = nil) -> some View {
 		if #available(iOS 16, *) {
-			DraggableView(content: self, type: type, object: object, hideWhenDragging: hideWhenDragging, draggedOpacity: draggedOpacity)
+			DraggableView(content: self, type: type, object: object, hideWhenDragging: hideWhenDragging, draggedOpacity: draggedOpacity, phaseChanged: phaseChanged)
 		} else {
 			self
 		}
@@ -25,6 +40,7 @@ struct DraggableView<Content: View>: View {
 	let object: Any
 	let hideWhenDragging: Bool
 	let draggedOpacity: Double
+	let phaseChanged: DropPhaseChangedCallback?
 	
 	@EnvironmentObject var dragCoordinator: DragCoordinator
 	@Environment(\.isDragAndDropEnabled) var isDragAndDropEnabled
@@ -48,6 +64,7 @@ struct DraggableView<Content: View>: View {
 						dragCoordinator.currentPosition = nil
 						dragCoordinator.cancelledDrop = true
 						dragCoordinator.drop(at: nil)
+						phaseChanged?(false)
 					}
 				}
 			#else
@@ -57,6 +74,7 @@ struct DraggableView<Content: View>: View {
 						dragCoordinator.currentPosition = nil
 						dragCoordinator.cancelledDrop = true
 						dragCoordinator.drop(at: nil)
+						phaseChanged?(.cancelled)
 					}
 				}
 			#endif
@@ -75,6 +93,7 @@ struct DraggableView<Content: View>: View {
 		DragGesture(coordinateSpace: .dragAndDropSpace)
 			.onChanged { action in
 				if !isDragging {
+					phaseChanged?(.starting)
 					isDragging = true
 					let renderer = ImageRenderer(content: dragContent())
 					var sourcePoint: CGPoint = .zero
@@ -91,6 +110,7 @@ struct DraggableView<Content: View>: View {
 				Task {
 					try? await Task.sleep(for: .seconds(snapbackDuration))
 					isDragging = false
+					phaseChanged?(dragCoordinator.acceptedDrop ? .dropped(dragCoordinator.currentDropTarget) : .cancelled)
 				}
 				dragCoordinator.drop(at: action.location)
 			}
