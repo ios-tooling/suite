@@ -25,7 +25,7 @@ public struct Gestalt {
 	public enum Distribution: Sendable { case development, testflight, appStore }
 	
 	
-	public static var distribution: Distribution {
+	public static let distribution: Distribution = {
 		#if DEBUG
 			return .development
 		#else
@@ -41,7 +41,8 @@ public struct Gestalt {
 				return .appStore
 			#endif
 		#endif
-	}
+	}()
+	
 	public enum DebugLevel: Int, Comparable, Sendable { case none, testFlight, internalTesting, debugging
 		public static func < (lhs: Gestalt.DebugLevel, rhs: Gestalt.DebugLevel) -> Bool { return lhs.rawValue < rhs.rawValue }
 	}
@@ -59,13 +60,13 @@ public struct Gestalt {
 		assert(Thread.isMainThread, "must run on main thread \(message ?? "--")!")
 	}
 	
-	public static var isExtension: Bool = {
+	public static let isExtension: Bool = {
 		let extensionDictionary = Bundle.main.infoDictionary?["NSExtension"]
 		return extensionDictionary is NSDictionary
 	}()
 	
-	public static var isInPreview: Bool { ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" }
-	public static var deviceID: String? {
+	public static var isInPreview: Bool = { ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" }()
+	public static let deviceID: String? = {
 		#if os(watchOS)
 			if #available(watchOS 6.2, *) {
 				return WKInterfaceDevice.current().identifierForVendor?.uuidString
@@ -77,12 +78,12 @@ public struct Gestalt {
 		#elseif  os(macOS)
 			return serialNumber
 		#endif
-	}
+	}()
 	
 	#if os(OSX)
-		public static var isOnMac: Bool { return true }
+		public static let isOnMac: Bool = true
 		
-		public static var rawDeviceType: String {
+		public static let rawDeviceType: String = {
 			let service: io_service_t = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
 			let cfstr = "model" as CFString
 			if let model = IORegistryEntryCreateCFProperty(service, cfstr, kCFAllocatorDefault, 0).takeUnretainedValue() as? Data {
@@ -91,56 +92,57 @@ public struct Gestalt {
 				 }
 			}
 			return ""
-	}
-	static public var deviceName: String { rawDeviceType }
+	}()
+	
+	static public let deviceName: String = { rawDeviceType }()
 	#endif
 	
 	#if os(macOS)
-		public static var isOnIPad: Bool { false }
-		public static var isOnIPhone: Bool { false }
-		public static var isOnVision: Bool { false }
+		public static let isOnIPad = false
+		public static let isOnIPhone = false
+		public static let isOnVision = false
 	#endif
 	
 	#if os(watchOS)
-		public static var isOnWatch: Bool { true }
-		public static var isOnIPad: Bool { false }
-		public static var isOnIPhone: Bool { false }
-		public static var isOnVision: Bool { false }
+		public static let isOnWatch = true
+		public static let isOnIPad = false
+		public static let isOnIPhone = false
+		public static let isOnVision = false
 	#else
-		public static var isOnWatch: Bool { false }
+		public static let isOnWatch = false
 	#endif
 	
 	#if os(tvOS)
-		public static var isOnTV: Bool { true }
-		public static var isOnVision: Bool { false }
+		public static let isOnTV = true
+		public static let isOnVision = false
 	#else
-		public static var isOnTV: Bool { false }
+		public static let isOnTV = false
 	#endif
 
 	
 	#if os(iOS) || os(visionOS)
-	
-		public static var isOnVision: Bool { 
+		public static let isOnVision: Bool = {
 			if #available(iOS 17.0, *) {
 				UIDevice.current.userInterfaceIdiom == .vision
 			} else {
 				false
 			}
-		}
+		}()
+	
 		static public var sleepDisabled: Bool {
 			get { UIApplication.shared.isIdleTimerDisabled }
 			set { UIApplication.shared.isIdleTimerDisabled = newValue }
 		}
-		static public var deviceName: String { UIDevice.current.name }
+		static public let deviceName: String = UIDevice.current.name
 		#if targetEnvironment(macCatalyst)
-			public static var isOnMac: Bool { return true }
+			public static let isOnMac = true
 		#else
-			public static var isOnMac: Bool { return false }
+			public static var isOnMac = false
 		#endif
-		public static var isOnIPad: Bool = { return UIDevice.current.userInterfaceIdiom == .pad }()
-		public static var isOnIPhone: Bool = { return UIDevice.current.userInterfaceIdiom == .phone }()
+		public static let isOnIPad: Bool = { return UIDevice.current.userInterfaceIdiom == .pad }()
+		public static let isOnIPhone: Bool = { return UIDevice.current.userInterfaceIdiom == .phone }()
     
-		public static var osMajorVersion: Int = {
+		public static let osMajorVersion: Int = {
 			return Int(UIDevice.current.systemVersion.components(separatedBy: ".").first ?? "") ?? 0
 		}()
 	
@@ -167,27 +169,28 @@ public struct Gestalt {
 			}
 			return info
 		}
-		public static var simulatorMachineName: String? { return self.getSimulatorHostInfo(which: .nodename) }
-		public static var simulatorSystemName: String? { return self.getSimulatorHostInfo(which: .sysname) }
-		public static var simulatorReleaseName: String? { return self.getSimulatorHostInfo(which: .release) }
-		public static var simulatorVersionName: String? { return self.getSimulatorHostInfo(which: .version) }
-		public static var simulatorCPUName: String? { return self.getSimulatorHostInfo(which: .machine) }
+		public static let simulatorMachineName: String? = { Gestalt.getSimulatorHostInfo(which: .nodename) }()
+		public static let simulatorSystemName: String? = { Gestalt.getSimulatorHostInfo(which: .sysname) }()
+		public static let simulatorReleaseName: String? = { Gestalt.getSimulatorHostInfo(which: .release) }()
+		public static let simulatorVersionName: String? = { Gestalt.getSimulatorHostInfo(which: .version) }()
+		public static let simulatorCPUName: String? = { Gestalt.getSimulatorHostInfo(which: .machine) }()
 
-		public static var simulatorInfo: String {
+		public static let simulatorInfo: String = {
 			SimulatorHostInfo.allCases.map { getSimulatorHostInfo(which: $0) }.compactMap { $0 }.joined(separator: "- ")
-		}
+		}()
 
 	#endif
 	
 	#if os(iOS) || os(watchOS) || os(visionOS)
-		public static var simulatedRawDeviceType: String? {
+		public static let simulatedRawDeviceType: String? = {
 			#if targetEnvironment(simulator)
 					return ProcessInfo.processInfo.environment["SIMULATOR_MODEL_IDENTIFIER"]
 			#else
 					return nil
 			#endif
-		}
-		public static var rawDeviceType: String {
+		}()
+	
+		public static let rawDeviceType: String = {
 			var			systemInfo = utsname()
 			uname(&systemInfo)
 			let machineMirror = Mirror(reflecting: systemInfo.machine)
@@ -196,15 +199,15 @@ public struct Gestalt {
 				return identifier + String(UnicodeScalar(UInt8(value)))
 			}
 			return identifier
-		}
+		}()
 	
-		public static var modelName: String {
+		public static let modelName: String = {
 			#if targetEnvironment(simulator)
 				convertRawDeviceTypeToModelName(simulatedRawDeviceType ?? rawDeviceType) ?? "unknown"
 			#else
 				convertRawDeviceTypeToModelName(rawDeviceType) ?? "unknown"
 			#endif
-		}
+		}()
 	
 		public static func convertRawDeviceTypeToModelName(_ raw: String) -> String? {
 			switch raw {
@@ -335,9 +338,9 @@ public struct Gestalt {
 //			}
 //		}()
 	
-		public static var isRunningUITests: Bool {
+		public static let isRunningUITests: Bool = {
 			return ProcessInfo.processInfo.arguments.contains("-ui_testing")
-		}
+		}()
 	
 	
 	#else
@@ -356,12 +359,12 @@ public struct Gestalt {
 	
 	#endif
 	
-	public static var isRunningUnitTests: Bool = {
+	public static let isRunningUnitTests: Bool = {
 		return NSClassFromString("XCTest") != nil
 	}()
 	
-	public static var ipv4Address: String? { ipAddress(family: AF_INET) }
-	public static var ipv6Address: String? { ipAddress(family: AF_INET6) }
+	public static let ipv4Address: String? = { ipAddress(family: AF_INET) }()
+	public static let ipv6Address: String? = { ipAddress(family: AF_INET6) }()
 
 	
 	static func ipAddress(family: Int32) -> String? {
@@ -377,7 +380,7 @@ public struct Gestalt {
 		return nil
 	}
 	
-	public static var IPAddress: String? { ipv4Address ?? ipv6Address }
+	public static let IPAddress: String? = { ipv4Address ?? ipv6Address }()
 	
 	struct NetworkInterface: CustomStringConvertible {
 		let address: String
@@ -418,5 +421,5 @@ public struct Gestalt {
 		return results
 	}
 	
-	public static var buildDate: Date? { Bundle.main.executableURL?.createdAt }
+	public static let buildDate: Date? = { Bundle.main.executableURL?.createdAt }()
 }
