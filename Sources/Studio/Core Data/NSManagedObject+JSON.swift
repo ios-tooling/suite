@@ -82,7 +82,7 @@ extension NSAttributeDescription {
 }
 
 public extension JSONEncoder.DateEncodingStrategy {
-	static var `default` = JSONEncoder.DateEncodingStrategy.formatted(DateFormatter.defaultJSONFormatter)
+	static let `default` = JSONEncoder.DateEncodingStrategy.formatted(DateFormatter.defaultJSONFormatter)
 	
 	func jsonValue(from date: Date) -> Any? {
 		switch self {
@@ -97,7 +97,7 @@ public extension JSONEncoder.DateEncodingStrategy {
 }
 
 public extension JSONDecoder.DateDecodingStrategy {
-	static var `default` = JSONDecoder.DateDecodingStrategy.formatted(DateFormatter.defaultJSONFormatter)
+	static let `default` = JSONDecoder.DateDecodingStrategy.formatted(DateFormatter.defaultJSONFormatter)
 	
 	func date(from something: Any?) -> Date? {
 		switch self {

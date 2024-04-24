@@ -181,7 +181,7 @@ extension String {
 }
 
 public extension JSONEncoder {
-	static var `default`: JSONEncoder = {
+	static let `default`: JSONEncoder = {
 		let encoder = JSONEncoder()
 		encoder.outputFormatting = [ .withoutEscapingSlashes, .prettyPrinted, .sortedKeys ]
 		return encoder
@@ -190,7 +190,7 @@ public extension JSONEncoder {
 
 @available(iOS 10.0, *)
 public extension JSONEncoder {
-	static var iso8601Encoder: JSONEncoder {
+	static let iso8601Encoder: JSONEncoder {
 		let encoder = JSONEncoder.default
 		
 		encoder.dateEncodingStrategy = .iso8601
@@ -199,14 +199,14 @@ public extension JSONEncoder {
 }
 
 public extension JSONDecoder {
-	static var `default` = JSONDecoder()
+	static let `default` = JSONDecoder()
 	
 	enum DecodingError: Error, Sendable { case unknownKey(String), badString, jsonDecodeFailed, fileNotFound }
 }
 
 @available(iOS 10.0, *)
 public extension JSONDecoder {
-	static var iso8601Decoder: JSONDecoder {
+	static let iso8601Decoder: JSONDecoder {
 		let decoder = JSONExpandedDecoder()
 		
 		decoder.dateDecodingStrategy = .iso8601

@@ -29,7 +29,7 @@ public extension TimeInterval {
 	enum DurationStyle: Sendable { case hours, minutes, secondsMaybeHours, secondsNoHours, seconds, deciseconds, centiseconds, milliseconds }
 	
 	static var durationFormatter = DateComponentsFormatter()
-	static var centisecondFormatter: NumberFormatter = {
+	static let centisecondFormatter: NumberFormatter = {
 		let numberFormatter = NumberFormatter()
 		numberFormatter.minimumFractionDigits = 2
 		numberFormatter.maximumFractionDigits = 2
@@ -38,7 +38,7 @@ public extension TimeInterval {
 		return numberFormatter
 	}()
 
-	static var millisecondsFormatter: NumberFormatter = {
+	static let millisecondsFormatter: NumberFormatter = {
 		let numberFormatter = NumberFormatter()
 		numberFormatter.minimumFractionDigits = 3
 		numberFormatter.maximumFractionDigits = 3
@@ -47,7 +47,7 @@ public extension TimeInterval {
 		return numberFormatter
 	}()
 
-	static var decisecondsFormatter: NumberFormatter = {
+	static let decisecondsFormatter: NumberFormatter = {
 		let numberFormatter = NumberFormatter()
 		numberFormatter.minimumFractionDigits = 1
 		numberFormatter.maximumFractionDigits = 1

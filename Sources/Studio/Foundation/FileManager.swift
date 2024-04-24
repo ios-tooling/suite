@@ -87,14 +87,14 @@ public extension FileManager {
 		return self.tempDirectory.appendingPathComponent(name)
 	}
 
-	static var documentsDirectory: URL { .documents }
-	static var applicationSupportDirectory: URL { .applicationSupport }
-	static var libraryDirectory: URL { .library }
-	static var cachesDirectory: URL { .caches }
-	static var applicationSpecificSupportDirectory: URL { .applicationSpecificSupport }
-	static var tempDirectory: URL { return .temp }
+	static let documentsDirectory: URL = { .documents }()
+	static let applicationSupportDirectory: URL = { .applicationSupport }()
+	static let libraryDirectory: URL = { .library }()
+	static let cachesDirectory: URL = { .caches }()
+	static let applicationSpecificSupportDirectory: URL = { .applicationSpecificSupport }()
+	static let tempDirectory: URL = { return .temp }()
 	
-	static var realHomeDirectory: URL {
+	static let realHomeDirectory: URL = {
 		#if os(OSX)
 			let home = FileManager.default.homeDirectoryForCurrentUser
 			let components = home.path.components(separatedBy: "/")
@@ -107,7 +107,7 @@ public extension FileManager {
         #else
             return self.documentsDirectory.deletingLastPathComponent()
 		#endif
-	}
+	}()
 
 	static func documentURL(at path: String) -> URL { .document(named: path) }
 	static func cacheURL(at path: String) -> URL { .cache(named: path) }

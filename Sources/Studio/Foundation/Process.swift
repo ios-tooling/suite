@@ -83,7 +83,7 @@ import Foundation
 
 
 	public extension Gestalt {
-		static var isAppSandboxed: Bool {
+		static let isAppSandboxed: Bool = {
 			// "codesign -dvvv --entitlements :- /path/to/executable"
 			
 			guard let path = Bundle.main.executablePath else { return true }
@@ -97,6 +97,6 @@ import Foundation
 			}
 			
 			return false
-		}
+		}()
 	}
 #endif

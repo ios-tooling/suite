@@ -14,7 +14,7 @@ import UIKit
 #endif
 
 	public extension AVPlayer {
-		static var cachedMoviesDirectory: URL = {
+		static let cachedMoviesDirectory: URL = {
 			let directory = FileManager.cachesDirectory.appendingPathComponent("cached_movies")
 			try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: nil)
 			return directory

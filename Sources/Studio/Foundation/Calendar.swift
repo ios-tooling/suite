@@ -26,5 +26,5 @@ public extension Calendar {
 }
 
 public extension TimeZone {
-	static var gmt: TimeZone { TimeZone(identifier: "GMT") ?? TimeZone(secondsFromGMT: 0)! }
+	static let gmt: TimeZone = { TimeZone(identifier: "GMT") ?? TimeZone(secondsFromGMT: 0)! }()
 }

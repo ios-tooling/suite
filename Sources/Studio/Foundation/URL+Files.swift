@@ -45,12 +45,12 @@ public extension URL {
 		return url
 	}
 	
-	static var documents: URL { return systemDirectoryURL(which: .documentDirectory)! }
-	static var applicationSupport: URL { return systemDirectoryURL(which: .applicationSupportDirectory)! }
-	static var library: URL { return systemDirectoryURL(which: .libraryDirectory)! }
-	static var caches: URL { return systemDirectoryURL(which: .cachesDirectory)! }
-	static var applicationSpecificSupport: URL { return systemDirectoryURL(which: .applicationSupportDirectory)!.appendingPathComponent(Bundle.main.bundleIdentifier ?? Bundle.main.name) }
-	static var temp: URL { return URL(fileURLWithPath: NSTemporaryDirectory()) }
+	static let documents: URL = { return systemDirectoryURL(which: .documentDirectory)! }()
+	static let applicationSupport: URL = { return systemDirectoryURL(which: .applicationSupportDirectory)! }()
+	static let library: URL = { return systemDirectoryURL(which: .libraryDirectory)! }()
+	static let caches: URL = { return systemDirectoryURL(which: .cachesDirectory)! }()
+	static let applicationSpecificSupport: URL = { return systemDirectoryURL(which: .applicationSupportDirectory)!.appendingPathComponent(Bundle.main.bundleIdentifier ?? Bundle.main.name) }()
+	static let temp: URL = { return URL(fileURLWithPath: NSTemporaryDirectory()) }()
 	
 	static func document(named path: String) -> URL {
 		let url = URL.documents + path

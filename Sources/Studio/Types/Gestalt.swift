@@ -42,7 +42,7 @@ public struct Gestalt {
 			#endif
 		#endif
 	}()
-	
+
 	public enum DebugLevel: Int, Comparable, Sendable { case none, testFlight, internalTesting, debugging
 		public static func < (lhs: Gestalt.DebugLevel, rhs: Gestalt.DebugLevel) -> Bool { return lhs.rawValue < rhs.rawValue }
 	}

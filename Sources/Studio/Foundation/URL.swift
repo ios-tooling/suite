@@ -118,7 +118,7 @@ public extension URL {
 		
 	}
 
-	static var bundleScheme = "bundle"
+	static let bundleScheme = "bundle"
 	var isBundleURL: Bool { scheme == Self.bundleScheme }
 	
 	var toFileURL: URL? {
