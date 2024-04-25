@@ -9,7 +9,7 @@
 import UIKit
 
 public extension UIView {
-	static let screenScale = CGFloat {
+	static let screenScale: CGFloat = {
 		#if os(visionOS)
 			return 1
 		#else

@@ -105,7 +105,7 @@ public extension FileManager {
 			
 			return home
         #else
-            return self.documentsDirectory.deletingLastPathComponent()
+            return FileManager.documentsDirectory.deletingLastPathComponent()
 		#endif
 	}()
 
