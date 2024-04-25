@@ -13,7 +13,7 @@ public class MobileProvisionFile {
 	
 	public var properties: NSDictionary!
 	
-	public static var `default`: MobileProvisionFile? = MobileProvisionFile(url: Bundle.main.url(forResource: "embedded", withExtension: "mobileprovision"))
+	public static let `default`: MobileProvisionFile? = MobileProvisionFile(url: Bundle.main.url(forResource: "embedded", withExtension: "mobileprovision"))
 	public init?(data: Data?) {
 		guard let data = data else { return nil }
 		

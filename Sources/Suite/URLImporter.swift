@@ -31,7 +31,7 @@ open class URLImporter {
 	var pendingURLs: [URL] = []
 	var state = State.idle { didSet { self.startImportTimer() }}
 	
-	public static var importDirectoryName = "Imported Files"
+	public static let importDirectoryName = "Imported Files"
 	
 	var importDirectory: URL = {
 		let url = FileManager.libraryDirectory.appendingPathComponent(URLImporter.importDirectoryName)

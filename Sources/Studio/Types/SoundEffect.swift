@@ -23,7 +23,7 @@ import AVFoundation
 #endif
 
 
-public class SoundEffect: Equatable {
+@MainActor public class SoundEffect: Equatable {
 	private static var cachedSounds: [String: SoundEffect] = [:]
 	private static var playingSounds: [SoundEffect] = []
 	private static var hasMadeAmbient = false
@@ -179,7 +179,7 @@ public class SoundEffect: Equatable {
 		self.completion = nil
 	}
 	
-	public static func ==(lhs: SoundEffect, rhs: SoundEffect) -> Bool {
+	nonisolated public static func ==(lhs: SoundEffect, rhs: SoundEffect) -> Bool {
 		return lhs === rhs
 	}
 }

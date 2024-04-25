@@ -9,13 +9,14 @@
 import UIKit
 
 public extension UIView {
-	static var screenScale: CGFloat {
+	static let screenScale = CGFloat {
 		#if os(visionOS)
 			return 1
 		#else
 			return UIScreen.main.scale
 		#endif
-	}
+	}()
+	
 	@available(iOSApplicationExtension, unavailable)
     static func resignAllFirstResponders() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)

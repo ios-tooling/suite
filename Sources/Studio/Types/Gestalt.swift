@@ -65,7 +65,7 @@ public struct Gestalt {
 		return extensionDictionary is NSDictionary
 	}()
 	
-	public static var isInPreview: Bool = { ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" }()
+	public static let isInPreview: Bool = { ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" }()
 	public static let deviceID: String? = {
 		#if os(watchOS)
 			if #available(watchOS 6.2, *) {
@@ -137,7 +137,7 @@ public struct Gestalt {
 		#if targetEnvironment(macCatalyst)
 			public static let isOnMac = true
 		#else
-			public static var isOnMac = false
+			public static let isOnMac = false
 		#endif
 		public static let isOnIPad: Bool = { return UIDevice.current.userInterfaceIdiom == .pad }()
 		public static let isOnIPhone: Bool = { return UIDevice.current.userInterfaceIdiom == .phone }()
@@ -349,7 +349,7 @@ public struct Gestalt {
 				get { NSApp.sleepDisabled }
 				set { NSApp.sleepDisabled = newValue }
 			}
-			public static var serialNumber: String? = {
+			public static let serialNumber: String? = {
 				let platformExpert = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
 				
 				let string = IORegistryEntryCreateCFProperty(platformExpert, kIOPlatformSerialNumberKey as CFString, kCFAllocatorDefault, 0).takeRetainedValue()

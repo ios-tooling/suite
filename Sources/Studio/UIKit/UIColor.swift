@@ -84,7 +84,7 @@ public extension UIColor {
 		return r << 16 + g << 8 + b
 	}
 	
-	static var defaultText: UIColor {
+	static let defaultText: UIColor = {
 		#if os(watchOS)
 			return .darkGray
 		#else
@@ -94,9 +94,9 @@ public extension UIColor {
 				return UIColor.black
 			}
 		#endif
-	}
+	}()
 	
-	static var secondaryText: UIColor {
+	static let secondaryText = UIColor {
 		#if os(watchOS)
 			return .white
 		#else
@@ -106,9 +106,9 @@ public extension UIColor {
 				return UIColor.darkGray
 			}
 		#endif
-	}
+	}()
 	
-	static var tertiaryText: UIColor {
+	static let tertiaryText = UIColor {
 		#if os(watchOS)
 			return .lightGray
 		#else
@@ -118,9 +118,9 @@ public extension UIColor {
 				return UIColor.lightGray
 			}
 		#endif
-	}
+	}()
 	
-	static var defaultBackground: UIColor {
+	static let defaultBackground = UIColor {
 		#if os(watchOS)
 			return .white
 		#else
@@ -130,7 +130,7 @@ public extension UIColor {
 				return UIColor.white
 			}
 		#endif
-	}
+	}()
 	
 	#if os(iOS)
 		@available(iOS 10.0, *)

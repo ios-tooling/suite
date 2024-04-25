@@ -8,7 +8,7 @@
 import SwiftUI
 
 extension CoordinateSpace {
-	static var dragAndDropSpaceName: String { "dragAndDropSpace" }
+	static let dragAndDropSpaceName = "dragAndDropSpace" 
 	static var dragAndDropSpace = CoordinateSpace.named(Self.dragAndDropSpaceName)
 	static var dragAndDropSpaceCreatedNotification: Notification.Name { Notification.Name("dragAndDropSpaceCreatedNotification") }
 }

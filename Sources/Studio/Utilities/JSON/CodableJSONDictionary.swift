@@ -16,7 +16,7 @@ public struct CodableJSONDictionary: Codable, Equatable, Hashable, Sendable {
 	public static var dataKeyNames: [String] = []
 	
 	public init() { backing = [:] }
-	public static var empty = CodableJSONDictionary()
+	public static let empty = CodableJSONDictionary()
 	
 	public subscript(key: String) -> Any? {
 		get { backing[key] }

@@ -15,7 +15,7 @@ public struct CodableJSONArray: Codable, Equatable, Hashable {
 	public var array: [Any] { backing }
 	
 	public init() { backing = [] }
-	public static var empty = CodableJSONArray()
+	public static let empty = CodableJSONArray()
 	
 	public subscript(index: Int) -> Any {
 		get { backing[index] }

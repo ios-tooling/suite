@@ -10,9 +10,9 @@ import Foundation
 import WatchKit
 
 public extension Gestalt {
-	enum WatchCaseSize: Int, Sendable { case watch38mm = 38, watch40mm = 40, watch41mm = 41, watch42mm = 42, watch44mm = 44, watch45mm = 45, larger = 100 }
+	enum WatchCaseSize: Int, Sendable { case watch38mm = 38, watch40mm = 40, watch41mm = 41, watch42mm = 42, watch44mm = 44, watch45mm = 45, watch49mm = 49, larger = 100 }
 	
-	static var caseSize: WatchCaseSize {
+	static let caseSize: WatchCaseSize = {
 		if let raw = modelName.components(separatedBy: " ").last?.trimmingCharacters(in: .init(charactersIn: "m")), let size = Int(raw), let caseSize = WatchCaseSize(rawValue: size) { return caseSize }
 		
 		switch WKInterfaceDevice.current().screenBounds.size {
@@ -22,11 +22,12 @@ public extension Gestalt {
 		case CGSize(width: 156, height: 195): return .watch42mm
 		case CGSize(width: 184, height: 224): return .watch44mm
 		case CGSize(width: 198, height: 242): return .watch45mm
+		case CGSize(width: 205, height: 251): return .watch49mm
 		default: return .larger
 		}
-	}
+	}()
 
-	static var isOnMac: Bool { return false }
+	static let isOnMac = false
 }
 
 #endif

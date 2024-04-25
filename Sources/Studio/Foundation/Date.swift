@@ -40,16 +40,16 @@ public extension Date {
 		public var isWeekendDay: Bool { return self == .saturday || self == .sunday }
 		public var isWeekDay: Bool { return !self.isWeekendDay }
 		
-		public static var firstDayOfWeek: DayOfWeek { DayOfWeek(rawValue: Calendar.current.firstWeekday) ?? .monday }
-		public static var lastDayOfWeek: DayOfWeek { firstDayOfWeek.previousDay }
-		public static var weekdays: [DayOfWeek] {
+		public static let firstDayOfWeek: DayOfWeek = { DayOfWeek(rawValue: Calendar.current.firstWeekday) ?? .monday }()
+		public static var lastDayOfWeek: DayOfWeek = { firstDayOfWeek.previousDay }()
+		public static var weekdays: [DayOfWeek] = {
 			var days: [DayOfWeek] = []
 			let first = Calendar.current.firstWeekday
 			for i in 0..<7 {
 				days.append(DayOfWeek(rawValue: (i + first + 7 - 1) % 7 + 1)!)
 			}
 			return days
-		}
+		}()
 		public static func <(lhs: DayOfWeek, rhs: DayOfWeek) -> Bool { return lhs.rawValue < rhs.rawValue }
 		
 		public var description: String { shortName }
