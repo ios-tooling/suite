@@ -117,12 +117,13 @@ import AVFoundation
 		if let existing = SoundEffect.cachedSounds[name] {
 			self.init(original: existing)
 		} else {
-			if let data = NSDataAsset(name: name, bundle: bundle ?? Bundle.main)?.data {
+			let actualBundle = bundle ?? Bundle.main
+			if let data = NSDataAsset(name: name, bundle: actualBundle)?.data {
 				self.init(data: data, preload: preload, uncached: uncached)
-			} else if let url = Bundle.main.url(forResource: name, withExtension: nil) {
+			} else if let url = actualBundle.url(forResource: name, withExtension: nil) {
 				self.init(url: url, preload: preload, uncached: uncached)
 				if !uncached { SoundEffect.cachedSounds[name] = self }
-			} else if let data = NSDataAsset(name: name, bundle: bundle ?? Bundle.main)?.data {
+			} else if let data = NSDataAsset(name: name, bundle: actualBundle)?.data {
 				self.init(data: data, preload: preload, uncached: uncached)
 				if !uncached { SoundEffect.cachedSounds[name] = self }
 			} else {
