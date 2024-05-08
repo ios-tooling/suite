@@ -5,6 +5,8 @@
 //  Created by Ben Gottlieb on 2/5/24.
 //
 
+#if canImport(WebKit)
+
 import SwiftUI
 import WebKit
 
@@ -182,3 +184,4 @@ extension WebConsole: WKNavigationDelegate {
 	}
 
 }
+#endif

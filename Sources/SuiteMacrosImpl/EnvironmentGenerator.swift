@@ -38,7 +38,7 @@ public struct EnvironmentKeyGenerator: PeerMacro {
 			if let signature = varDecl.closureSignature(node: node, in: context) {
 				return [
 					  """
-					  private struct GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
+					  private actor GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
 					  static let defaultValue: \(raw: signature) = \(raw: initialValue)
 					  }
 					  """
@@ -48,7 +48,7 @@ public struct EnvironmentKeyGenerator: PeerMacro {
 
 				return [
 					 """
-					 private struct GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
+					 private actor GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
 					 static let defaultValue = \(raw: initialValue)
 					 }
 					 """
@@ -57,7 +57,7 @@ public struct EnvironmentKeyGenerator: PeerMacro {
 		} else {
 			return [
 				"""
-				private struct GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
+				private actor GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
 					static let \(patternBinding) \(raw: isOptional && !hasDefaultValue ? "= nil" : "")
 				}
 				"""

@@ -1,10 +1,11 @@
 //
-//  SwiftUIView.swift
+//  SimpleWebViewAdditions.swift
 //  
 //
 //  Created by Ben Gottlieb on 2/4/24.
 //
 
+#if canImport(WebKit)
 import SwiftUI
 import WebKit
 
@@ -61,3 +62,4 @@ public extension View {
 		SimpleWebViewAccessor(content: self, callback: callback)
 	}
 }
+#endif

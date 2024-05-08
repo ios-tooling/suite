@@ -11,9 +11,9 @@ public struct BlockWrapper: Sendable, Equatable {
 	let file: String
 	let line: Int
 	let column: Int
-	public let block: @Sendable () -> Void
+	public let block: @Sendable () async throws -> Void
 	
-	public init(file: String = #file, line: Int = #line, col: Int = #column, block: @Sendable @escaping () -> Void) {
+	public init(file: String = #file, line: Int = #line, col: Int = #column, block: @Sendable @escaping () async throws -> Void) {
 		self.file = file
 		self.line = line
 		self.column = col

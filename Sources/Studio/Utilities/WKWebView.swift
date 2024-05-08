@@ -5,6 +5,7 @@
 //  Created by Ben Gottlieb on 2/4/24.
 //
 
+#if canImport(WebKit)
 import Foundation
 import WebKit
 
@@ -26,3 +27,4 @@ public extension WKWebView {
 		return try JSONDecoder().decode(Result.self, from: data)
 	}
 }
+#endif

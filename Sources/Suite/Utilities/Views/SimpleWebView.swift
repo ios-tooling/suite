@@ -5,6 +5,8 @@
 //  Created by Ben Gottlieb on 7/9/23.
 //
 
+#if canImport(WebKit)
+
 import SwiftUI
 import WebKit
 
@@ -119,3 +121,5 @@ extension SimpleWebView.EmbdeddedWebView {
 	}
 }
 #endif
+#endif
+

@@ -5,6 +5,8 @@
 //  Created by Ben Gottlieb on 2/6/24.
 //
 
+#if canImport(WebKit)
+
 import SwiftUI
 
 @available(macOS 12.0, iOS 15, watchOS 10, *)
@@ -71,3 +73,4 @@ public struct WebConsoleView: View {
 		}
 	}
 }
+#endif
