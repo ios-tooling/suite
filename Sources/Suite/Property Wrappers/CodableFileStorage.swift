@@ -8,7 +8,7 @@
 import SwiftUI
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
-@propertyWrapper public struct CodableFileStorage<StoredValue: Codable & Equatable>: DynamicProperty {
+@propertyWrapper public struct CodableFileStorage<StoredValue: Codable>: DynamicProperty {
 	public init(wrappedValue: StoredValue, _ url: URL) {
 		self.url = url
 		let initialValue = try? StoredValue.loadJSON(file: url)
@@ -26,11 +26,13 @@ import SwiftUI
 	public var wrappedValue: StoredValue {
 		get { value }
 		nonmutating set {
-			if newValue == value { return }
+			if equal(newValue, value) { return }
 			try? newValue.saveJSON(to: url)
 			value = newValue
 		}
 	}
+	
+	func equal(_ new: StoredValue, _ old: StoredValue) -> Bool { false }
 }
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
@@ -41,4 +43,11 @@ public extension CodableFileStorage {
 		self._value = State(initialValue: initialValue ?? defaultValue)
 	}
 }
+
+@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
+public extension CodableFileStorage where StoredValue: Equatable {
+	func equal(_ new: StoredValue, _ old: StoredValue) -> Bool { new == old }
+}
+
+
 #endif

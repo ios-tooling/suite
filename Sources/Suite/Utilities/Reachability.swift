@@ -16,6 +16,10 @@ import Foundation
 		Task { await start() }
 	}
 
+	nonisolated public static func setup() {
+		Task { await Self.instance.setup() }
+	}
+	
 	public func setup() { }
 	
 	@discardableResult public func setupAndCheckForOnline() async -> Bool {

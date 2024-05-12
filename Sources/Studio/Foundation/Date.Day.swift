@@ -8,7 +8,7 @@
 import Foundation
 
 public extension Date {
-	struct Day: Codable, CustomStringConvertible, Equatable, Comparable, Hashable {
+	struct Day: Codable, CustomStringConvertible, Equatable, Comparable, Hashable, Sendable {
 		public var day: Int
 		public var month: Foundation.Date.Month
 		public var year: Int
@@ -83,6 +83,7 @@ public extension Date {
 		public var daysAgo: Int { Date().interval(ofComponent: .day, from: date) }
 		
 		public static var now: Date.Day { Date.Day(Date()) }
+		public static var today: Date.Day { now }
 	}
 	
 	var day: Day {
