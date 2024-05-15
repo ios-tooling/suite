@@ -70,4 +70,8 @@ public extension DateInterval {
 	init(_ range: Range<Date>) {
 		self.init(start: range.lowerBound, end: range.upperBound)
 	}
+	
+	func randomDate() -> Date {
+		start.addingTimeInterval(Double.random(in: 0...duration))
+	}
 }
