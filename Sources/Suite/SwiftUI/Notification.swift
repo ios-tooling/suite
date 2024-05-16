@@ -13,12 +13,11 @@ import SwiftUI
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
 @MainActor public class NotificationObserver: ObservableObject {
-	var cancellable: AnyCancellable?
-	public init(_ name: Notification.Name, _ object: AnyObject? = nil) {
-		cancellable = name.publisher(object: object)
-			.sink { [weak self] _ in
-				self?.objectWillChange.send()
-			}
+	var token: Any?
+	public init(_ name: Notification.Name, _ object: Any? = nil) {
+		token = NotificationCenter.default.addObserver(forName: name, object: object, queue: .main, using: { [weak self] note in
+			self?.objectWillChange.send()
+		})
 	}
 }
 
