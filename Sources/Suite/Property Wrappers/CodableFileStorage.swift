@@ -27,7 +27,17 @@ import SwiftUI
 		get { value }
 		nonmutating set {
 			if equal(newValue, value) { return }
-			try? newValue.saveJSON(to: url)
+			
+			do {
+				let data = try JSONEncoder().encode(newValue)
+				if data == "null".data(using: .utf8) {
+					try? FileManager.default.removeItem(at: url)
+				} else {
+					try? data.write(to: url)
+				}
+			} catch {
+				print("Failed to save: \(error)")
+			}
 			value = newValue
 		}
 	}
@@ -42,6 +52,7 @@ public extension CodableFileStorage {
 		let initialValue = try? StoredValue.loadJSON(file: url)
 		self._value = State(initialValue: initialValue ?? defaultValue)
 	}
+	
 }
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
