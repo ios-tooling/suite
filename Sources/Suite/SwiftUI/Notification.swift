@@ -12,6 +12,17 @@ import Combine
 import SwiftUI
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
+@MainActor public class NotificationObserver: ObservableObject {
+	var cancellable: AnyCancellable?
+	public init(_ name: Notification.Name, _ object: AnyObject? = nil) {
+		cancellable = name.publisher(object: object)
+			.sink { [weak self] _ in
+				self?.objectWillChange.send()
+			}
+	}
+}
+
+@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
 public extension Notification.Name {
 	func publisher(object: AnyObject? = nil) -> NotificationCenter.Publisher {
 		NotificationCenter.default.publisher(for: self, object: object)
