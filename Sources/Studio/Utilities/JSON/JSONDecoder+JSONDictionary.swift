@@ -14,7 +14,11 @@ extension KeyedDecodingContainer where K == JSONCodingKey {
 		var results: [String: Any] = [:]
 		
 		for key in allKeys {
-			results[key.stringValue] = try decodeJSONValue(forKey: key)
+			do {
+				results[key.stringValue] = try decodeJSONValue(forKey: key)
+			} catch {
+				//we're going to eat this error for now, as it seems to indicate a null value.
+			}
 		}
 		return results
 	}
