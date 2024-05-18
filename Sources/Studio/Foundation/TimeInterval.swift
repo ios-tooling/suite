@@ -11,7 +11,8 @@ public extension TimeInterval {
 	static let minute: TimeInterval = 60.0
 	static let hour: TimeInterval = 60.0 * 60.0
 	static let day: TimeInterval = 60.0 * 60.0 * 24.0
-	
+	static let week: TimeInterval = 60.0 * 60.0 * 24.0 * 7
+
 	static var saveInterval: TimeInterval = 20.0
 	static var keyPressSearchDelay: TimeInterval = 0.5
 	static var pressAndHoldInterval: TimeInterval = 1.0
