@@ -36,7 +36,10 @@ public struct Gestalt {
 				return FileManager.default.fileExists(at: receiptURL) ? .appStore : .development
 			#else
 				if isOnSimulator { return .development }
-				if Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt" && MobileProvisionFile.default?.properties["ProvisionedDevices"] == nil { return .testflight }
+				if Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt" {
+					//if MobileProvisionFile.default?.properties["ProvisionedDevices"] == nil
+					return .testflight
+				}
 				
 				return .appStore
 			#endif
