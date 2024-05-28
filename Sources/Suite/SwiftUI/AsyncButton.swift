@@ -75,7 +75,7 @@ public struct AsyncButton<Label: View, Busy: View>: View {
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 8, *)
 extension AsyncButton where Label == Text, Busy == AsyncButtonBusyLabel {
-	public init(_ title: String, spinnerScale: Double = 1.0, action: @escaping () async throws -> Void) {
+	public init(_ title: LocalizedStringKey, spinnerScale: Double = 1.0, action: @escaping () async throws -> Void) {
 		self.action = action
 		self.label = { Text(title) }
 		self.busy = { AsyncButtonBusyLabel(title: title, spinnerScale: spinnerScale) }
@@ -84,7 +84,7 @@ extension AsyncButton where Label == Text, Busy == AsyncButtonBusyLabel {
 
 @available(macOS 12, iOS 15.0, tvOS 13, watchOS 8, *)
 extension AsyncButton where Label == Text, Busy == AsyncButtonBusyLabel {
-	public init(_ title: String, role: ButtonRole, spinnerScale: Double = 1.0, action: @escaping () async throws -> Void) {
+	public init(_ title: LocalizedStringKey, role: ButtonRole, spinnerScale: Double = 1.0, action: @escaping () async throws -> Void) {
 		self.action = action
 		self.role = role
 		self.label = { Text(title) }
@@ -103,7 +103,7 @@ extension AsyncButton where Busy == AsyncButtonBusyLabel {
 }
 
 public struct AsyncButtonBusyLabel: View {
-	let title: String
+	let title: LocalizedStringKey
 	var spinnerColor = Color.white
 	var spinnerScale: Double
 
