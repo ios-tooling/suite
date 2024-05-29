@@ -6,8 +6,11 @@
 //
 
 #if canImport(AppKit)
+#if os(macOS)
 
 import AppKit
+
+public enum UIKeyboardType { case alphabet }
 
 @available(OSX 10.15, *)
 public extension View {
@@ -18,6 +21,11 @@ public extension View {
 			NSApplication.shared.keyWindow?.close()
 		#endif
 	}
-}
+	
+	func keyboardType(_ type: UIKeyboardType) -> some View {
+		self
+	}
 
+}
+#endif
 #endif
