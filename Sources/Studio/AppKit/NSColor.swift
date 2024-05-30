@@ -72,6 +72,16 @@ public extension NSColor {
 		brightness = ((r * 299) + (g * 587) + (b * 114)) / 1000;
 		return brightness
 	}
+	
+	var luminosity: Double {
+		var r: CGFloat = 0.0
+		var g: CGFloat = 0.0
+		var b: CGFloat = 0.0
+		var a: CGFloat = 0.0
+		self.getRed(&r, green: &g, blue: &b, alpha: &a)
+		return 0.2126 * r + g * 0.7152 + 0.0722 * b
+	}
+
 }
 
 #endif

@@ -64,8 +64,16 @@ public extension Color {
 		#endif
 	}
 	
+	var luminosity: Double {
+		#if os(macOS)
+				NSColor(self).luminosity
+		#else
+				UIColor(self).luminosity
+		#endif
+	}
+	
 	var textColor: Color {
-		brightness <= 0.50 ? .white : .black
+		luminosity <= 0.50 ? .white : .black
 	}
 }
 
