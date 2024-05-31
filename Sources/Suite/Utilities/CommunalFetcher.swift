@@ -8,7 +8,7 @@
 import Foundation
 import Combine
 
-public final class CommunalFetcher<Value> {
+public final actor CommunalFetcher<Value> {
 	var value: CurrentValueSubject<Value?, Error> = .init(nil)
 	var inProgress = false
 	var fetcher: () async throws -> Value
