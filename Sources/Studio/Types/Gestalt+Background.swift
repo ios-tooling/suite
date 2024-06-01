@@ -19,7 +19,7 @@ public extension Gestalt {
 	
 	static func startSafeBackgroundProcess(name: String? = nil, handler: (() -> Void)? = nil) -> Any? {
 		guard let application else {
-			print("Please call Gestalt.setApplication() first")
+			if !Gestalt.isExtension { print("Please call Gestalt.setApplication() first") }
 			return nil
 		}
 		
