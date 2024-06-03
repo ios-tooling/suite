@@ -22,7 +22,7 @@ public extension String {
 }
 
 
-@available(iOS 14.0, macOS 11, watchOS 8, *)
+@available(iOS 13.0, macOS 11, watchOS 8, *)
 public extension Dictionary where Key == String {
 	var prettyPrinted: String {
 		prettyPrinted(prefix: "")
@@ -60,7 +60,7 @@ public extension Dictionary where Key == String {
 	}
 }
 
-@available(iOS 14.0, macOS 11, watchOS 8, *)
+@available(iOS 13.0, macOS 11, watchOS 8, *)
 extension Array {
 	func prettyPrinted(prefix: String) -> String {
 		if isEmpty { return "[]"}
