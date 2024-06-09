@@ -8,7 +8,7 @@
 import SwiftSyntax
 import SwiftDiagnostics
 
-enum MacroFeedback: DiagnosticMessage {
+enum MacroFeedback: DiagnosticMessage, Error {
 	 case noDefaultArgument, missingAnnotation, notAnIdentifier, notVariableSyntax
 	 case message(String)
 	 case error(String)

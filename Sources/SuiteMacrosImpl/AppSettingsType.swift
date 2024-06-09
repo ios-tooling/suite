@@ -1,0 +1,38 @@
+//
+//  File.swift
+//  
+//
+//  Created by Ben Gottlieb on 6/9/24.
+//
+
+import Foundation
+
+indirect enum AppSettingsType { case string, bool, integer, double, data, date, other(String), optional(AppSettingsType)
+	var declaration: String {
+		switch self {
+		case .string: "String"
+		case .bool: "Bool"
+		case .integer: "Int"
+		case .double: "Double"
+		case .data: "Data"
+		case .date: "Date"
+		case .other(let name): "\(name)"
+		case .optional(let type): "\(type.declaration)?"
+		}
+	}
+	
+	var optionalized: AppSettingsType { .optional(self) }
+	
+	init(rawValue: String) {
+		switch rawValue {
+		case "String": self = .string
+		case "Bool": self = .bool
+		case "Int": self = .integer
+		case "Double": self = .double
+		case "Data": self = .data
+		case "Date": self = .date
+		default: self = .other(rawValue)
+		}
+	}
+}
+
