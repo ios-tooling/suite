@@ -14,5 +14,6 @@ struct SuiteMacros: CompilerPlugin {
 		EnvironmentKeyGenerator.self,
 		NonIsolatedActorAccessorGenerator.self,
 		PreferenceKeyGenerator.self,
+		AppSettingsGenerator.self
 	]
 }
