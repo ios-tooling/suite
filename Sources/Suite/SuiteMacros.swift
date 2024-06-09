@@ -19,5 +19,5 @@ public macro GeneratedPreferenceKey<V>(name: String, type: V.Type, defaultValue:
 public macro AddIsolatedAccessors(observing: Bool = false) = #externalMacro(module: "SuiteMacrosImpl", type: "NonIsolatedActorAccessorGenerator")
 
 @attached(member, names: arbitrary)
-@attached(extension)
+@attached(extension, names: arbitrary, conformances: UserDefaultsContainer)
 public macro AppSettings(_ group: String? = nil) = #externalMacro(module: "SuiteMacrosImpl", type: "AppSettingsGenerator")

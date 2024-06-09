@@ -32,18 +32,31 @@ extension AppSettingsGenerator: ExtensionMacro {
 			  ╰─closingQuote: stringQuote
 		 */
 
-		if let suiteName = node.arguments?.trimmedDescription {
-			results.append(try .init("""
-				let suiteName = \(raw: suiteName)
-			"""))
-		}
+		results.append(try userDefaultsDecl(type: type, suiteName: node.arguments?.trimmedDescription))
+		results.append(try ExtensionDeclSyntax("extension \(type.trimmed): UserDefaultsContainer {}"))
 
 //		context.diagnose(Diagnostic(node: node, message: MacroFeedback.message(node.arguments!.trimmedDescription.debugDescription ?? "--")))
-
 		return results
-		
 	}
 	
+
 	
+	static func userDefaultsDecl(type: some SwiftSyntax.TypeSyntaxProtocol, suiteName: String?) throws -> ExtensionDeclSyntax {
+		if let suiteName, !suiteName.isEmpty {
+			return ExtensionDeclSyntax(extendedType: type, memberBlock: try MemberBlockSyntax {
+				try VariableDeclSyntax(
+	 """
+	  nonisolated var userDefaults: UserDefaults { UserDefaults(suiteName: \(raw: suiteName)) ?? .standard }
+	 """
+			) })
+		} else {
+			return ExtensionDeclSyntax(extendedType: type, memberBlock: try MemberBlockSyntax {
+				try VariableDeclSyntax(
+"""
+	nonisolated var userDefaults: UserDefaults { .standard }
+"""
+			) })
+		}
+	}
 }
 
