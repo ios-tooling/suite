@@ -21,6 +21,39 @@ indirect enum AppSettingsType { case string, bool, integer, double, data, date, 
 		}
 	}
 	
+	var canBeOptional: Bool {
+		switch self {
+		case .string, .data, .date, .other: true
+		default: false
+		}
+	}
+
+	var accessorName: String {
+		switch self {
+		case .string: "string"
+		case .bool: "bool"
+		case .integer: "int"
+		case .double: "double"
+		case .data: "data"
+		case .date: "date"
+		case .optional(let kind): kind.accessorName
+		case .other: "object"
+		}
+	}
+
+	var setterName: String {
+		switch self {
+		case .string: "setString"
+		case .bool: "setBool"
+		case .integer: "setInt"
+		case .double: "setDouble"
+		case .data: "setData"
+		case .date: "setDate"
+		case .optional(let kind): kind.setterName
+		case .other: "setObject"
+		}
+	}
+
 	var optionalized: AppSettingsType { .optional(self) }
 	
 	init(rawValue: String) {

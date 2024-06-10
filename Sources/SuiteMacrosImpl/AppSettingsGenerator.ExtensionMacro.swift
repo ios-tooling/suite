@@ -33,7 +33,7 @@ extension AppSettingsGenerator: ExtensionMacro {
 		 */
 
 		results.append(try userDefaultsDecl(type: type, suiteName: node.arguments?.trimmedDescription))
-		results.append(try ExtensionDeclSyntax("extension \(type.trimmed): UserDefaultsContainer {}"))
+		results.append(try ExtensionDeclSyntax("extension \(type.trimmed): ObservableObject, UserDefaultsContainer {}"))
 
 //		context.diagnose(Diagnostic(node: node, message: MacroFeedback.message(node.arguments!.trimmedDescription.debugDescription ?? "--")))
 		return results
@@ -46,14 +46,14 @@ extension AppSettingsGenerator: ExtensionMacro {
 			return ExtensionDeclSyntax(extendedType: type, memberBlock: try MemberBlockSyntax {
 				try VariableDeclSyntax(
 	 """
-	  nonisolated var userDefaults: UserDefaults { UserDefaults(suiteName: \(raw: suiteName)) ?? .standard }
+	  public nonisolated var userDefaults: UserDefaults { UserDefaults(suiteName: \(raw: suiteName)) ?? .standard }
 	 """
 			) })
 		} else {
 			return ExtensionDeclSyntax(extendedType: type, memberBlock: try MemberBlockSyntax {
 				try VariableDeclSyntax(
 """
-	nonisolated var userDefaults: UserDefaults { .standard }
+	 public nonisolated var userDefaults: UserDefaults { .standard }
 """
 			) })
 		}
