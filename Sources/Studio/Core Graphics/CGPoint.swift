@@ -103,7 +103,7 @@ public extension CGPoint {
 	}
 }
 
-extension CGPoint: StringInitializable, RawRepresentable {
+extension CGPoint: StringInitializable, @retroactive RawRepresentable {
 	public var rawValue: String {
 		stringValue
 	}
@@ -121,14 +121,14 @@ extension CGPoint: StringInitializable, RawRepresentable {
 	}
 }
 
-extension CGPoint: Hashable {
+extension CGPoint: @retroactive Hashable {
 	public func hash(into hasher: inout Hasher) {
 		hasher.combine(x)
 		hasher.combine(y)
 	}
 }
 
-extension CGPoint: CustomStringConvertible {
+extension CGPoint: @retroactive CustomStringConvertible {
 	public var description: String {
 		"(\(x.string(decimalPlaces: 1, padded: false)), \(y.string(decimalPlaces: 1, padded: false)))"
 	}

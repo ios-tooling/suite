@@ -111,7 +111,7 @@ public extension Binding where Value == Bool {
 	var inverted: Binding<Bool> { Binding<Bool>(get: { !self.wrappedValue }, set: { newValue in self.wrappedValue = !newValue
 	}) }
 	
-	init(_ boolProvider: @autoclosure @escaping () -> Bool) {
+	init(_ boolProvider: @Sendable @autoclosure @escaping () -> Bool) {
 		self.init(get: boolProvider, set: { _ in })
 	}
 }

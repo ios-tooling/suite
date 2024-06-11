@@ -51,8 +51,8 @@ public struct AsyncButton<Label: View, Busy: View>: View {
 	}
 	
 	func performAction() {
+		isPerformingAction = true
 		Task.detached {
-			isPerformingAction = true
 			do {
 				try await action()
 			} catch {

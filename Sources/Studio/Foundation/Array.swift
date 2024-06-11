@@ -26,7 +26,7 @@ public extension Array where Element: Equatable {
 	}
 }
 
-extension Array: RawRepresentable where Element: RawRepresentable, Element.RawValue == String {
+extension Array: @retroactive RawRepresentable where Element: RawRepresentable, Element.RawValue == String {
 	public var rawValue: String { map { $0.rawValue }.joined(separator: ";") }
 	
 	public init?(rawValue: String) {

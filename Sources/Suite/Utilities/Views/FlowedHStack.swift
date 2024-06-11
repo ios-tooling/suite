@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+extension String: @retroactive View {}
 extension String: FlowedHStackElement {
 	public var isNewLine: Bool { self == "\n" }
 	public var offset: CGSize { .zero }

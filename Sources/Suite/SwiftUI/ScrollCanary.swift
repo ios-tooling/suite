@@ -44,7 +44,7 @@ public struct ScrollCanary: View {
 							clearScrollingTask = Task.detached() {
 								do {
 									try await Task.sleep(nanoseconds: 300_000_000)
-									isScrolling = false
+									Task { @MainActor in isScrolling = false }
 								} catch { }
 							}
 						}

@@ -7,7 +7,7 @@
 
 import Combine
 
-extension CurrentValueSubject: @unchecked Sendable { }
+extension CurrentValueSubject: @unchecked @retroactive Sendable { }
 
 public extension CurrentValueSubject where Failure == Never {
 	convenience init(value: Output) {

@@ -54,7 +54,7 @@ public protocol PostDecodeAwakable: AnyObject {
 	func awakeFromDecoder()
 }
 
-public class JSONExpandedDecoder: JSONDecoder {
+public class JSONExpandedDecoder: JSONDecoder, @unchecked Sendable {
 	open override func decode<T>(_ type: T.Type, from data: Data) throws -> T where T : Decodable {
 		let result = try super.decode(type, from: data)
 		

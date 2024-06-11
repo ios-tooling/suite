@@ -18,7 +18,7 @@ import CoreGraphics
 
 public func roundcgf(value: CGFloat) -> CGFloat { return CGFloat(floorf(Float(value))) }
 
-extension CGRect: Comparable {
+extension CGRect: @retroactive Comparable {
 	public static func <(lhs: CGRect, rhs: CGRect) -> Bool {
 		lhs.area < rhs.area
 	}
@@ -38,7 +38,7 @@ public extension CGRect {
 	var yRange: Range<Double> { minY..<maxY }
 }
 
-extension CGRect: Hashable {
+extension CGRect: @retroactive Hashable {
 	public func hash(into hasher: inout Hasher) {
 		hasher.combine(origin)
 		hasher.combine(size)

@@ -17,7 +17,7 @@ extension Date.DayOfWeek: Identifiable {
 	public var id: Int { return self.rawValue }
 }
 
-extension Date: Identifiable {
+extension Date: @retroactive Identifiable {
 	public var id: TimeInterval { return self.timeIntervalSinceReferenceDate }
 }
 #endif
@@ -569,7 +569,7 @@ public extension Date {
 	}
 }
 
-extension Date: RawRepresentable {
+extension Date: @retroactive RawRepresentable {
 	public var rawValue: String {
 		String(format: "%f", self.timeIntervalSinceReferenceDate)
 	}

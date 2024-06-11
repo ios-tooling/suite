@@ -36,11 +36,11 @@ public protocol URLLocatable {
 	var url: URL { get }
 }
 
-extension URL: Identifiable {
+extension URL: @retroactive Identifiable {
 	public var id: String { self.absoluteString }
 }
 
-extension URL: ExpressibleByStringLiteral {
+extension URL: @retroactive ExpressibleByStringLiteral {
 	public init(stringLiteral value: StringLiteralType) {
 		self.init(string: value)!
 	}
@@ -240,7 +240,7 @@ public extension URL {
 	}
 }
 
-extension URLQueryItem: Comparable {
+extension URLQueryItem: @retroactive Comparable {
 	public static func <(lhs: URLQueryItem, rhs: URLQueryItem) -> Bool {
 		lhs.name < rhs.name
 	}
