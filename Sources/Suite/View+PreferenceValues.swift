@@ -39,13 +39,13 @@ public extension View {
 		return self.preference(key: key, value: value)
 	}
 	
-	func setPreference<K: PreferenceKey>(_ keyPath: KeyPath<PreferenceValues, K.Type>, _ value: @Sendable @escaping () async throws -> Void) -> some View where K.Value == BlockWrapper {
+	func setPreference<K: PreferenceKey>(_ keyPath: KeyPath<PreferenceValues, K.Type>, _ value: @MainActor @Sendable @escaping () async throws -> Void) -> some View where K.Value == BlockWrapper {
 		
 		let key = PreferenceValues.instance[keyPath: keyPath]
 		return self.preference(key: key, value: BlockWrapper(block: value))
 	}
 	
-	func setPreference<K: PreferenceKey>(_ keyPath: KeyPath<PreferenceValues, K.Type>, _ value: @Sendable @escaping () async throws -> Void) -> some View where K.Value == BlockWrapper? {
+	func setPreference<K: PreferenceKey>(_ keyPath: KeyPath<PreferenceValues, K.Type>, _ value: @MainActor @Sendable @escaping () async throws -> Void) -> some View where K.Value == BlockWrapper? {
 		
 		let key = PreferenceValues.instance[keyPath: keyPath]
 		return self.preference(key: key, value: BlockWrapper(block: value))
