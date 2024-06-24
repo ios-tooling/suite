@@ -69,7 +69,9 @@ public extension Date {
 		public var abbrev: String { return Calendar.current.veryShortMonthSymbols[self.rawValue] }
 		public var shortName: String { return Calendar.current.shortMonthSymbols[self.rawValue - 1] }
 		public var name: String { return Calendar.current.monthSymbols[self.rawValue - 1] }
-		
+		public var previous: Month? { .init(rawValue: rawValue - 1) }
+		public var next: Month? { .init(rawValue: rawValue + 1) }
+
 		public static func <(lhs: Self, rhs: Self) -> Bool { lhs.rawValue < rhs.rawValue }
 	}
 	
