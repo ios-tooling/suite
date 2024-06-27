@@ -63,32 +63,31 @@ public struct AsyncButton<Label: View, Busy: View>: View {
 	}
 	
 	var buttonLabel: some View {
-		VStack {
-			if isPerformingAction {
-				busy()
-			} else {
-				label()
-			}
+		ZStack {
+			label()
+				.opacity(isPerformingAction ? 0.2 : 1)
+			busy()
+				.opacity(isPerformingAction ? 1 : 0)
 		}
 	}
 }
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 8, *)
-extension AsyncButton where Label == Text, Busy == AsyncButtonBusyLabel {
-	public init(_ title: LocalizedStringKey, spinnerScale: Double = 1.0, action: @escaping () async throws -> Void) {
+extension AsyncButton where Label == AsyncButtonLabel, Busy == AsyncButtonBusyLabel {
+	public init(_ title: LocalizedStringKey? = nil, systemImage: String? = nil, spinnerScale: Double = 1.0, action: @escaping () async throws -> Void) {
 		self.action = action
-		self.label = { Text(title) }
-		self.busy = { AsyncButtonBusyLabel(title: title, spinnerScale: spinnerScale) }
+		self.label = { AsyncButtonLabel(title: title, systemImage: systemImage) }
+		self.busy = { AsyncButtonBusyLabel(spinnerScale: spinnerScale) }
 	}
 }
 
 @available(macOS 12, iOS 15.0, tvOS 13, watchOS 8, *)
-extension AsyncButton where Label == Text, Busy == AsyncButtonBusyLabel {
-	public init(_ title: LocalizedStringKey, role: ButtonRole, spinnerScale: Double = 1.0, action: @escaping () async throws -> Void) {
+extension AsyncButton where Label == AsyncButtonLabel, Busy == AsyncButtonBusyLabel {
+	public init(_ title: LocalizedStringKey? = nil, systemImage: String? = nil, role: ButtonRole, spinnerScale: Double = 1.0, action: @escaping () async throws -> Void) {
 		self.action = action
 		self.role = role
-		self.label = { Text(title) }
-		self.busy = { AsyncButtonBusyLabel(title: title, spinnerScale: spinnerScale) }
+		self.label = { AsyncButtonLabel(title: title, systemImage: systemImage) }
+		self.busy = { AsyncButtonBusyLabel(spinnerScale: spinnerScale) }
 	}
 }
 
@@ -98,20 +97,28 @@ extension AsyncButton where Busy == AsyncButtonBusyLabel {
 		self.action = action
 		self.role = role
 		self.label = label
-		self.busy = { AsyncButtonBusyLabel(title: "", spinnerScale: spinnerScale) }
+		self.busy = { AsyncButtonBusyLabel(spinnerScale: spinnerScale) }
+	}
+}
+
+public struct AsyncButtonLabel: View {
+	let title: LocalizedStringKey?
+	let systemImage: String?
+	
+	public var body: some View {
+		HStack {
+			if let title { Text(title) }
+			if let systemImage { Image(systemName: systemImage) }
+		}
 	}
 }
 
 public struct AsyncButtonBusyLabel: View {
-	let title: LocalizedStringKey
 	var spinnerColor = Color.white
 	var spinnerScale: Double
 
 	public var body: some View {
-		Text(title)
-			.opacity(0.2)
-			.overlay(spinner)
-
+		spinner
 	}
 	
 	@ViewBuilder var spinner: some View {
