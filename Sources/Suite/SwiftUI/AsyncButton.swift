@@ -109,7 +109,7 @@ public struct AsyncButtonLabel: View {
 		HStack {
 			if let title { Text(title) }
 			if let systemImage { 
-				if #available(macOS 11.0, *) {
+				if #available(macOS 11.0, iOS 14.0, *) {
 					Image(systemName: systemImage)
 				}
 			}
