@@ -110,15 +110,16 @@ public extension String {
 }
 
 extension NumberFormatter {
-    static var radix: String = {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        guard let result = formatter.string(from: NSNumber(1.1)) else { return "." }
-        if result.contains(".") { return "." }
-        if result.contains(",") { return "," }
-        if let last = result.trimmingCharacters(in: .alphanumerics).first {
-            return String(last)
-        }
-        return "."
-    }()
+	static var radix: String = {
+		if let radix = Locale.current.decimalSeparator { return radix }
+		let formatter = NumberFormatter()
+		formatter.numberStyle = .decimal
+		guard let result = formatter.string(from: NSNumber(1.1)) else { return "." }
+		if result.contains(".") { return "." }
+		if result.contains(",") { return "," }
+		if let last = result.trimmingCharacters(in: .alphanumerics).first {
+			return String(last)
+		}
+		return "."
+	}()
 }
