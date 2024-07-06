@@ -32,26 +32,33 @@ import SwiftUI
 #if os(iOS) || os(macOS)
 @available(macOS 11.0, *)
 public extension View {
-	func addTextContentType(_ type: TextContentType) -> some View {
+	func addTextContentType(_ type: TextContentType?) -> some View {
 		#if os(macOS)
 			self
 				.textContentType(type)
-				.autocorrectionDisabled(!type.shouldAutocorrect)
+				.autocorrectionDisabled(type?.shouldAutocorrect != true)
 		#else
 			self
 				.textContentType(type)
-				.autocorrectionDisabled(!type.shouldAutocorrect)
-				.autocapitalization(type.shouldAutocapitalize ? .words : .none )
-				.keyboardType(type.requiresURLKeyboard ? .URL : .default)
+				.autocorrectionDisabled(type?.shouldAutocorrect != true)
+				.autocapitalization(type?.shouldAutocapitalize == true ? .words : .none )
+				.keyboardType(type?.keyboardType ?? .default)
 		#endif
 	}
 }
 
 @available(macOS 11.0, *)
 private extension TextContentType {
-	var requiresURLKeyboard: Bool {
-		self == .emailAddress || self == .URL
+	#if os(iOS)
+	var keyboardType: UIKeyboardType {
+		switch self {
+		case .URL: .URL
+		case .telephoneNumber: .phonePad
+		case .emailAddress: .emailAddress
+		default: .default
+		}
 	}
+	#endif
 
 	var shouldAutocorrect: Bool {
 		switch self {
@@ -68,9 +75,7 @@ private extension TextContentType {
 	var shouldAutocapitalize: Bool {
 		switch self {
 		case .username, .password, .newPassword, .oneTimeCode, .emailAddress: return false
-			
-			
-			
+
 		default:
 			if #available(iOS 15.0, *) {
 				if self == .flightNumber || self == .shipmentTrackingNumber { return false }
