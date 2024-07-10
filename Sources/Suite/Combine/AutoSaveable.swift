@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Studio
 
 public protocol AutoSaveable: Codable, ObservableObject {
 	static var saveURL: URL { get }

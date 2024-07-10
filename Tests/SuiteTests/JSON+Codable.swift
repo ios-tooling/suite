@@ -6,7 +6,7 @@
 //
 
 import XCTest
-@testable import Studio
+@testable import Suite
 
 final class JSON_Codable: XCTestCase {
 	struct TestCodable: Codable {

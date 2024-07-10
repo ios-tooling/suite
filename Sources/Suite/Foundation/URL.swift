@@ -80,7 +80,7 @@ public extension URL {
 			try FileManager.default.createDirectory(at: self, withIntermediateDirectories: true, attributes: nil)
 			return self
 		} catch {
-			Studio.logg(error: error, "Unable to create directory at \(path)")
+			Suite.logg(error: error, "Unable to create directory at \(path)")
 			return nil
 		}
 	}
@@ -280,7 +280,7 @@ public extension URL {
         do {
             return try self.bookmarkData(options: [.withSecurityScope], includingResourceValuesForKeys: nil, relativeTo: nil)
         } catch {
-            Studio.logg(error: error, "Unable to extract secure data: \(error)")
+			  Suite.logg(error: error, "Unable to extract secure data: \(error)")
             return nil
         }
     }

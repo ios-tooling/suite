@@ -75,7 +75,7 @@ public extension Data {
 			try self.write(to: url)
 			return url
 		} catch {
-			Studio.logg(error: error, "Writing data to \(url)")
+			Suite.logg(error: error, "Writing data to \(url)")
 			return nil
 		}
 	}
