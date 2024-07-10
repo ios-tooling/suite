@@ -13,6 +13,8 @@ public extension Date {
 		public var month: Foundation.Date.Month
 		public var year: Int
 		
+		public var dayOfWeek: Date.DayOfWeek { date.dayOfWeek }
+		
 		public var description: String {
 			if #available(iOS 15.0, macOS 12, watchOS 8, *) {
 				return date.formatted(date: .numeric, time: .omitted)
@@ -34,6 +36,29 @@ public extension Date {
 			self.init(day: components[1], month: components[0], year: components[2])
 		}
 		
+		public func previous(_ dayOfWeek: Date.DayOfWeek) -> Date.Day {
+			var day = previousDay
+			
+			while day.dayOfWeek != dayOfWeek {
+				day = day.previousDay
+			}
+			
+			return day
+		}
+		
+		public func next(_ dayOfWeek: Date.DayOfWeek) -> Date.Day {
+			var day = nextDay
+			
+			while day.dayOfWeek != dayOfWeek {
+				day = day.nextDay
+			}
+			
+			return day
+		}
+		
+		public var previousDay: Date.Day { date.previousDay.day }
+		public var nextDay: Date.Day { date.nextDay.day }
+
 		public init?(dmy: String) {
 			guard let components = dmy.dateComponents else { return nil }
 			
