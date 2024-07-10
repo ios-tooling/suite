@@ -17,18 +17,14 @@ typealias WindowFetcher = () -> NSWindow?
 
 @available(OSX 10.15, *)
 struct HostingWindowKey: EnvironmentKey {
-	static let defaultValue: WindowFetcher = { nil }
+	nonisolated(unsafe) static let defaultValue: WindowFetcher = { nil }
 }
 
 @available(OSX 10.15, *)
 extension EnvironmentValues {
 	 public var hostingWindow: NSWindow? {
-		  get {
-				return self[HostingWindowKey.self]()
-		  }
-		  set {
-				self[HostingWindowKey.self] = { [weak newValue] in newValue }
-		  }
+		  get { self[HostingWindowKey.self]() }
+		  set { self[HostingWindowKey.self] = { [weak newValue] in newValue } }
 	 }
 }
 

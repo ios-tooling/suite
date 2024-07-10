@@ -8,9 +8,9 @@
 import Foundation
 
 public extension Int64 {
-	static let byteFormatter = ByteCountFormatter()
+	@MainActor static let byteFormatter = ByteCountFormatter()
 	
-	var bytesString: String {
+	@MainActor var bytesString: String {
 		Self.byteFormatter.string(fromByteCount: self)
 	}
 }

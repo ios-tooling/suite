@@ -9,10 +9,10 @@
 #if canImport(Combine)
 
 import Foundation
-import Combine
+@preconcurrency import Combine
 
 @available(OSX 10.15, iOS 13.0, watchOS 6.0, *)
-struct ObserverMonitor<Pub: ObservableObjectPublisher, Content: View>: View {
+struct ObserverMonitor<Pub: ObservableObjectPublisher, Content: View & Sendable>: View {
 	let target: Pub
 	let content: Content
 	let message: String?
@@ -22,7 +22,9 @@ struct ObserverMonitor<Pub: ObservableObjectPublisher, Content: View>: View {
 		self.target = target
 		self.content = content
 		self.message = message
-		cancellable = target.eraseToAnyPublisher().sink { item in SuiteLogger.instance.log("\(item) changed in \(message ?? String(describing: content))")}
+		cancellable = target.eraseToAnyPublisher().sink { item in
+			print("\(item) changed in \(message ?? String(describing: content))")
+		}
 	}
 
 	var body: some View {
@@ -31,7 +33,7 @@ struct ObserverMonitor<Pub: ObservableObjectPublisher, Content: View>: View {
 }
 
 @available(OSX 10.15, iOS 13.0, watchOS 6.0, *)
-extension View {
+extension View where Self: Sendable {
 	public func monitor(_ target: ObservableObjectPublisher, _ message: String? = nil) -> some View {
 		ObserverMonitor(target, content: self, message: message)
 	}

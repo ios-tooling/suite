@@ -26,7 +26,7 @@ extension NSApplication {
 	}
 }
 
-class DisableSleep {
+@MainActor class DisableSleep {
 	static let instance = DisableSleep()
 	var assertionID: IOPMAssertionID = 0
 	

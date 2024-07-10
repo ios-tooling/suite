@@ -12,11 +12,11 @@ import UniformTypeIdentifiers
 import UIKit
 
 extension URL {
-	static var application: UIApplication?
+	@MainActor static var application: UIApplication?
 	
-	public static func setApplication(_ app: UIApplication) { application = app }
+	@MainActor public static func setApplication(_ app: UIApplication) { application = app }
 	
-	public func open() {
+	@MainActor public func open() {
 		Self.application?.open(self)
 	}
 }

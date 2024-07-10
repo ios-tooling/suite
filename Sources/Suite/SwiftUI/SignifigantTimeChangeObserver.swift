@@ -13,12 +13,16 @@ import Combine
 
 #if os(iOS)
 @available(iOS 13.0, *)
-public class SignifigantTimeChangeObserver: ObservableObject {
+public actor SignifigantTimeChangeObserver: ObservableObject {
 	public static let instance = SignifigantTimeChangeObserver()
 
 	var cancellable: AnyCancellable?
 
 	init() {
+		Task { await self.setup() }
+	}
+	
+	func setup() {
 		cancellable = UIApplication.significantTimeChangeNotification.publisher()
 			.sink { _ in
 				self.objectWillChange.send()

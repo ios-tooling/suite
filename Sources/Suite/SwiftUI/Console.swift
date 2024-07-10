@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-public class Console: ObservableObject {
+@MainActor public class Console: ObservableObject {
 	public static let instance = Console()
 	var messages: [String] = []
 	
@@ -21,7 +21,7 @@ public class Console: ObservableObject {
 	}
 }
 
-public struct ConsoleView: View {
+@MainActor public struct ConsoleView: View {
 	@ObservedObject var console = Console.instance
 	
 	public init() { }

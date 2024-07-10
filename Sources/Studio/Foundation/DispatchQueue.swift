@@ -8,25 +8,7 @@
 import Foundation
 
 extension DispatchQueue {
-	static var semaphores: [String: DispatchSemaphore] = [:]
-	
-	/// Run a piece of code all by itself, ensuring it's isolated from other code, keyed by a namespace
-	public static func isolated(_ namespace: String, block: () -> Void) {
-		var semaphore: DispatchSemaphore!
-		
-		if let existing = semaphores[namespace] {
-			semaphore = existing
-		} else {
-			semaphore = DispatchSemaphore(value: 1)
-			semaphores[namespace] = semaphore
-		}
-		
-		semaphore.wait()
-		block()
-		semaphore.signal()
-	}
-
-	@inline(__always)  public static func onMain(async: Bool = false, _ block: @escaping () -> Void) {
+	@inline(__always)  public static func onMain(async: Bool = false, _ block: @Sendable @escaping () -> Void) {
 		if Thread.isMainThread {
 			block()
 		} else if async {
@@ -35,8 +17,8 @@ extension DispatchQueue {
 			DispatchQueue.main.sync(execute: block)
 		}
 	}
-    
-    public func async(after: TimeInterval, _ block: @escaping () -> Void) {
-        asyncAfter(deadline: .now() + after, execute: block)
-    }
+	
+	public func async(after: TimeInterval, _ block: @Sendable @escaping () -> Void) {
+		asyncAfter(deadline: .now() + after, execute: block)
+	}
 }

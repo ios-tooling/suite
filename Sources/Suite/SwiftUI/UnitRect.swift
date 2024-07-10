@@ -33,8 +33,8 @@ public struct UnitSize: Hashable, Sendable, Equatable, CustomStringConvertible, 
 		self.init(width: child.width / parent.width, height: child.height / parent.height)
 	}
 	
-	public static var full = UnitSize(width: 1.0, height: 1.0)
-	public static var zero = UnitSize(width: 0, height: 0)
+	public static let full = UnitSize(width: 1.0, height: 1.0)
+	public static let zero = UnitSize(width: 0, height: 0)
 	
 	public var description: String { "\(width.pretty()) x \(height.pretty())"}
 	public func atLeast(_ size: UnitSize) -> UnitSize {
@@ -101,8 +101,8 @@ public struct UnitRect: Hashable, Sendable, Equatable, CustomStringConvertible, 
         )
     }
 	
-	public static var full = UnitRect(origin: .zero, size: .full)
-	public static var zero = UnitRect(origin: .zero, size: .zero)
+	public static let full = UnitRect(origin: .zero, size: .full)
+	public static let zero = UnitRect(origin: .zero, size: .zero)
 	
 	public var description: String { "(\(origin.x.pretty()), \(origin.y.pretty())), (\(size))"}
 	public func union(with rect: UnitRect) -> UnitRect {

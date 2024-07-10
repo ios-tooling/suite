@@ -1,6 +1,6 @@
 //
 //  NumericField.swift
-//  
+//
 //
 //  Created by Ben Gottlieb on 6/6/20.
 //
@@ -15,31 +15,31 @@ public protocol NumericFieldNumber {
 	func isLessThan(numericFieldNumber number: NumericFieldNumber) -> Bool
 	func isEqualTo(numericFieldNumber number: NumericFieldNumber?) -> Bool
 	mutating func zeroOut()
-    var positive: NumericFieldNumber { get }
-    var negative: NumericFieldNumber { get }
+	var positive: NumericFieldNumber { get }
+	var negative: NumericFieldNumber { get }
 }
 
 extension Double: NumericFieldNumber {
 	public func isLessThan(numericFieldNumber number: NumericFieldNumber) -> Bool { self < (number as? Double ?? 0) }
 	public func isEqualTo(numericFieldNumber number: NumericFieldNumber?) -> Bool { self == (number as? Double ?? 0) }
 	mutating public func zeroOut() { self = 0 }
-    public var positive: NumericFieldNumber { abs(self) }
-    public var negative: NumericFieldNumber { -1 * abs(self) }
+	public var positive: NumericFieldNumber { abs(self) }
+	public var negative: NumericFieldNumber { -1 * abs(self) }
 }
 extension Int: NumericFieldNumber {
 	public func isLessThan(numericFieldNumber number: NumericFieldNumber) -> Bool { self < (number as? Int ?? 0) }
 	public func isEqualTo(numericFieldNumber number: NumericFieldNumber?) -> Bool { self == (number as? Int ?? 0) }
 	mutating public func zeroOut() { self = 0 }
-    public var positive: NumericFieldNumber { abs(self) }
-    public var negative: NumericFieldNumber { -1 * abs(self) }
+	public var positive: NumericFieldNumber { abs(self) }
+	public var negative: NumericFieldNumber { -1 * abs(self) }
 }
 
 extension Float: NumericFieldNumber {
 	public func isLessThan(numericFieldNumber number: NumericFieldNumber) -> Bool { self < (number as? Float ?? 0) }
 	public func isEqualTo(numericFieldNumber number: NumericFieldNumber?) -> Bool { self == (number as? Float ?? 0) }
 	mutating public func zeroOut() { self = 0 }
-    public var positive: NumericFieldNumber { abs(self) }
-    public var negative: NumericFieldNumber { -1 * abs(self) }
+	public var positive: NumericFieldNumber { abs(self) }
+	public var negative: NumericFieldNumber { -1 * abs(self) }
 }
 
 extension NSNumber {
@@ -68,8 +68,8 @@ extension NSNumber {
 	}
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
-public struct NumericField<Number: NumericFieldNumber>: View {
+@available(OSX 12, iOS 14.0, tvOS 13, watchOS 8, *)
+@MainActor public struct NumericField<Number: NumericFieldNumber>: View {
 	public enum AllowedSigns: Sendable { case negative, positive, both }
 	public var placeholder: String
 	@Binding public var number: Number
@@ -89,7 +89,7 @@ public struct NumericField<Number: NumericFieldNumber>: View {
 	
 	let radix = Locale.current.decimalSeparator?.first ?? "."
 	let groupSeparator = Locale.current.groupingSeparator?.first ?? ","
-
+	
 	public init(_ placeholder: String, number: Binding<Number>, formatter: NumberFormatter? = nil, useKeypad: Bool = true, minimum: Number? = nil, showInitialZeroAsEmptyString: Bool = true, maximum: Number? = nil, allowedSigns: AllowedSigns = .both, maxNumberOfCharacters: Int? = nil, maximumFractionDigits: Int = 12, onChange: @escaping (Bool) -> Void = { _ in }, onCommit: @escaping () -> Void = { }) {
 		self.placeholder = placeholder
 		self._number = number
@@ -110,12 +110,12 @@ public struct NumericField<Number: NumericFieldNumber>: View {
 	}
 	
 	public var body: some View {
-		#if os(iOS)
+#if os(iOS)
 		rawField
 			.keyboardType(useKeypad ? .decimalPad : .asciiCapable)
-		#else
+#else
 		rawField
-		#endif
+#endif
 	}
 	
 	func numberStringsAreEqual(oldText: String, newText: String) -> Bool {
@@ -127,7 +127,7 @@ public struct NumericField<Number: NumericFieldNumber>: View {
 		
 		return false
 	}
-
+	
 	var textBinding: Binding<String> {
 		Binding<String>(get: {
 			if NSNumber(value: number) == NSNumber(value: 0), !hasModified { return "" }
@@ -153,45 +153,46 @@ public struct NumericField<Number: NumericFieldNumber>: View {
 	
 	func parsedNumber(from newText: String) -> Number? {
 		let numbersOnly = newText.filter {
-            if $0.isNumber { return true }
-            if $0 == radix { return true }
-            if (allowedSigns == .negative || allowedSigns == .both), $0 == "-" { return true }
-            return false
-        }
+			if $0.isNumber { return true }
+			if $0 == radix { return true }
+			if (allowedSigns == .negative || allowedSigns == .both), $0 == "-" { return true }
+			return false
+		}
 		if let newNumber = formatter.number(from: String(numbersOnly)) as? Number {
-            if allowedSigns == .positive { return newNumber.positive as? Number }
-            if allowedSigns == .negative { return newNumber.negative as? Number }
+			if allowedSigns == .positive { return newNumber.positive as? Number }
+			if allowedSigns == .negative { return newNumber.negative as? Number }
 			return newNumber
 		}
 		return nil
 	}
 	
 	var rawField: some View {
-		TextField(placeholder, text: textBinding.willChange { newText in
-			if newText.isEmpty {
-				number.zeroOut()
-				return
-			}
-			let oldText = text
-			let noLetters = newText.filter { $0.isNumber || $0 == radix || $0 == groupSeparator }
-			if noLetters != newText {
-				DispatchQueue.main.async { text = oldText }
-				return
-			}
-			if let newNumber = parsedNumber(from: newText) {
-				if let min = minimum, newNumber.isLessThan(numericFieldNumber: min) {
-					DispatchQueue.main.async { text = oldText }
-					return
-				}
-
-				if let max = maximum, max.isLessThan(numericFieldNumber: newNumber) {
-					DispatchQueue.main.async { text = oldText }
-					return
-				}
-
-				number = newNumber
-			}
-		}, onEditingChanged: onChange, onCommit: onCommit)
+		TextField(placeholder, text: textBinding, onEditingChanged: onChange, onCommit: onCommit)
+			.onChange(of: textBinding.wrappedValue) { newText in
+				if newText.isEmpty {
+				 number.zeroOut()
+				 return
+			 }
+			 let oldText = text
+			 let noLetters = newText.filter { $0.isNumber || $0 == radix || $0 == groupSeparator }
+			 if noLetters != newText {
+				 DispatchQueue.main.async { text = oldText }
+				 return
+			 }
+			 if let newNumber = parsedNumber(from: newText) {
+				 if let min = minimum, newNumber.isLessThan(numericFieldNumber: min) {
+					 DispatchQueue.main.async { text = oldText }
+					 return
+				 }
+				 
+				 if let max = maximum, max.isLessThan(numericFieldNumber: newNumber) {
+					 DispatchQueue.main.async { text = oldText }
+					 return
+				 }
+				 
+				 number = newNumber
+			 }
+		 }
 	}
 }
 

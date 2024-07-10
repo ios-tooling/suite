@@ -11,10 +11,10 @@
 import SwiftUI
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
-public class ViewStorage: ObservableObject {
+@MainActor public class ViewStorage: ObservableObject {
 	var views: [String: StoredView] = [:]
 	
-	public struct ViewKey: RawRepresentable {
+	public struct ViewKey: RawRepresentable, Sendable {
 		public var rawValue: String
 		public init(rawValue: String) { self.rawValue = rawValue }
 

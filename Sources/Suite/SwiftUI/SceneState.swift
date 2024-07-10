@@ -12,7 +12,7 @@ import Combine
 import SwiftUI
 
 #if os(iOS)
-public struct StateChange: OptionSet {
+public struct StateChange: OptionSet, Sendable {
 	public let rawValue: Int
 	
 	public init(rawValue: Int) { self.rawValue = rawValue }
@@ -84,7 +84,7 @@ extension Array where Element == Notification.Name {
 
 
 @available(iOS 13.0, *)
-public class SceneStateObserver: ObservableObject {
+@MainActor public class SceneStateObserver: ObservableObject {
 	var cancellables: [AnyCancellable] = []
 	public var trigger = StateChange.appEnterForeground
 
@@ -92,7 +92,7 @@ public class SceneStateObserver: ObservableObject {
 		let names = StateChange.allOptions.filter { which.contains($0) }.compactMap { $0.notificationName }
 		cancellables = names.observe { name in
 			self.trigger = StateChange(name) ?? self.trigger
-			DispatchQueue.main.async { self.objectWillChange.send() }
+			Task { @MainActor in self.objectWillChange.send() }
 		}
 	}
 }

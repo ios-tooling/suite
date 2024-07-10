@@ -7,17 +7,17 @@
 
 import Foundation
 
-public struct CodableJSONArray: Codable, Equatable, Hashable {
+public struct CodableJSONArray: Codable, Equatable, Hashable, Sendable {
 	public static func == (lhs: CodableJSONArray, rhs: CodableJSONArray) -> Bool {
 		compareTwoJSONArrays(lArray: lhs.backing, rArray: rhs.backing)
 	}
 	
-	public var array: [Any] { backing }
+	public var array: [Sendable] { backing }
 	
 	public init() { backing = [] }
 	public static let empty = CodableJSONArray()
 	
-	public subscript(index: Int) -> Any {
+	public subscript(index: Int) -> Sendable {
 		get { backing[index] }
 		set {
 			backing[index] = newValue
@@ -33,15 +33,15 @@ public struct CodableJSONArray: Codable, Equatable, Hashable {
 		}
 	}
 	
-	var backing: [Any]
+	var backing: [Sendable]
 	
-	public init(_ json: [Any]) {
+	public init(_ json: [Sendable]) {
 		backing = json.filter { value in
 			value is JSONDataType
 		}
 	}
 	
-	public init?(_ json: [String: Any]?) {
+	public init?(_ json: [String: Sendable]?) {
 		guard let json else { return nil }
 		self.init(json)
 	}
@@ -59,7 +59,7 @@ public struct CodableJSONArray: Codable, Equatable, Hashable {
 }
 
 extension CodableJSONArray: ExpressibleByArrayLiteral {
-	public init(arrayLiteral elements: (Any)...) {
+	public init(arrayLiteral elements: (Sendable)...) {
 		let array = elements.reduce(into: []) { $0.append($1) }
 		
 		self.init(array)

@@ -24,7 +24,7 @@ public class EnclosingViewControllerContainer: CustomStringConvertible {
 		}
 		return "Contained controller: none"
 	}
-	public var viewController: UIViewController? {
+	@MainActor public var viewController: UIViewController? {
 		if let current = self._viewController { return current }
 		return UIApplication.shared.currentWindow?.rootViewController
 	}
@@ -37,7 +37,7 @@ public class EnclosingViewControllerContainer: CustomStringConvertible {
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
 @available(iOSApplicationExtension, unavailable)
 public struct EnclosingViewControllerKey: EnvironmentKey {
-    public static var defaultValue = EnclosingViewControllerContainer()
+    nonisolated(unsafe) public static var defaultValue = EnclosingViewControllerContainer()
 }
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)

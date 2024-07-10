@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import CoreData
+@preconcurrency import CoreData
 
 extension NSManagedObject {
 	public class var didInsertNotification: Notification.Name { return Notification.Name("NSManagedObject_DidInsertNotification_\(self)") }

@@ -104,12 +104,12 @@ public extension UIImage {
 		return result
 	}
 	
-    func overlaying(_ overlay: UIImage) -> UIImage {
+    func overlaying(_ overlay: UIImage) async -> UIImage {
         let frame = self.size.rect
         
         UIGraphicsBeginImageContextWithOptions(self.size, false, self.scale)
         self.draw(in: frame)
-        overlay.resized(to: self.size, trimmed: true)?.draw(in: frame)
+        await overlay.resized(to: self.size, trimmed: true)?.draw(in: frame)
         let result = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
 
@@ -124,7 +124,7 @@ public extension UIImage {
 		return self
 	}
 
-	func resized(to limit: CGSize?, trimmed: Bool = true, changeScaleTo: CGFloat? = nil) -> UIImage? {
+	func resized(to limit: CGSize?, trimmed: Bool = true, changeScaleTo: CGFloat? = nil) async -> UIImage? {
 		guard let limit = limit else { return self }
 		var frame = self.size.rect.within(limit: limit.rect, placed: .scaleAspectFit).rounded()
 
@@ -136,10 +136,16 @@ public extension UIImage {
 			if trimmed { frame.size.height = limit.height; }
 		}
 		
+		let scale: Double
+
 		#if os(iOS)
-			let scale = changeScaleTo ?? UIView.screenScale
+			if let changeScaleTo {
+				scale = changeScaleTo
+			} else {
+				scale = await UIView.screenScale
+			}
 		#else
-			let scale = changeScaleTo ?? 2
+			scale = changeScaleTo ?? 2
 		#endif
 		
 		UIGraphicsBeginImageContextWithOptions(frame.size, false, scale)

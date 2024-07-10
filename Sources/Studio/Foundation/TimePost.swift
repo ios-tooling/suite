@@ -7,6 +7,7 @@
 
 import Foundation
 
+/*		Deprecated
 public class TimePost: @unchecked Sendable {
 	static var registered: [String: TimePost] = [:]
 	static var enabled = true
@@ -55,3 +56,4 @@ public class TimePost: @unchecked Sendable {
 	}
 	
 }
+ */

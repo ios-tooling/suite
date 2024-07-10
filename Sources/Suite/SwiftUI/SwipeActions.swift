@@ -15,12 +15,12 @@ public extension View {
     }
 }
 
-private var currentCellCollapseBlock: (() -> Void)?
-private var currentCellID: String?
-private var activeCellID: String?
+@MainActor private var currentCellCollapseBlock: (() -> Void)?
+@MainActor private var currentCellID: String?
+@MainActor private var activeCellID: String?
 
 @available(macOS 10.15, iOS 13.0, watchOS 7.0, *)
-struct SwipeActions<Content: View, LeadingViews: View, TrailingViews: View>: View {
+@MainActor struct SwipeActions<Content: View, LeadingViews: View, TrailingViews: View>: View {
     let content: Content
     let leading: LeadingViews
     let trailing: TrailingViews

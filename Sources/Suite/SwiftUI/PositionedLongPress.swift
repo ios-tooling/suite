@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/* Deprecated
 #if os(iOS) && !os(visionOS)
 let feedbackEngine = UIImpactFeedbackGenerator(style: .heavy)
 
@@ -64,3 +65,4 @@ struct PositionedLongPressGesture: ViewModifier {
 	}
 }
 #endif
+*/

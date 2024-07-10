@@ -11,7 +11,7 @@ import Foundation
 	import Cocoa
 	import AppKit
 
-	extension Error {
+	@MainActor extension Error {
 		public func display(in window: NSWindow? = nil, title: String? = nil, message: String? = nil, buttons: [String]? = nil, completion: ((Int) -> Void)? = nil) {
 			let alert = NSAlert(error: self)
 			

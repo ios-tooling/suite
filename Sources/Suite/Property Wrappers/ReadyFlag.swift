@@ -8,7 +8,7 @@
 import Foundation
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
-public struct ReadyFlag {
+@MainActor public struct ReadyFlag {
 	public func waitForReady() async {
 		if await storage.value { return }
 		let _: Bool = await withUnsafeContinuation { continuation in

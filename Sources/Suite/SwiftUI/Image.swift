@@ -10,7 +10,7 @@ import SwiftUI
 
 @available(OSX 10.15, iOS 13.0, watchOS 6.0, *)
 public extension Image {
-	@inlinable func resizeTo(_ mode: ContentMode = .fit, _ size: CGSize) -> some View {
+	@MainActor @inlinable func resizeTo(_ mode: ContentMode = .fit, _ size: CGSize) -> some View {
 		return self
 			.resizable()
 			.aspectRatio(contentMode: mode)

@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct DeviceFilter: RawRepresentable, OptionSet {
+public struct DeviceFilter: RawRepresentable, OptionSet, Sendable {
 	public var rawValue: Int
 	
 	public init(rawValue: Int) {
@@ -15,7 +15,7 @@ public struct DeviceFilter: RawRepresentable, OptionSet {
 	}
 }
 
-public extension DeviceFilter {
+@MainActor public extension DeviceFilter {
 	static let never = DeviceFilter([])
 	
 	static let sim = DeviceFilter(rawValue: 1 << 1)

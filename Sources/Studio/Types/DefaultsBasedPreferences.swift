@@ -103,16 +103,7 @@ public protocol PreferencesKeyProvider: AnyObject {
 				} else {
 					self.defaults.removeValue(forKey: defaultsKey)
 				}
-				DispatchQueue.main.async {
-					self.saveTimer?.invalidate()
-					if #available(iOS 10.0, *) {
-						self.saveTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: false) { _ in
-							self.defaults.synchronize()
-						}
-					} else {
-						fatalError("observeValue not available pre-iOS 10")
-					}
-				}
+				defaults.synchronize()
 				Notification.postOnMainThread(name: self.notificationName(forKey: key))
 				return
 			}

@@ -6,6 +6,7 @@
 //  Copyright © 2017 Stand Alone, Inc. All rights reserved.
 //
 
+/* Deprecated
 import Foundation
 
 public class MobileProvisionFile {
@@ -50,3 +51,4 @@ extension Scanner {
         }
     }
 }
+ */

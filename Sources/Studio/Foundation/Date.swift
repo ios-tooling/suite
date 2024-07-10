@@ -41,8 +41,8 @@ public extension Date {
 		public var isWeekDay: Bool { return !self.isWeekendDay }
 		
 		public static let firstDayOfWeek: DayOfWeek = { DayOfWeek(rawValue: Calendar.current.firstWeekday) ?? .monday }()
-		public static var lastDayOfWeek: DayOfWeek = { firstDayOfWeek.previousDay }()
-		public static var weekdays: [DayOfWeek] = {
+		public static let lastDayOfWeek: DayOfWeek = { firstDayOfWeek.previousDay }()
+		public static let weekdays: [DayOfWeek] = {
 			var days: [DayOfWeek] = []
 			let first = Calendar.current.firstWeekday
 			for i in 0..<7 {

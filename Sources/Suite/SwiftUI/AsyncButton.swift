@@ -9,29 +9,29 @@
 import SwiftUI
 
 public struct ButtonIsPerformingActionKey: PreferenceKey {
-	public static var defaultValue = false
+	nonisolated(unsafe) public static var defaultValue = false
 	public static func reduce(value: inout Bool, nextValue: () -> Bool) {
 		value = value || nextValue()
 	}
 }
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
-public struct AsyncButton<Label: View, Busy: View>: View {
-	var action: () async throws -> Void
+@MainActor public struct AsyncButton<Label: View, Busy: View>: View {
+	var action: @MainActor () async throws -> Void
 	@ViewBuilder var label: () -> Label
 	@ViewBuilder var  busy: () -> Busy
 	
 	@State private var isPerformingAction = false
 	var role: Any?
 	
-	public init(action: @escaping () async throws -> Void, @ViewBuilder label: @escaping () -> Label, @ViewBuilder busy: @escaping () -> Busy) {
+	public init(action: @MainActor @escaping () async throws -> Void, @ViewBuilder label: @escaping () -> Label, @ViewBuilder busy: @escaping () -> Busy) {
 		self.action = action
 		self.label = label
 		self.busy = busy
 	}
 	
 	@available(macOS 12.0, iOS 15.0, watchOS 8.0, *)
-	public init(role: ButtonRole?, action: @escaping () async throws -> Void, @ViewBuilder label: @escaping () -> Label, @ViewBuilder busy: @escaping () -> Busy) {
+	public init(role: ButtonRole?, action: @MainActor @escaping () async throws -> Void, @ViewBuilder label: @escaping () -> Label, @ViewBuilder busy: @escaping () -> Busy) {
 		self.action = action
 		self.label = label
 		self.role = role
@@ -74,7 +74,7 @@ public struct AsyncButton<Label: View, Busy: View>: View {
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 8, *)
 extension AsyncButton where Label == AsyncButtonLabel, Busy == AsyncButtonBusyLabel {
-	public init(_ title: LocalizedStringKey? = nil, systemImage: String? = nil, spinnerScale: Double = 1.0, action: @escaping () async throws -> Void) {
+	public init(_ title: LocalizedStringKey? = nil, systemImage: String? = nil, spinnerScale: Double = 1.0, action: @MainActor @escaping () async throws -> Void) {
 		self.action = action
 		self.label = { AsyncButtonLabel(title: title, systemImage: systemImage) }
 		self.busy = { AsyncButtonBusyLabel(spinnerScale: spinnerScale) }
@@ -83,7 +83,7 @@ extension AsyncButton where Label == AsyncButtonLabel, Busy == AsyncButtonBusyLa
 
 @available(macOS 12, iOS 15.0, tvOS 13, watchOS 8, *)
 extension AsyncButton where Label == AsyncButtonLabel, Busy == AsyncButtonBusyLabel {
-	public init(_ title: LocalizedStringKey? = nil, systemImage: String? = nil, role: ButtonRole, spinnerScale: Double = 1.0, action: @escaping () async throws -> Void) {
+	public init(_ title: LocalizedStringKey? = nil, systemImage: String? = nil, role: ButtonRole, spinnerScale: Double = 1.0, action: @MainActor @escaping () async throws -> Void) {
 		self.action = action
 		self.role = role
 		self.label = { AsyncButtonLabel(title: title, systemImage: systemImage) }
@@ -93,7 +93,7 @@ extension AsyncButton where Label == AsyncButtonLabel, Busy == AsyncButtonBusyLa
 
 @available(macOS 12, iOS 15.0, tvOS 13, watchOS 8, *)
 extension AsyncButton where Busy == AsyncButtonBusyLabel {
-	public init(role: ButtonRole? = nil, action: @escaping () async throws -> Void, spinnerScale: Double = 1.0, @ViewBuilder label: @escaping () -> Label) {
+	public init(role: ButtonRole? = nil, action: @MainActor @escaping () async throws -> Void, spinnerScale: Double = 1.0, @ViewBuilder label: @MainActor @escaping () -> Label) {
 		self.action = action
 		self.role = role
 		self.label = label
@@ -109,7 +109,7 @@ public struct AsyncButtonLabel: View {
 		HStack {
 			if let title { Text(title) }
 			if let systemImage { 
-				if #available(macOS 11.0, iOS 14.0, *) {
+				if #available(macOS 11.0, iOS 14.0, watchOS 7.0, *) {
 					Image(systemName: systemImage)
 				}
 			}

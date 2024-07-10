@@ -20,7 +20,7 @@ extension View {
 }
 
 /// An animatable modifier that is used for observing animations for a given animatable value.
-struct AnimationCompletionObserverModifier<Value>: AnimatableModifier where Value: VectorArithmetic {
+@MainActor struct AnimationCompletionObserverModifier<Value>: AnimatableModifier where Value: VectorArithmetic & Sendable {
 	
 	/// While animating, SwiftUI changes the old input value to the new target value using this property. This value is set to the old value until the animation completes.
 	var animatableData: Value {

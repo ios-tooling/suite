@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-public struct PreferenceValues {
+public struct PreferenceValues: Sendable {
 	public static let instance = PreferenceValues()
 }
 

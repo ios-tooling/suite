@@ -6,16 +6,16 @@
 //
 
 import Foundation
-import CoreData
+@preconcurrency import CoreData
 
 
 
-public func logg(_ msg: @escaping @autoclosure () -> String, _ level: SuiteLogger.Level = .mild) { SuiteLogger.instance.log(msg(), level: level) }
-public func logg<What: AnyObject>(raw: What, _ level: SuiteLogger.Level = .mild) { SuiteLogger.instance.log(raw: raw, level) }
+public func logg(_ msg: @Sendable @escaping @autoclosure () -> String, _ level: SuiteLogger.Level = .mild) { SuiteLogger.instance.log(msg(), level: level) }
+public func logg<What: AnyObject & Sendable>(raw: What, _ level: SuiteLogger.Level = .mild) { SuiteLogger.instance.log(raw: raw, level) }
 public func logg(_ special: SuiteLogger.Special, _ level: SuiteLogger.Level = .mild) { SuiteLogger.instance.log(special, level: level) }
-public func dlogg(_ msg: @escaping @autoclosure () -> String, _ level: SuiteLogger.Level = .mild) { SuiteLogger.instance.log(msg(), level: level) }
+public func dlogg(_ msg: @Sendable @escaping @autoclosure () -> String, _ level: SuiteLogger.Level = .mild) { SuiteLogger.instance.log(msg(), level: level) }
 public func logg(error: Error?, _ msg: @escaping @autoclosure () -> String, _ level: SuiteLogger.Level = .mild) { SuiteLogger.instance.log(error: error, msg(), level: level) }
-public func dlogg(_ something: Any, _ level: SuiteLogger.Level = .mild) { SuiteLogger.instance.log("\(something)", level: level) }
+public func dlogg(_ something: Sendable, _ level: SuiteLogger.Level = .mild) { SuiteLogger.instance.log("\(something)", level: level) }
 public func logg<T>(result: Result<T, Error>, _ msg: @escaping @autoclosure () -> String) {
 	switch result {
 	case .failure(let error): logg(error: error, msg())
@@ -34,7 +34,7 @@ public func logg<Failure>(completion: Subscribers.Completion<Failure>, _ msg: @e
 }
 #endif
 
-public class SuiteLogger {
+public class SuiteLogger: @unchecked Sendable {
 	static public let instance = SuiteLogger()
 	
 	private init() { }
@@ -131,11 +131,11 @@ public class SuiteLogger {
 		}
 	}
 	
-	public func log<What: AnyObject>(raw: What, _ level: SuiteLogger.Level = .mild) {
+	public func log<What: AnyObject & Sendable>(raw: What, _ level: SuiteLogger.Level = .mild) {
         self.log("\(address(of: raw))", level: level)
 	}
 	
-	public func log(_ msg: @escaping @autoclosure () -> String, level: Level = .mild) {
+	public func log(_ msg: @Sendable @escaping @autoclosure () -> String, level: Level = .mild) {
 		serializer.async {
 			if level > self.level { return }
 			var message = msg()

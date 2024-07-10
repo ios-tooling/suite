@@ -12,13 +12,13 @@ public struct CodableJSONDictionary: Codable, Equatable, Hashable, Sendable {
 		compareTwoJSONDictionaries(lDictionary: lhs.backing, rDictionary: rhs.backing)
 	}
 	
-	public var dictionary: [String: Any] { backing }
-	public static var dataKeyNames: [String] = []
+	public var dictionary: [String: Sendable] { backing }
+	nonisolated(unsafe) public static var dataKeyNames: [String] = []
 	
 	public init() { backing = [:] }
 	public static let empty = CodableJSONDictionary()
 	
-	public subscript(key: String) -> Any? {
+	public subscript(key: String) -> Sendable? {
 		get { backing[key] }
 		set {
 			if let newValue, !isJSON(newValue) { dlogg("Trying to assign a non-JSON value: \(key): \(newValue)") }
@@ -37,13 +37,13 @@ public struct CodableJSONDictionary: Codable, Equatable, Hashable, Sendable {
 	
 	var backing: [String: any Sendable]
 	
-	public init(_ json: [String: Any]) {
+	public init(_ json: [String: Sendable]) {
 		backing = json.filter { key, value in
 			value is JSONDataType
 		}
 	}
 	
-	public init?(_ json: [String: Any]?) {
+	public init?(_ json: [String: Sendable]?) {
 		guard let json else { return nil }
 		self.init(json)
 	}
@@ -61,7 +61,7 @@ public struct CodableJSONDictionary: Codable, Equatable, Hashable, Sendable {
 }
 
 extension CodableJSONDictionary: ExpressibleByDictionaryLiteral {
-	public init(dictionaryLiteral elements: (String, Any)...) {
+	public init(dictionaryLiteral elements: (String, Sendable)...) {
 		let dict = elements.reduce(into: [:]) { $0[$1.0] = $1.1 }
 		
 		self.init(dict)

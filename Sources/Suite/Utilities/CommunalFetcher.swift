@@ -8,13 +8,13 @@
 import Foundation
 import Combine
 
-public final actor CommunalFetcher<Value> {
+public final actor CommunalFetcher<Value: Sendable> {
 	var value: CurrentValueSubject<Value?, Error> = .init(nil)
 	var inProgress = false
-	var fetcher: () async throws -> Value
+	var fetcher: @Sendable () async throws -> Value
 	var cancellables: Set<AnyCancellable> = []
 	
-	public init(fetcher: @escaping () async throws -> Value) {
+	public init(fetcher: @Sendable @escaping () async throws -> Value) {
 		self.fetcher = fetcher
 	}
 	

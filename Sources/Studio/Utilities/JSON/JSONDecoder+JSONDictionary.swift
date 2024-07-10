@@ -10,8 +10,8 @@ import Foundation
 enum JSONDecodingError: Error, Sendable { case invalidKey, noJSONValueFound }
 
 extension KeyedDecodingContainer where K == JSONCodingKey {
-	func decodeJSONDictionary(dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .iso8601) throws -> [String: Any] {
-		var results: [String: Any] = [:]
+	func decodeJSONDictionary(dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .iso8601) throws -> [String: Sendable] {
+		var results: [String: Sendable] = [:]
 		
 		for key in allKeys {
 			do {
@@ -23,7 +23,7 @@ extension KeyedDecodingContainer where K == JSONCodingKey {
 		return results
 	}
 	
-	func decodeJSONValue(forKey codingKey: JSONCodingKey, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .iso8601) throws -> Any {
+	func decodeJSONValue(forKey codingKey: JSONCodingKey, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .iso8601) throws -> Sendable {
 		if let string = try? decode(String.self, forKey: codingKey) {
 			if let date = dateDecodingStrategy.date(from: string) { return date }
 			if CodableJSONDictionary.dataKeyNames.contains(codingKey.stringValue), let data = Data(base64Encoded: string) { return data }
@@ -55,8 +55,8 @@ extension KeyedDecodingContainer where K == JSONCodingKey {
 }
 
 extension UnkeyedDecodingContainer {
-	mutating func decodeJSONArray(dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .iso8601) throws -> [Any] {
-		var results: [Any] = []
+	mutating func decodeJSONArray(dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .iso8601) throws -> [Sendable] {
+		var results: [Sendable] = []
 		guard let count = self.count else { return [] }
 		
 		for _ in 0..<count {
@@ -67,7 +67,7 @@ extension UnkeyedDecodingContainer {
 		return results
 	}
 	
-	mutating func decodeJSONValue(dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .iso8601) throws -> Any {
+	mutating func decodeJSONValue(dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .iso8601) throws -> Sendable {
 		if let string = try? decode(String.self) {
 			if let date = dateDecodingStrategy.date(from: string) { return date }
 			if let data = Data(base64Encoded: string) { return data }

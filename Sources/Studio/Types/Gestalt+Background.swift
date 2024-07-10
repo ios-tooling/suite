@@ -7,17 +7,17 @@
 
 import Foundation
 
-#if canImport(UIKit)
+#if os(iOS)
 import UIKit
 
-fileprivate var application: UIApplication?
+@MainActor fileprivate var application: UIApplication?
 
 public extension Gestalt {
-	static func setApplication(_ app: UIApplication) {
+	@MainActor static func setApplication(_ app: UIApplication) {
 		application = app
 	}
 	
-	static func startSafeBackgroundProcess(name: String? = nil, handler: (() -> Void)? = nil) -> Any? {
+	@MainActor static func startSafeBackgroundProcess(name: String? = nil, handler: (() -> Void)? = nil) -> Any? {
 		guard let application else {
 			if !Gestalt.isExtension { print("Please call Gestalt.setApplication() first") }
 			return nil
@@ -30,7 +30,7 @@ public extension Gestalt {
 		return result
 	}
 	
-	static func endSafeBackgroundProcess(using token: Any?) {
+	@MainActor static func endSafeBackgroundProcess(using token: Any?) {
 		guard let token = token as? UIBackgroundTaskIdentifier else { return }
 		application?.endBackgroundTask(token)
 	}

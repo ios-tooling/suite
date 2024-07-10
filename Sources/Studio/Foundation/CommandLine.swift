@@ -14,7 +14,7 @@ public extension CommandLine {
 		  count: Int(CommandLine.argc)
 		).lazy
 		  .compactMap { $0 }
-		  .compactMap { String(validatingUTF8: $0) }
+		  .compactMap { String(validatingCString: $0) }
 	}
 
 	static func bool(for key: String) -> Bool {

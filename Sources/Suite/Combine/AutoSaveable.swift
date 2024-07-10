@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Studio
 
 public protocol AutoSaveable: Codable, ObservableObject {
 	static var saveURL: URL { get }
@@ -13,7 +14,7 @@ public protocol AutoSaveable: Codable, ObservableObject {
 }
 
 extension AutoSaveable {
-	public static func loadSaved() -> Self {
+	@MainActor public static func loadSaved() -> Self {
 		do {
 			if let data = try? Data(contentsOf: saveURL) {
 				let decoded = try JSONDecoder().decode(Self.self, from: data)
@@ -25,7 +26,7 @@ extension AutoSaveable {
 		return Self.init().setupForAutoSave()
 	}
 	
-	func setupForAutoSave() -> Self {
+	@MainActor func setupForAutoSave() -> Self {
 		self
 			.objectWillChange
 			.sink { [weak self] _ in
@@ -41,7 +42,7 @@ extension AutoSaveable {
 			let data = try JSONEncoder.default.encode(self)
 			try data.write(to: Self.saveURL)
 		} catch {
-			logg("Failed to save \(String(describing: self)): \(error)")
+			print("Failed to save \(String(describing: self)): \(error)")
 		}
 	}
 }

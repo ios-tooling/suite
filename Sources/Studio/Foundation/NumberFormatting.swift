@@ -110,7 +110,7 @@ public extension String {
 }
 
 extension NumberFormatter {
-	static var radix: String = {
+	static let radix: String = {
 		if let radix = Locale.current.decimalSeparator { return radix }
 		let formatter = NumberFormatter()
 		formatter.numberStyle = .decimal

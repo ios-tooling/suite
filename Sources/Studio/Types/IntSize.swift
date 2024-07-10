@@ -7,7 +7,7 @@
 
 import CoreGraphics
 
-public struct IntSize: Codable, Equatable, CustomStringConvertible {
+public struct IntSize: Codable, Equatable, CustomStringConvertible, Sendable {
 	public var width: Int
 	public var height: Int
 	
@@ -20,7 +20,7 @@ public struct IntSize: Codable, Equatable, CustomStringConvertible {
 	public static let zero = IntSize(0, 0)
 }
 
-public struct IntPoint: Codable, Equatable, CustomStringConvertible {
+public struct IntPoint: Codable, Equatable, CustomStringConvertible, Sendable {
 	public var x: Int
 	public var y: Int
 	

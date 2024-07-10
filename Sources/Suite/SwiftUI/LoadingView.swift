@@ -8,7 +8,7 @@
 import SwiftUI
 
 @available(iOS 15.0, macOS 12.0, watchOS 8.0, *)
-public struct LoadingView<Target, Body: View, LoadingBody: View, ErrorBody: View>: View {
+@MainActor public struct LoadingView<Target: Sendable, Body: View, LoadingBody: View, ErrorBody: View>: View {
 	@State var state: LoadingState<Target> = .idle
 	@ViewBuilder var buildBody: (Target) -> Body
 	@ViewBuilder var loadingBody: () -> LoadingBody

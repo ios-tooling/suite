@@ -51,7 +51,7 @@ public extension Color {
 	}
 	
 	@available(iOS 15.0, macOS 12.0, watchOS 8.0, *)
-	static var rainbow: [Color] = [.red, .orange, .yellow, .green, .blue, .indigo, .purple]
+	static let rainbow: [Color] = [.red, .orange, .yellow, .green, .blue, .indigo, .purple]
 }
 
 @available(OSX 11, iOS 14.0, tvOS 13, watchOS 7, *)

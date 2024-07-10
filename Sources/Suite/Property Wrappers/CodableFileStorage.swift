@@ -8,7 +8,7 @@
 import SwiftUI
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
-@propertyWrapper public struct CodableFileStorage<StoredValue: Codable>: DynamicProperty {
+@MainActor @propertyWrapper public struct CodableFileStorage<StoredValue: Codable & Sendable>: DynamicProperty {
 	public init(wrappedValue: StoredValue, _ url: URL) {
 		self.url = url
 		let initialValue = try? StoredValue.loadJSON(file: url)

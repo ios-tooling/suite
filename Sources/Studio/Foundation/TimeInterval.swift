@@ -13,9 +13,9 @@ public extension TimeInterval {
 	static let day: TimeInterval = 60.0 * 60.0 * 24.0
 	static let week: TimeInterval = 60.0 * 60.0 * 24.0 * 7
 
-	static var saveInterval: TimeInterval = 20.0
-	static var keyPressSearchDelay: TimeInterval = 0.5
-	static var pressAndHoldInterval: TimeInterval = 1.0
+	static let saveInterval: TimeInterval = 20.0
+	static let keyPressSearchDelay: TimeInterval = 0.5
+	static let pressAndHoldInterval: TimeInterval = 1.0
 
 	
 	var days: Int { return abs(Int(self / .day)) }
@@ -29,7 +29,7 @@ public extension TimeInterval {
 
 	enum DurationStyle: Sendable { case hours, minutes, secondsMaybeHours, secondsNoHours, seconds, deciseconds, centiseconds, milliseconds }
 	
-	static var durationFormatter = DateComponentsFormatter()
+	static let durationFormatter = DateComponentsFormatter()
 	static let centisecondFormatter: NumberFormatter = {
 		let numberFormatter = NumberFormatter()
 		numberFormatter.minimumFractionDigits = 2
@@ -143,7 +143,7 @@ public extension TimeInterval {
 				return "\(count)\(unit)"
 				
 			default:
-				return Pluralizer.instance.pluralize(count, unit)
+				return "^[\(count) \(unit)](inflect: true)"
 			}
 		}
 	}

@@ -23,7 +23,7 @@ public extension NSEvent {
 	var isControlKeyDown: Bool { get { self.isModifierKeyDown(.control) } }
 	
 	
-	func location(in view: NSView) -> CGPoint {
+	@MainActor func location(in view: NSView) -> CGPoint {
 		let windowPoint = self.locationInWindow
 		let location = view.convert(windowPoint, from: nil)
 		return location

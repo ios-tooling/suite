@@ -5,6 +5,8 @@
 //  Created by Ben Gottlieb on 7/1/20.
 //
 
+/* Deprecated
+
 #if canImport(SwiftUI)
 #if canImport(Combine)
 #if canImport(UIKit) && !os(watchOS)
@@ -80,3 +82,5 @@ struct KeyboardObserver_Previews: PreviewProvider {
 #endif
 #endif
 #endif
+
+*/

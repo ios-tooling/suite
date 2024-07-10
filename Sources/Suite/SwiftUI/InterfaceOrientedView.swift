@@ -13,7 +13,7 @@ import UIKit
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
 @available(iOSApplicationExtension, unavailable)
-public class OrientationWatcher: ObservableObject, CustomStringConvertible {
+@MainActor public class OrientationWatcher: ObservableObject, @preconcurrency CustomStringConvertible {
 	public static var instance = OrientationWatcher()
 	
 	public static func setup(windowScene: UIWindowScene) {

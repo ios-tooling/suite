@@ -8,7 +8,7 @@
 import SwiftUI
 
 public struct ShowViewLabelsEnvironmentKey: EnvironmentKey {
-	public static var defaultValue = false
+	nonisolated(unsafe) public static var defaultValue = false
 }
 
 public extension EnvironmentValues {

@@ -7,10 +7,10 @@
 
 import SwiftUI
 
-extension CoordinateSpace {
-	static let dragAndDropSpaceName = "dragAndDropSpace" 
-	static var dragAndDropSpace = CoordinateSpace.named(Self.dragAndDropSpaceName)
-	static var dragAndDropSpaceCreatedNotification: Notification.Name { Notification.Name("dragAndDropSpaceCreatedNotification") }
+@MainActor extension CoordinateSpace {
+	static let dragAndDropSpaceName = "dragAndDropSpace"
+	static let dragAndDropSpace = CoordinateSpace.named(Self.dragAndDropSpaceName)
+	static let dragAndDropSpaceCreatedNotification = Notification.Name("dragAndDropSpaceCreatedNotification")
 }
 
 @available(OSX 13, iOS 15, tvOS 13, watchOS 8, *)
