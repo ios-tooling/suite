@@ -154,14 +154,14 @@ import WebKit
 		originalNavigationDelegate?.webView?(webView, didFail: navigation, withError: error)
 	}
 
-	@objc public func webView(_ webView: WKWebView, shouldAllowDeprecatedTLSFor challenge: URLAuthenticationChallenge) async -> Bool {
-		log(#function)
-		if originalNavigationDelegate?.responds(to: #selector(webView(_:shouldAllowDeprecatedTLSFor:))) == true {
-			return await originalNavigationDelegate?.webView?(webView, shouldAllowDeprecatedTLSFor: challenge) ?? true
-		} else {
-			return true
-		}
-	}
+//	@objc public func webView(_ webView: WKWebView, shouldAllowDeprecatedTLSFor challenge: URLAuthenticationChallenge) async -> Bool {
+//		log(#function)
+//		if originalNavigationDelegate?.responds(to: #selector(webView(_:shouldAllowDeprecatedTLSFor:))) == true {
+//			return await originalNavigationDelegate?.webView?(webView, shouldAllowDeprecatedTLSFor: challenge) ?? true
+//		} else {
+//			return true
+//		}
+//	}
 
 	@objc public func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping @MainActor @Sendable (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
 		log(#function)
