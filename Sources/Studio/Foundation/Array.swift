@@ -114,7 +114,7 @@ public extension Array where Element: Identifiable {
 
 public extension Array {
 	subscript(index index: Int?) -> Element? {
-		guard let idx = index, idx < self.count else { return nil }
+		guard let idx = index, idx < count, idx >= 0 else { return nil }
 		return self[idx]
 	}
 	
