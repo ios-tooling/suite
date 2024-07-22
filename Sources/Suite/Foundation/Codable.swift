@@ -88,13 +88,14 @@ public extension Encodable {
 	
 	var prettyJSON: String? {
 		do {
-			let json = try asJSON()
-			let data = try JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted])
-			let string = String(data: data, encoding: .utf8)
-			return string?
-				.replacingOccurrences(of: "\\/", with: "/")
+			let encoder = JSONEncoder()
+			encoder.outputFormatting = .prettyPrinted
+			let json = try encoder.encode(self)
+			let string = String(data: json, encoding: .utf8)
+			return string
+			//?.replacingOccurrences(of: "\\/", with: "/")
 		} catch {
-			return "\(error)"
+			return "error extracting JSON: \(error)"
 		}
 	}
 	
