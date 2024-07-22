@@ -17,7 +17,6 @@ public struct FullWidthButtonStyle: ButtonStyle {
 	let cornerRadius = 8.0
 	@Environment(\.isEnabled) private var isEnabled: Bool
 	
-	
 	public init(foreground: Color? = nil, background: Color? = nil, borderOnly: Bool = false, borderWidth: Double = 0.0) {
 		foregroundColor = foreground
 		backgroundColor = background

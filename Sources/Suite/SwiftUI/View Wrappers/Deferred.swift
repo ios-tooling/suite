@@ -8,7 +8,7 @@
 #if canImport(Combine)
 import SwiftUI
 
-@available(OSX 10.15, iOS 13.0, watchOS 6.0, *)
+@available(OSX 12, iOS 15.0, watchOS 6.0, *)
 public struct Deferred<Content: View>: View {
 	var builder: () -> Content
 	@State var content: Content?
@@ -23,14 +23,11 @@ public struct Deferred<Content: View>: View {
 		HStack() {
 			if let content = content { content }
 		}
-		.onAppear {
-			if let delay = delay {
-				DispatchQueue.main.async(after: delay) {
-					self.content = builder()
-				}
-			} else {
-				self.content = builder()
+		.task {
+			if let delay {
+				try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
 			}
+			self.content = builder()
 		}
 	}
 }
