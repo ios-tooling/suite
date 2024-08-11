@@ -10,10 +10,17 @@ import WebKit
 
 public class AsyncWebView: NSObject, WKNavigationDelegate {
 	var continuation: CheckedContinuation<Void, Error>?
-	public let webView = WKWebView(frame: .init(x: 0, y: 0, width: 100, height: 100))
+	public var webView: WKWebView!
 	
 	public override init() {
 		super.init()
+		Task {
+			await self.setup()
+		}
+	}
+	
+	func setup() {
+		webView = WKWebView(frame: .init(x: 0, y: 0, width: 100, height: 100))
 		webView.navigationDelegate = self
 	}
 	
