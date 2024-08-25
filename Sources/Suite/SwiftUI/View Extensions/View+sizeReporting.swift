@@ -17,7 +17,7 @@ public struct SizeViewModifier: ViewModifier {
     public func body(content: Content) -> some View {
 		content.background(
 			GeometryReader() { geo -> Color in
-				DispatchQueue.main.async { size = geo.size }
+				Task { @MainActor in size = geo.size }
 				return Color.clear
 			}
 		)
@@ -65,8 +65,19 @@ public extension View {		// Tracks the size available for the view
 		self
 			.background(GeometryReader() { geo -> Color in
 				let rect = geo.frame(in: space)
-				DispatchQueue.main.async {
+				Task { @MainActor in
 					if (!firstTimeOnly || frame.wrappedValue == .zero) && frame.wrappedValue != rect  { frame.wrappedValue = rect }
+				}
+				return Color.clear
+			})
+	}
+	
+	@ViewBuilder func frameReporting<Key: Hashable>(_ frames: Binding<[Key: CGRect]>, key: Key, in space: CoordinateSpace = .global, firstTimeOnly: Bool = false) -> some View {
+		self
+			.background(GeometryReader() { geo -> Color in
+				let rect = geo.frame(in: space)
+				Task { @MainActor in
+					if (!firstTimeOnly || frames[key].wrappedValue == nil) && frames.wrappedValue[key] != rect { frames.wrappedValue[key] = rect }
 				}
 				return Color.clear
 			})
