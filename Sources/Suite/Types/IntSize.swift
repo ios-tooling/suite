@@ -16,6 +16,7 @@ public struct IntSize: Codable, Equatable, CustomStringConvertible, Sendable, Ha
 	init(screenW w: Int, _ h: Int) { self.init(min(w, h), max(w, h)) }
 	
 	public var area: Int { width * height }
+	public var perimeter: Int { (width + height) * 2 }
 	public var description: String { "(\(width) x \(height))" }
 
 	public static let zero = IntSize(0, 0)

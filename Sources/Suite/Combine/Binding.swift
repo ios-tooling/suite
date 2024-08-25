@@ -94,7 +94,7 @@ public extension Binding where Value: OptionalType & Sendable {
 }
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
-public extension Binding {
+public extension Binding where Value: Sendable {
 	var optional: Binding<Value?> {
 		Binding<Value?>(get: { self.wrappedValue }, set: { opt in
 			if let val = opt { self.wrappedValue = val }
