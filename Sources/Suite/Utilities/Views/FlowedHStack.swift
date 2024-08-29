@@ -14,11 +14,16 @@ extension String: FlowedHStackElement {
 	public var body: some View { Text(self) }
 }
 
-public protocol FlowedHStackElement: View {
+public protocol FlowedHStackElement {
 	var isNewLine: Bool { get }
 	var offset: CGSize { get }
-	
 }
+
+extension FlowedHStackElement {
+	public var isNewLine: Bool { false }
+	public var offset: CGSize { .zero }
+}
+
 public protocol FlowedHStackImageElement: Identifiable { }
 
 public struct FlowedHStackImage: View, FlowedHStackImageElement {
