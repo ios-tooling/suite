@@ -15,7 +15,7 @@ public class AsyncWebView: NSObject, WKNavigationDelegate {
 	public override init() {
 		super.init()
 		Task {
-			await self.setup()
+			self.setup()
 		}
 	}
 	
