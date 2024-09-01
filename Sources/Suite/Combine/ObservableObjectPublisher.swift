@@ -9,9 +9,13 @@
 #if canImport(Combine)
 
 import Foundation
-@preconcurrency import Combine
+import OSLog
+import Combine
 
-@available(OSX 10.15, iOS 13.0, watchOS 6.0, *)
+@available(iOS 14.0, *)
+fileprivate let logger = Logger(subsystem: "suite", category: "observableObject")
+
+@available(OSX 11, iOS 14.0, watchOS 8.0, *)
 struct ObserverMonitor<Pub: ObservableObjectPublisher, Content: View & Sendable>: View {
 	let target: Pub
 	let content: Content
@@ -23,7 +27,7 @@ struct ObserverMonitor<Pub: ObservableObjectPublisher, Content: View & Sendable>
 		self.content = content
 		self.message = message
 		cancellable = target.eraseToAnyPublisher().sink { item in
-			print("\(item) changed in \(message ?? String(describing: content))")
+			logger.info("\(String(describing: item)) \(message ?? String(describing: content))")
 		}
 	}
 
@@ -32,7 +36,7 @@ struct ObserverMonitor<Pub: ObservableObjectPublisher, Content: View & Sendable>
 	}
 }
 
-@available(OSX 10.15, iOS 13.0, watchOS 6.0, *)
+@available(OSX 11, iOS 14.0, watchOS 8.0, *)
 extension View where Self: Sendable {
 	public func monitor(_ target: ObservableObjectPublisher, _ message: String? = nil) -> some View {
 		ObserverMonitor(target, content: self, message: message)
@@ -40,6 +44,8 @@ extension View where Self: Sendable {
 	
 }
 
+@available(OSX 10.15, iOS 13.0, watchOS 6.0, *)
+extension ObservableObjectPublisher: @unchecked @retroactive Sendable { }
 
 @available(OSX 10.15, iOS 13.0, watchOS 6.0, *)
 public extension ObservableObjectPublisher {
@@ -47,7 +53,7 @@ public extension ObservableObjectPublisher {
 		if Thread.isMainThread {
 			send()
 		} else {
-			DispatchQueue.onMain(async: true) { self.send() }
+			DispatchQueue.main.async { self.send() }
 		}
 	}
 	

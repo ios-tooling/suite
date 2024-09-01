@@ -7,6 +7,7 @@
 #if os(iOS) || os(macOS) || os(watchOS)
 import Foundation
 import AVFoundation
+import OSLog
 
 #if os(OSX)
 	import AppKit
@@ -22,6 +23,8 @@ import AVFoundation
 	import UIKit
 #endif
 
+@available(iOS 14.0, *)
+fileprivate let logger = Logger(subsystem: "suite", category: "soundEffects")
 
 @MainActor public class SoundEffect: Equatable {
 	private static var cachedSounds: [String: SoundEffect] = [:]
@@ -190,7 +193,9 @@ extension SoundEffect {
 	var actualPlayer: AVAudioPlayer? { return self.original?.internalPlayer ?? self.setupPlayer() }
 	@discardableResult public func play(fadingInOver fadeIn: TimeInterval = 0, completion: (() -> Void)? = nil) -> Bool {
 		guard !SoundEffect.disableAllSounds else {
-			print("Sound effects disabled, not playing \(self.url?.lastPathComponent ?? "sound")")
+			if #available(iOS 14.0, *) {
+				logger.warning("Sound effects disabled, not playing \(self.url?.lastPathComponent ?? "sound")")
+			}
 			completion?()
 			return false
 		}

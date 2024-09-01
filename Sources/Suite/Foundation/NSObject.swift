@@ -6,6 +6,10 @@
 //
 
 import Foundation
+import OSLog
+
+@available(iOS 14.0, *)
+fileprivate let logger = Logger(subsystem: "suite", category: "notifications")
 
 public extension NSObject {
 	func addAsObserver(of name: String, selector sel: Selector, object: Any? = nil) {
@@ -14,7 +18,9 @@ public extension NSObject {
 
 	@nonobjc func addAsObserver(of name: NSNotification.Name, selector sel: Selector, object: Any? = nil) {
 		if !self.responds(to: sel) {
-			print("⚠️ Trying to register for a notification (\(name), but \(type(of: self)) doesn't respond to \(sel)")
+			if #available(iOS 14.0, *) {
+				logger.warning("Trying to register for a notification (\(name.rawValue), but \(String(describing: type(of: self))) doesn't respond to \(sel)")
+			}
 			return
 		}
 		NotificationCenter.default.addObserver(self, selector: sel, name: name, object: object)

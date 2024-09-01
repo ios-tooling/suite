@@ -9,6 +9,10 @@ import Foundation
 
 #if os(iOS)
 import UIKit
+import OSLog
+
+@available(iOS 14.0, *)
+fileprivate let logger = Logger(subsystem: "suite", category: "codableFileStorage")
 
 @MainActor fileprivate var application: UIApplication?
 
@@ -19,7 +23,11 @@ public extension Gestalt {
 	
 	@MainActor static func startSafeBackgroundProcess(name: String? = nil, handler: (() -> Void)? = nil) -> Any? {
 		guard let application else {
-			if !Gestalt.isExtension { print("Please call Gestalt.setApplication() first") }
+			if !Gestalt.isExtension {
+				if #available(iOS 14.0, *) {
+					logger.error("Please call Gestalt.setApplication() first")
+				}
+			}
 			return nil
 		}
 		

@@ -6,6 +6,10 @@
 //
 
 import Foundation
+import OSLog
+
+@available(iOS 14.0, *)
+fileprivate let logger = Logger(subsystem: "suite", category: "JSONEncoding")
 
 extension KeyedEncodingContainer where K == JSONCodingKey {
 	mutating func encode(_ dictionary: [String: Any], dateEncodingStrategy: JSONEncoder.DateEncodingStrategy = .iso8601) throws {
@@ -48,9 +52,13 @@ extension KeyedEncodingContainer where K == JSONCodingKey {
 		case .formatted(let formatter):
 			try encode(formatter.string(from: date), forKey: key)
 		case .custom:
-			print("Failed to encode date using \(self)")
+			if #available(iOS 14.0, *) {
+				logger.error("Failed to encode date using \(String(describing: strategy))")
+			}
 		@unknown default:
-			print("Failed to encode date using \(self)")
+			if #available(iOS 14.0, *) {
+				logger.error("Failed to encode date using \(String(describing: strategy))")
+			}
 		}
 	}
 }
@@ -93,9 +101,13 @@ extension UnkeyedEncodingContainer {
 		case .formatted(let formatter):
 			try encode(formatter.string(from: date))
 		case .custom:
-			print("Failed to encode date using \(self)")
+			if #available(iOS 14.0, *) {
+				logger.error("Failed to encode date using \(String(describing: strategy))")
+			}
 		@unknown default:
-			print("Failed to encode date using \(self)")
+			if #available(iOS 14.0, *) {
+				logger.error("Failed to encode date using \(String(describing: strategy))")
+			}
 		}
 	}
 }

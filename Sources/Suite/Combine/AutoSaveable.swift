@@ -6,12 +6,18 @@
 //
 
 import Foundation
+import OSLog
 
+@available(iOS 14.0, *)
+fileprivate let logger = Logger(subsystem: "suite", category: "autosaveable")
+
+@available(iOS 14.0, *)
 public protocol AutoSaveable: Codable, ObservableObject {
 	static var saveURL: URL { get }
 	init()
 }
 
+@available(iOS 14.0, *)
 extension AutoSaveable {
 	@MainActor public static func loadSaved() -> Self {
 		do {
@@ -41,7 +47,7 @@ extension AutoSaveable {
 			let data = try JSONEncoder.default.encode(self)
 			try data.write(to: Self.saveURL)
 		} catch {
-			print("Failed to save \(String(describing: self)): \(error)")
+			logger.error("Failed to save \(String(describing: self)): \(error)")
 		}
 	}
 }
