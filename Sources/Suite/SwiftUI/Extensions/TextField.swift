@@ -32,17 +32,26 @@ import SwiftUI
 #if os(iOS) || os(macOS)
 @available(macOS 11.0, *)
 public extension View {
-	func addTextContentType(_ type: TextContentType?) -> some View {
+	@ViewBuilder func addTextContentType(_ type: TextContentType?) -> some View {
+		if let type {
+			self
+				.addTextContentType(type)
+		} else {
+			self
+		}
+	}
+	
+	func addTextContentType(_ type: TextContentType) -> some View {
 		#if os(macOS)
 			self
 				.textContentType(type)
-				.autocorrectionDisabled(type?.shouldAutocorrect != true)
+				.autocorrectionDisabled(type.shouldAutocorrect != true)
 		#else
 			self
 				.textContentType(type)
-				.autocorrectionDisabled(type?.shouldAutocorrect != true)
-				.autocapitalization(type?.shouldAutocapitalize == true ? .words : .none )
-				.keyboardType(type?.keyboardType ?? .default)
+				.autocorrectionDisabled(type.shouldAutocorrect != true)
+				.autocapitalization(type.shouldAutocapitalize ? .words : .none )
+				.keyboardType(type.keyboardType)
 		#endif
 	}
 }
