@@ -7,8 +7,10 @@
 
 import Foundation
 @preconcurrency import CoreData
+import OSLog
 
-
+@available(iOS 14.0, *)
+fileprivate let logger = Logger(subsystem: "suite", category: "coredata")
 
 public func logg(_ msg: @Sendable @escaping @autoclosure () -> String, _ level: SuiteLogger.Level = .mild) { SuiteLogger.instance.log(msg(), level: level) }
 public func logg<What: AnyObject & Sendable>(raw: What, _ level: SuiteLogger.Level = .mild) { SuiteLogger.instance.log(raw: raw, level) }
@@ -75,7 +77,9 @@ public class SuiteLogger: @unchecked Sendable {
 			redirect(string)
 			return
 		}
-		print(self.prefix + string)
+		if #available(iOS 14.0, *) {
+			logger.info("\(self.prefix) \(string)")
+		}
 		
 		if let url = fileURL, let data = string.data(using: .utf8) {
 			write(data, to: url)

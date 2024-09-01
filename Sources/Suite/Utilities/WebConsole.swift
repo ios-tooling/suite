@@ -9,6 +9,10 @@
 
 import SwiftUI
 import WebKit
+import OSLog
+
+@available(iOS 14.0, *)
+fileprivate let logger = Logger(subsystem: "suite", category: "webconsole")
 
 @available(macOS 12.0, iOS 15, watchOS 10, *)
 @MainActor public class WebConsole: NSObject, ObservableObject {
@@ -45,7 +49,7 @@ import WebKit
 	
 	deinit {
 		if self.webView != nil {
-			print("WebConsole: PLEASE CALL SHUTDOWN FIRST")
+			logger.warning("WebConsole: PLEASE CALL SHUTDOWN FIRST")
 		}
 	}
 	
@@ -59,7 +63,7 @@ import WebKit
 	func log(_ message: String) {
 		if !logAllMessages { return }
 		
-		print("WebView: \(message)")
+		logger.info("WebView: \(message)")
 	}
 	
 	@MainActor public func run(script: String) async throws -> String {
