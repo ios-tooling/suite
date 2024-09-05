@@ -20,4 +20,10 @@ public extension Error {
 		
 		return error.domain == NSCocoaErrorDomain && error.code == 260
 	}
+	
+	var isCancellation: Bool {
+		let error = self as NSError
+		
+		return error.code == 1001
+	}
 }
