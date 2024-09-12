@@ -8,7 +8,7 @@
 import Foundation
 import Combine
 
-public class Debouncer<Value>: ObservableObject {
+@MainActor public class Debouncer<Value: Sendable>: ObservableObject {
 	@Published public var input: Value
 	@Published public var output: Value
 	

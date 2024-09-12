@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+extension String: @retroactive View {}
 extension String: FlowedHStackElement {
 	public var isNewLine: Bool { self == "\n" }
 	public var offset: CGSize { .zero }
@@ -35,7 +36,7 @@ public struct FlowedHStackImage: View, FlowedHStackImageElement {
 }
 
 public struct FlowSizeKey: PreferenceKey {
-	public static var defaultValue: [CGSize] = []
+	nonisolated(unsafe) public static var defaultValue: [CGSize] = []
 	public static func reduce(value: inout [CGSize], nextValue: () -> [CGSize]) {
 		value.append(contentsOf: nextValue())
 	}

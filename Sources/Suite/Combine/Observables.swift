@@ -7,11 +7,11 @@
 
 import Foundation
 
-public class NotificationWatcher: NSObject, ObservableObject {
+@MainActor public class NotificationWatcher: NSObject, ObservableObject {
 	public init(_ name: Notification.Name, object: Any? = nil) {
 		super.init()
 		NotificationCenter.default.addObserver(forName: name, object: object, queue: .main) { note in
-			self.objectWillChange.send()
+			Task { @MainActor in self.objectWillChange.send() }
 		}
 	}
 }

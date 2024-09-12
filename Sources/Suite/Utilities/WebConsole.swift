@@ -9,9 +9,13 @@
 
 import SwiftUI
 import WebKit
+import OSLog
+
+@available(iOS 14.0, *)
+fileprivate let logger = Logger(subsystem: "suite", category: "webconsole")
 
 @available(macOS 12.0, iOS 15, watchOS 10, *)
-public class WebConsole: NSObject, ObservableObject {
+@MainActor public class WebConsole: NSObject, ObservableObject {
 	public private(set) var webView: WKWebView?
 	
 	public enum State: Sendable { case idle, starting(URL?), loading(URLRequest?), loaded(URLRequest?), failed(URLRequest?, Error) }
@@ -35,12 +39,18 @@ public class WebConsole: NSObject, ObservableObject {
 		self.webView?.navigationDelegate = self
 		
 		urlObservation = webView?.observe(\.url) { webView, change in
-			self.loadedURL = webView.url
+			Task { @MainActor in self.loadedURL = webView.url }
 		}
 	}
 	
+	public func shutdown() {
+		setWebView(nil)
+	}
+	
 	deinit {
-		self.setWebView(nil)
+		if self.webView != nil {
+			logger.warning("WebConsole: PLEASE CALL SHUTDOWN FIRST")
+		}
 	}
 	
 	public init(_ webView: WKWebView? = nil) {
@@ -53,7 +63,7 @@ public class WebConsole: NSObject, ObservableObject {
 	func log(_ message: String) {
 		if !logAllMessages { return }
 		
-		print("WebView: \(message)")
+		logger.info("WebView: \(message)")
 	}
 	
 	@MainActor public func run(script: String) async throws -> String {
@@ -65,8 +75,8 @@ public class WebConsole: NSObject, ObservableObject {
 }
 
 @available(macOS 12.0, iOS 15, watchOS 10, *)
-extension WebConsole: WKNavigationDelegate {
-	public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+@MainActor extension WebConsole: WKNavigationDelegate {
+	public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void) {
 		log(#function)
 		if originalNavigationDelegate?.responds(to: NSSelectorFromString("webView:decidePolicyForNavigationAction:decisionHandler:")) == true {
 			originalNavigationDelegate?.webView?(webView, decidePolicyFor: navigationAction, decisionHandler: decisionHandler)
@@ -75,7 +85,7 @@ extension WebConsole: WKNavigationDelegate {
 		}
 	}
 
-	public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, preferences: WKWebpagePreferences, decisionHandler: @escaping (WKNavigationActionPolicy, WKWebpagePreferences) -> Void) {
+	public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, preferences: WKWebpagePreferences, decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy, WKWebpagePreferences) -> Void) {
 		log(#function)
 		if originalNavigationDelegate?.responds(to: #selector(webView(_:decidePolicyFor:preferences:decisionHandler:))) == true {
 			originalNavigationDelegate?.webView?(webView, decidePolicyFor: navigationAction, preferences: preferences) { policy, prefs in
@@ -92,7 +102,7 @@ extension WebConsole: WKNavigationDelegate {
 		}
 	}
 
-	public func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
+	public func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping @MainActor @Sendable (WKNavigationResponsePolicy) -> Void) {
 		log(#function)
 		if originalNavigationDelegate?.responds(to: NSSelectorFromString("webView:decidePolicyForNavigationResponse:decisionHandler:")) == true {
 			originalNavigationDelegate?.webView?(webView, decidePolicyFor: navigationResponse, decisionHandler: decisionHandler)
@@ -148,16 +158,16 @@ extension WebConsole: WKNavigationDelegate {
 		originalNavigationDelegate?.webView?(webView, didFail: navigation, withError: error)
 	}
 
-	public func webView(_ webView: WKWebView, authenticationChallenge challenge: URLAuthenticationChallenge, shouldAllowDeprecatedTLS decisionHandler: @escaping (Bool) -> Void) {
-		log(#function)
-		if originalNavigationDelegate?.responds(to: #selector(webView(_:authenticationChallenge:shouldAllowDeprecatedTLS:))) == true {
-			originalNavigationDelegate?.webView?(webView, authenticationChallenge: challenge, shouldAllowDeprecatedTLS: decisionHandler)
-		} else {
-			decisionHandler(true)
-		}
-	}
+//	@objc public func webView(_ webView: WKWebView, shouldAllowDeprecatedTLSFor challenge: URLAuthenticationChallenge) async -> Bool {
+//		log(#function)
+//		if originalNavigationDelegate?.responds(to: #selector(webView(_:shouldAllowDeprecatedTLSFor:))) == true {
+//			return await originalNavigationDelegate?.webView?(webView, shouldAllowDeprecatedTLSFor: challenge) ?? true
+//		} else {
+//			return true
+//		}
+//	}
 
-	public func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+	@objc public func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping @MainActor @Sendable (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
 		log(#function)
 		if originalNavigationDelegate?.responds(to: #selector(webView(_:didReceive:completionHandler:))) == true {
 			originalNavigationDelegate?.webView?(webView, didReceive: challenge, completionHandler: completionHandler)

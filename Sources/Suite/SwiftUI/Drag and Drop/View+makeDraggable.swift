@@ -64,7 +64,7 @@ struct DraggableView<Content: View>: View {
 						dragCoordinator.currentPosition = nil
 						dragCoordinator.cancelledDrop = true
 						dragCoordinator.drop(at: nil)
-						phaseChanged?(false)
+						phaseChanged?(.cancelled)
 					}
 				}
 			#else

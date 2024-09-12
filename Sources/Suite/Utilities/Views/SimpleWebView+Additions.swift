@@ -10,7 +10,7 @@ import SwiftUI
 import WebKit
 
 struct WebViewDidFinishLoadingEnvironmentKey: EnvironmentKey {
-	static var defaultValue: WebViewErrorCallback?
+	nonisolated(unsafe) static var defaultValue: WebViewErrorCallback?
 }
 
 public extension EnvironmentValues {

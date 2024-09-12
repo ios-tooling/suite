@@ -12,7 +12,7 @@ extension EnvironmentValues {
 }
 
 @available(OSX 13, iOS 15, tvOS 13, watchOS 8, *)
-public class DragCoordinator: ObservableObject {
+@MainActor public class DragCoordinator: ObservableObject {
 	var containerFrame: CGRect?
 	
 	@Published var draggedImage: DragImage?

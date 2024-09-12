@@ -6,11 +6,11 @@
 //
 
 #if canImport(Combine)
-import CoreData
+@preconcurrency import CoreData
 import Combine
 import SwiftUI
 
-public protocol CoreDataFieldType {
+public protocol CoreDataFieldType: Sendable {
 	static var defaultValue: Self { get }
 }
 

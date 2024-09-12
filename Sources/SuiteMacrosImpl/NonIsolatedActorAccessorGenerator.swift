@@ -1,5 +1,5 @@
 //
-//  NonIsolatedActorAccessorGenerator.swift
+//  NonisolatedContainerGenerator.swift
 //
 //
 //  Created by Ben Gottlieb on 3/16/24.
@@ -10,7 +10,7 @@ import SwiftSyntaxMacros
 import SwiftDiagnostics
 import Foundation
 
-public struct NonIsolatedActorAccessorGenerator: PeerMacro {
+public struct NonisolatedContainerGenerator: PeerMacro {
 	public static func expansion(of node: AttributeSyntax, providingPeersOf declaration: some DeclSyntaxProtocol, in context: some MacroExpansionContext) throws -> [DeclSyntax] {
 		
 		var results: [DeclSyntax] = []
@@ -30,7 +30,23 @@ public struct NonIsolatedActorAccessorGenerator: PeerMacro {
 			return []
 		}
 		
-		let accessorName = "private let nonIsolatedActorAccessor_\(identifier)"
+		var hasNonisolatedKeyword = false
+		for child in varDecl.children(viewMode: .all) {
+			if let modifier = child.as(DeclModifierListSyntax.self) {
+				if let keyword = modifier.first?.as(DeclModifierSyntax.self) {
+					if keyword.name.text.lowercased() == "nonisolated" {
+						hasNonisolatedKeyword = true
+					}
+				}
+			}
+		}
+		
+		if !hasNonisolatedKeyword {
+			context.diagnose(Diagnostic(node: declaration, message: MacroFeedback.message("Please add the `nonisolated` annotation to the variable declaration")))
+
+		}
+
+		let accessorName = "private let nonIsolatedBackingContainer_\(identifier)"
 		let optionalType = varDecl.optionalSyntaxType
 		patternBinding.pattern = PatternSyntax(IdentifierPatternSyntax(identifier: .identifier("defaultValue")))
 
@@ -45,12 +61,12 @@ public struct NonIsolatedActorAccessorGenerator: PeerMacro {
 			}
 			
 			if let optionalType {
-				results.append("\(raw: accessorName): CurrentValueSubject<\(raw: optionalType)?, Never> = .init(\(trimmedInitializer))")
+				results.append("\(raw: accessorName): NonIsolatedWrapper<\(raw: optionalType)?> = .init(\(trimmedInitializer))")
 			} else {
-				results.append("\(raw: accessorName) = CurrentValueSubject(value: \(trimmedInitializer))")
+				results.append("\(raw: accessorName) = NonIsolatedWrapper(\(trimmedInitializer))")
 			}
 		} else if let optionalType {
-			results.append("\(raw: accessorName): CurrentValueSubject<\(raw: optionalType)?, Never> = .init(nil)")
+			results.append("\(raw: accessorName): NonIsolatedWrapper<\(raw: optionalType)?> = .init(nil)")
 		}
 		return results
 	}
@@ -73,7 +89,7 @@ extension IdentifierTypeSyntax {
 	 }
 }
 
-extension NonIsolatedActorAccessorGenerator: AccessorMacro {
+extension NonisolatedContainerGenerator: AccessorMacro {
 	public static func expansion(of node: AttributeSyntax, providingAccessorsOf declaration: some DeclSyntaxProtocol, in context: some MacroExpansionContext) throws -> [AccessorDeclSyntax] {
 		
 		// Skip non-variables
@@ -98,15 +114,15 @@ extension NonIsolatedActorAccessorGenerator: AccessorMacro {
 		
 		return [
 				"""
-				get { nonIsolatedActorAccessor_\(raw: identifier).value }
+				get { nonIsolatedBackingContainer_\(raw: identifier).value }
 				""",
 				 publishChanges ?
 					"""
-					set { nonIsolatedActorAccessor_\(raw: identifier).value = newValue; objectWillChange.sendOnMain() }
+					set { nonIsolatedBackingContainer_\(raw: identifier).value = newValue; objectWillChange.sendOnMain() }
 					"""
 				:
 				  """
-				  set { nonIsolatedActorAccessor_\(raw: identifier).value = newValue }
+				  set { nonIsolatedBackingContainer_\(raw: identifier).value = newValue }
 				  """
 				
 			]

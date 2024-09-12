@@ -6,7 +6,7 @@
 //
 
 import XCTest
-@testable import Studio
+@testable import Suite
 
 final class JSON_Codable: XCTestCase {
 	struct TestCodable: Codable {
@@ -56,7 +56,6 @@ final class JSON_Codable: XCTestCase {
 		let container = CodingTest(dict: starter, val: "hello again")
 		let data = try! JSONEncoder().encode(container)
 		let string = String(data: data, encoding: .utf8)
-		print(string ?? "--")
 		
 		let rehydrated = try! JSONDecoder().decode(CodingTest.self, from: data)
 		XCTAssert(rehydrated == container, "Decoded struct should match original.")
