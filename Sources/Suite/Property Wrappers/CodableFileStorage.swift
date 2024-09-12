@@ -8,7 +8,7 @@
 import SwiftUI
 import OSLog
 
-@available(iOS 14.0, *)
+@available(iOS 14.0, macOS 11.0, *)
 fileprivate let logger = Logger(subsystem: "suite", category: "codableFileStorage")
 
 @available(OSX 11, iOS 14.0, tvOS 14, watchOS 8, *)

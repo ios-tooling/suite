@@ -11,7 +11,7 @@ import SwiftUI
 import WebKit
 import OSLog
 
-@available(iOS 14.0, *)
+@available(iOS 14.0, macOS 11.0, *)
 fileprivate let logger = Logger(subsystem: "suite", category: "webconsole")
 
 @available(macOS 12.0, iOS 15, watchOS 10, *)
