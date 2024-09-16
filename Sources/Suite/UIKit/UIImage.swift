@@ -124,7 +124,11 @@ public extension UIImage {
 		return self
 	}
 
-	func resized(to limit: CGSize?, trimmed: Bool = true, changeScaleTo: CGFloat? = nil) async -> UIImage? {
+	@MainActor func resized(to limit: CGSize?, trimmed: Bool = true) -> UIImage? {
+		resized(to: limit, trimmed: trimmed, scale: UIView.screenScale)
+	}
+	
+	func resized(to limit: CGSize?, trimmed: Bool = true, scale: Double) -> UIImage? {
 		guard let limit = limit else { return self }
 		var frame = self.size.rect.within(limit: limit.rect, placed: .scaleAspectFit).rounded()
 
@@ -135,18 +139,6 @@ public extension UIImage {
 			frame.origin.y = 0;
 			if trimmed { frame.size.height = limit.height; }
 		}
-		
-		let scale: Double
-
-		#if os(iOS)
-			if let changeScaleTo {
-				scale = changeScaleTo
-			} else {
-				scale = await UIView.screenScale
-			}
-		#else
-			scale = changeScaleTo ?? 2
-		#endif
 		
 		UIGraphicsBeginImageContextWithOptions(frame.size, false, scale)
 		
