@@ -19,7 +19,7 @@ import Combine
 #endif
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
-public class SlideUpManager: ObservableObject {
+@MainActor public class SlideUpManager: ObservableObject {
 	public var isSheetVisible = false { willSet { self.objectWillChange.send() }}
 
 	public init() {
@@ -35,7 +35,7 @@ public class SlideUpManager: ObservableObject {
 	public func show(_ view: AnyView) {
 		self.currentSheet = view
 		
-		DispatchQueue.main.async() {
+		Task { @MainActor in
 			withAnimation {
 				self.isSheetVisible = true
 			}
