@@ -6,7 +6,7 @@
 //  Copyright © 2024 DetectionTek. All rights reserved.
 //
 
-extension Encodable {
+public extension Encodable where Self: Decodable {
 	func stableMD5(using encoder: JSONEncoder = .default) -> String? {
 		guard let json: [String: (any Sendable & Hashable)] = try? self.asJSON(using: encoder) else { return nil }
 		
@@ -14,7 +14,7 @@ extension Encodable {
 	}
 }
 
-extension [String: Sendable & Hashable] {
+public extension [String: Sendable & Hashable] {
 	var stableJSONMD5: String? { stableMD5 }
 	var stableMD5: String? {
 		var keyHashes: [KeyHash] = []
@@ -48,7 +48,7 @@ extension [String: Sendable & Hashable] {
 	}
 }
 
-extension [Sendable & Hashable] {
+public extension [Sendable & Hashable] {
 	var stableMD5: String? {
 		let md5s: [String] = self.compactMap { value in
 			if let bool = value as? Bool {

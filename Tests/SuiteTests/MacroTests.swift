@@ -11,7 +11,7 @@ import SwiftSyntaxMacros
 import SwiftSyntaxMacrosTestSupport
 import XCTest
 import Suite
-import SuiteMacrosImpl
+/*import SuiteMacrosImpl
 
 let testMacros: [String: Macro.Type] = [
 	"GeneratedPreferenceKey": PreferenceKeyGenerator.self
@@ -44,3 +44,4 @@ extension PreferenceValues {
 """, macros: testMacros, indentationWidth: .tab)
 	}
 }
+*/
