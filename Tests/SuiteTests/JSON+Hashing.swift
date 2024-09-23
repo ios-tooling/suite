@@ -17,20 +17,20 @@ struct TestCodable: Codable {
 struct Test {
 
     @Test func testStableMD5() async throws {
-		 let testJSON1 = "{  \"a\" : 1,  \"b\" : 2,  \"c\" : 3}"
-		 let testJSON2 = "{  \"a\" : 1,  \"b\" : 2,  \"c\" : 3}"
+		 let testJSON1 = "{  \"a\" : 1,  \"b\" : 2,  \"c\" : 3 }"
+		 let testJSON2 = "{  \"a\" : 1,  \"b\" : 2,  \"c\" : 3 }"
 
 		 let testStruct = TestCodable()
-		 print(testStruct.prettyJSON)
-		 let testDict3: JSONDictionary = try testJSON1.asJSON()
-//		 let testDict1 = try testStruct.asJSONData().asJSON()
-//		 let testDict2 = try testStruct.asJSONData().asJSON()
 		 
-//		 let testDict2: JSONDictionary = try testJSON2.asJSON()
-//		 let testHash1 = testDict1.stableMD5
-//		 let testHash2 = testDict2.stableMD5
+		 let testDict1 = testJSON1.data(using: .utf8)!.jsonDictionary!
+		 let testDict2 = testJSON2.data(using: .utf8)!.jsonDictionary!
+		 let testDict3 = try testStruct.asJSON()
+		 let testHash1 = testDict1.stableMD5
+		 let testHash2 = testDict2.stableMD5
+		 let testHash3 = testDict3.stableMD5
 
-		 #expect(testStruct.stableMD5() == testDict3.stableMD5)
+		 #expect(testHash1 == testHash3)
+		 #expect(testHash1 == testHash2)
         // Write your test here and use APIs like `#expect(...)` to check expected conditions.
     }
 

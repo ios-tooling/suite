@@ -100,7 +100,11 @@ public extension Encodable {
 	
 	func asJSON(using encoder: JSONEncoder = .default) throws -> JSONDictionary {
 		let data = try asJSONData(using: encoder)
-		return try JSONSerialization.jsonObject(with: data, options: []) as? JSONDictionary ?? [:]
+		if #available(iOS 15.0, *) {
+			return try JSONSerialization.jsonObject(with: data, options: .topLevelDictionaryAssumed) as? JSONDictionary ?? [:]
+		} else {
+			return try JSONSerialization.jsonObject(with: data, options: []) as? JSONDictionary ?? [:]
+		}
 	}
 	
 	func asJSONData(using encoder: JSONEncoder = .default) throws -> Data {
