@@ -37,7 +37,7 @@ public struct CodableJSONArray: Codable, Equatable, Hashable, Sendable {
 	
 	public init(_ json: [Sendable]) {
 		backing = json.filter { value in
-			value is JSONDataType
+			value is (any JSONDataType)
 		}
 	}
 	

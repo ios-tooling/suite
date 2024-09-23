@@ -39,7 +39,7 @@ public struct CodableJSONDictionary: Codable, Equatable, Hashable, Sendable {
 	
 	public init(_ json: [String: Sendable]) {
 		backing = json.filter { key, value in
-			value is JSONDataType
+			value is (any JSONDataType)
 		}
 	}
 	

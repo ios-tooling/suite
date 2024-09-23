@@ -112,3 +112,43 @@ extension UnkeyedEncodingContainer {
 	}
 }
 
+public extension JSONEncoder.DateEncodingStrategy {
+	static let `default` = JSONEncoder.DateEncodingStrategy.formatted(DateFormatter.defaultJSONFormatter)
+	
+	func jsonValue(from date: Date) -> (any JSONRequirements)? {
+		switch self {
+		case .formatted(let formatter): return formatter.string(from: date)
+		case .iso8601: return DateFormatter.iso8601.string(from: date)
+		case .millisecondsSince1970: return date.timeIntervalSince1970 * 1000.0
+		case .secondsSince1970: return date.timeIntervalSince1970
+		default: break
+		}
+		return nil
+	}
+}
+
+public extension JSONDecoder.DateDecodingStrategy {
+	static let `default` = JSONDecoder.DateDecodingStrategy.formatted(DateFormatter.defaultJSONFormatter)
+	
+	func date(from something: (any JSONRequirements)?) -> Date? {
+		switch self {
+		case .formatted(let formatter):
+			guard let string = something as? String else { return nil }
+			return formatter.date(from: string)
+			
+		case .iso8601:
+			guard let string = something as? String else { return nil }
+			return DateFormatter.iso8601.date(from: string)
+		
+		case .millisecondsSince1970:
+			guard let secs = something as? TimeInterval else { return nil }
+			return Date(timeIntervalSince1970: secs / 1000.0)
+			
+		case .secondsSince1970:
+			guard let secs = something as? TimeInterval else { return nil }
+			return Date(timeIntervalSince1970: secs)
+		default: break
+		}
+		return nil
+	}
+}

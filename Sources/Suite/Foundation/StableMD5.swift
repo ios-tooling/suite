@@ -6,11 +6,9 @@
 //  Copyright © 2024 DetectionTek. All rights reserved.
 //
 
-import Suite
-
 extension Encodable {
 	func stableMD5(using encoder: JSONEncoder = .default) -> String? {
-		guard let json = try? self.asJSON(using: encoder) else { return nil }
+		guard let json: [String: (any Sendable & Hashable)] = try? self.asJSON(using: encoder) else { return nil }
 		
 		return json.stableJSONMD5
 	}
@@ -44,7 +42,7 @@ extension [String: Sendable & Hashable] {
 		}
 		
 		let sorted = keyHashes.sorted()
-		let concat = keyHashes.reduce("") { combined, individual in combined + (individual.hash ?? "") }
+		let concat = sorted.reduce("") { combined, individual in combined + (individual.hash ?? "") }
 		
 		return concat.md5
 	}
