@@ -26,7 +26,7 @@ extension Dictionary where Key == String {
 extension PropertyListDictionary {
 	public var jsonDictionary: JSONDictionary {
 		compactMapValues { value in
-			value as? JSONDataType
+			value as? (any JSONDataType)
 		}
 	}
 }

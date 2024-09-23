@@ -8,13 +8,13 @@
 #if canImport(WebKit)
 import WebKit
 
-public class AsyncWebView: NSObject, WKNavigationDelegate {
+@MainActor public class AsyncWebView: NSObject, WKNavigationDelegate {
 	var continuation: CheckedContinuation<Void, Error>?
 	public var webView: WKWebView!
 	
 	public override init() {
 		super.init()
-		Task {
+		Task { @MainActor in
 			self.setup()
 		}
 	}

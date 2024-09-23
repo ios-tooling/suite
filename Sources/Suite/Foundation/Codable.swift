@@ -8,17 +8,6 @@
 
 import Foundation
 
-public protocol JSONDataType: Codable { }
-
-extension String: JSONDataType { }
-extension Int: JSONDataType { }
-extension Double: JSONDataType { }
-extension Date: JSONDataType { }
-extension Data: JSONDataType { }
-extension Dictionary: JSONDataType where Key == String, Value: JSONDataType { }
-extension Array: JSONDataType where Element: JSONDataType { }
-
-
 public func isJSON(_ any: Any) -> Bool {
 	if let dict = any as? [String: Any] {
 		for (_, value) in dict { if !isJSON(value) { return false }}
@@ -29,10 +18,8 @@ public func isJSON(_ any: Any) -> Bool {
 		for value in array { if !isJSON(value) { return false }}
 		return true
 	}
-	return any is JSONDataType
+	return any is (any JSONDataType)
 }
-
-public typealias JSONDictionary = [String: Any]
 
 public extension JSONDictionary {
 	var plist: PropertyListDictionary { self as? PropertyListDictionary ?? [:] }
@@ -41,7 +28,7 @@ public extension JSONDictionary {
 extension Dictionary where Key == String {
 	public var jsonDictionary: JSONDictionary {
 		self.compactMapValues { value in
-			value as? JSONDataType
+			value as? (any JSONDataType)
 		}
 	}
 }
@@ -113,7 +100,11 @@ public extension Encodable {
 	
 	func asJSON(using encoder: JSONEncoder = .default) throws -> JSONDictionary {
 		let data = try asJSONData(using: encoder)
-		return try JSONSerialization.jsonObject(with: data, options: []) as? JSONDictionary ?? [:]
+		if #available(iOS 15.0, *) {
+			return try JSONSerialization.jsonObject(with: data, options: .topLevelDictionaryAssumed) as? JSONDictionary ?? [:]
+		} else {
+			return try JSONSerialization.jsonObject(with: data, options: []) as? JSONDictionary ?? [:]
+		}
 	}
 	
 	func asJSONData(using encoder: JSONEncoder = .default) throws -> Data {

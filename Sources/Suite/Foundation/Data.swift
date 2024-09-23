@@ -56,7 +56,8 @@ public extension Data {
 	}
 
 	var jsonDictionary: JSONDictionary? {
-		if let json = try? JSONSerialization.jsonObject(with: self, options: []) as? JSONDictionary { return json }
+		let raw = try? JSONSerialization.jsonObject(with: self, options: [])
+		if let json = raw as? JSONDictionary { return json }
 		
 		var format: PropertyListSerialization.PropertyListFormat = .binary
 		guard let result = try? PropertyListSerialization.propertyList(from: self, format: &format) else { return nil }
