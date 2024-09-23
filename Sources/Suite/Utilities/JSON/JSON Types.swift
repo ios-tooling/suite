@@ -14,6 +14,7 @@ extension String: JSONDataType { }
 extension Bool: JSONDataType { }
 extension Int: JSONDataType { }
 extension Double: JSONDataType { }
+extension Float: JSONDataType { }
 extension Date: JSONDataType { }
 extension Data: JSONDataType { }
 extension Dictionary: JSONDataType where Key == String, Value: JSONDataType { }

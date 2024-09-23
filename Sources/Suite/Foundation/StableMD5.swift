@@ -8,13 +8,13 @@
 
 public extension Encodable where Self: Decodable {
 	func stableMD5(using encoder: JSONEncoder = .default) -> String? {
-		guard let json: [String: (any Sendable & Hashable)] = try? self.asJSON(using: encoder) else { return nil }
+		guard let json: [String: (any JSONDataType)] = try? self.asJSON(using: encoder) else { return nil }
 		
 		return json.stableJSONMD5
 	}
 }
 
-public extension [String: Sendable & Hashable] {
+public extension [String: any JSONDataType] {
 	var stableJSONMD5: String? { stableMD5 }
 	var stableMD5: String? {
 		var keyHashes: [KeyHash] = []
@@ -34,9 +34,9 @@ public extension [String: Sendable & Hashable] {
 				keyHashes.append(.init(key: key, hash: String(describing: date).md5))
 			} else if let data = value as? Data {
 				keyHashes.append(.init(key: key, hash: data.md5))
-			} else if let dict = value as? [String: (any Sendable & Hashable)] {
+			} else if let dict = value as? [String: (any JSONDataType)] {
 				keyHashes.append(.init(key: key, hash: dict.stableMD5))
-			} else if let array = value as? [(any Sendable & Hashable)] {
+			} else if let array = value as? [(any JSONDataType)] {
 				keyHashes.append(.init(key: key, hash: array.stableMD5))
 			}
 		}
@@ -48,9 +48,9 @@ public extension [String: Sendable & Hashable] {
 	}
 }
 
-public extension [Sendable & Hashable] {
+public extension [any JSONDataType] {
 	var stableMD5: String? {
-		let md5s: [String] = self.compactMap { value in
+		let md5s: [String] = self.compactMap { value -> String? in
 			if let bool = value as? Bool {
 				String(describing: bool).md5
 			} else if let int = value as? Int {
@@ -65,9 +65,9 @@ public extension [Sendable & Hashable] {
 				String(describing: date).md5
 			} else if let data = value as? Data {
 				data.md5
-			} else if let dict = value as? [String: (any Sendable & Hashable)] {
+			} else if let dict = value as? [String: (any JSONDataType)] {
 				dict.stableMD5
-			} else if let array = value as? [(any Sendable & Hashable)] {
+			} else if let array = value as? [(any JSONDataType)] {
 				array.stableMD5
 			} else {
 				nil
