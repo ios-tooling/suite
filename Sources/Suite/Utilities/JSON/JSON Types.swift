@@ -7,7 +7,7 @@
 
 import Foundation
 
-public typealias JSONRequirements = Encodable & Decodable & Sendable & Hashable & Equatable
+public typealias JSONRequirements = Sendable
 public protocol JSONDataType: JSONRequirements { }
 
 extension String: JSONDataType { }
@@ -20,5 +20,5 @@ extension Data: JSONDataType { }
 extension Dictionary: JSONDataType where Key == String, Value: JSONDataType { }
 extension Array: JSONDataType where Element: JSONDataType { }
 
-public typealias JSONDictionary = [String: (any JSONDataType)]
+public typealias JSONDictionary = [String: JSONRequirements]
 

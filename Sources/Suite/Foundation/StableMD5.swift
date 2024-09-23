@@ -8,13 +8,13 @@
 
 public extension Encodable where Self: Decodable {
 	func stableMD5(using encoder: JSONEncoder = .default) -> String? {
-		guard let json: [String: (any JSONDataType)] = try? self.asJSON(using: encoder) else { return nil }
+		guard let json: JSONDictionary = try? self.asJSON(using: encoder) else { return nil }
 		
 		return json.stableJSONMD5
 	}
 }
 
-public extension [String: any JSONDataType] {
+public extension JSONDictionary {
 	var stableJSONMD5: String? { stableMD5 }
 	var stableMD5: String? {
 		var keyHashes: [KeyHash] = []
@@ -31,10 +31,10 @@ public extension [String: any JSONDataType] {
 			} else if let double = value as? Double {
 				keyHashes.append(.init(key: key, hash: String(describing: double).md5))
 			} else if let date = value as? Date {
-				keyHashes.append(.init(key: key, hash: String(describing: date).md5))
+				keyHashes.append(.init(key: key, hash: String(describing: date.timeIntervalSinceReferenceDate).md5))
 			} else if let data = value as? Data {
 				keyHashes.append(.init(key: key, hash: data.md5))
-			} else if let dict = value as? [String: (any JSONDataType)] {
+			} else if let dict = value as? JSONDictionary {
 				keyHashes.append(.init(key: key, hash: dict.stableMD5))
 			} else if let array = value as? [(any JSONDataType)] {
 				keyHashes.append(.init(key: key, hash: array.stableMD5))
@@ -65,7 +65,7 @@ public extension [any JSONDataType] {
 				String(describing: date).md5
 			} else if let data = value as? Data {
 				data.md5
-			} else if let dict = value as? [String: (any JSONDataType)] {
+			} else if let dict = value as? JSONDictionary {
 				dict.stableMD5
 			} else if let array = value as? [(any JSONDataType)] {
 				array.stableMD5

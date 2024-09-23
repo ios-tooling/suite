@@ -18,16 +18,16 @@ struct Test {
 
     @Test func testStableMD5() async throws {
 		 let testJSON1 = "{  \"a\" : 1,  \"b\" : 2,  \"c\" : 3 }"
-		 let testJSON2 = "{  \"a\" : 1,  \"b\" : 2,  \"c\" : 3 }"
+		 let testJSON2 = "{  \"a\" : 1,  \"c\" : 3,  \"b\" : 2 }"
 
 		 let testStruct = TestCodable()
 		 
 		 let testDict1 = testJSON1.data(using: .utf8)!.jsonDictionary!
 		 let testDict2 = testJSON2.data(using: .utf8)!.jsonDictionary!
-		 let testDict3 = try testStruct.asJSON()
+//		 let testDict3 = try testStruct.asJSON()
 		 let testHash1 = testDict1.stableMD5
 		 let testHash2 = testDict2.stableMD5
-		 let testHash3 = testDict3.stableMD5
+		 let testHash3 = testStruct.stableMD5()
 
 		 #expect(testHash1 == testHash3)
 		 #expect(testHash1 == testHash2)
