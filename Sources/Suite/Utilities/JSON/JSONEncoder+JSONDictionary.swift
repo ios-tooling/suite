@@ -113,7 +113,7 @@ extension UnkeyedEncodingContainer {
 }
 
 public extension JSONEncoder.DateEncodingStrategy {
-	static let `default` = JSONEncoder.DateEncodingStrategy.formatted(DateFormatter.defaultJSONFormatter)
+	static let `default` = JSONEncoder.DateEncodingStrategy.iso8601
 	
 	func jsonValue(from date: Date) -> (any JSONRequirements)? {
 		switch self {
@@ -128,7 +128,17 @@ public extension JSONEncoder.DateEncodingStrategy {
 }
 
 public extension JSONDecoder.DateDecodingStrategy {
-	static let `default` = JSONDecoder.DateDecodingStrategy.formatted(DateFormatter.defaultJSONFormatter)
+	static let `default` = JSONDecoder.DateDecodingStrategy.iso8601
+	
+	static let expanded8601: JSONDecoder.DateDecodingStrategy = {
+		.custom { decoder in
+			let container = try decoder.singleValueContainer()
+			let raw = try container.decode(String.self)
+			
+			if let date = DateFormatter.fractionalISO8601.date(from: raw) { return date }
+			return DateFormatter.iso8601.date(from: raw) ?? Date()
+		}
+	}()
 	
 	func date(from something: (any JSONRequirements)?) -> Date? {
 		switch self {

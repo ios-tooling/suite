@@ -7,15 +7,17 @@
 
 import Foundation
 
+extension Formatter: @unchecked @retroactive Sendable { }
+
 public extension DateFormatter {
-//	static let iso8601 = DateFormatter(format: "yyyy-MM-dd'T'HH:mm:ss'Z'")
-	
-	
-	static let iso8601: DateFormatter = {
-		let formatter = DateFormatter(format: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-		formatter.calendar = Calendar(identifier: .iso8601)
-		formatter.locale = Locale(identifier: "en_US_POSIX")
-		formatter.timeZone = TimeZone(abbreviation: "UTC")
+	static let iso8601: ISO8601DateFormatter = {
+		ISO8601DateFormatter()
+	}()
+
+	static let fractionalISO8601: ISO8601DateFormatter = {
+		let formatter = ISO8601DateFormatter()
+		
+		formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
 		
 		return formatter
 	}()

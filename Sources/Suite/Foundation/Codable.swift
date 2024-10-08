@@ -201,7 +201,7 @@ public extension JSONDecoder {
 	static let iso8601Decoder: JSONDecoder = {
 		let decoder = JSONExpandedDecoder()
 		
-		decoder.dateDecodingStrategy = .iso8601
+		decoder.dateDecodingStrategy = .expanded8601
 		return decoder
 	}()
 }
