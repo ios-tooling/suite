@@ -11,6 +11,7 @@ public protocol RawCodable: RawRepresentable, Codable, Identifiable where RawVal
 	
 }
 
+enum RawCodableError: Error { case failedToDecodeRawValue }
 extension RawCodable {
 	public var id: RawValue { rawValue }
 	public func encode(to encoder: Encoder) throws {
@@ -24,7 +25,7 @@ extension RawCodable {
 		if let value = Self(rawValue: raw) {
 			self = value
 		} else {
-			throw NSError()
+			throw RawCodableError.failedToDecodeRawValue
 		}
 	}
 }
