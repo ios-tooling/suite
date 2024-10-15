@@ -46,7 +46,7 @@ public struct NonisolatedContainerGenerator: PeerMacro {
 
 		}
 
-		let accessorName = "private let nonIsolatedBackingContainer_\(identifier)"
+		let accessorName = "private nonisolated let nonIsolatedBackingContainer_\(identifier)"
 		let optionalType = varDecl.optionalSyntaxType
 		patternBinding.pattern = PatternSyntax(IdentifierPatternSyntax(identifier: .identifier("defaultValue")))
 
