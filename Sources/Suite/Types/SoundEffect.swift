@@ -31,6 +31,7 @@ fileprivate let logger = Logger(subsystem: "suite", category: "soundEffects")
 	private static var playingSounds: [SoundEffect] = []
 	private static var hasMadeAmbient = false
 	public static var hasActivated = false
+	public static var allowRecording = false
 	public static var disableAllSounds = Gestalt.isOnSimulator
 	var internalPlayer: AVAudioPlayer!
 	var original: SoundEffect?
@@ -80,8 +81,8 @@ fileprivate let logger = Logger(subsystem: "suite", category: "soundEffects")
 		}
 	}
 	
-	public init?(data: Data?, preload: Bool = true, uncached: Bool = false) {
-		SoundEffect.makeAmbient()
+	public init?(data: Data?, preload: Bool = true, uncached: Bool = false, ambient: Bool = true) {
+		if ambient { SoundEffect.makeAmbient() }
 		guard let data = data else { return nil }
 		
 		self.data = data
@@ -97,7 +98,8 @@ fileprivate let logger = Logger(subsystem: "suite", category: "soundEffects")
 		self.hasActivated = true
 		#if os(iOS) || os(watchOS)
 		logg("Activating AVAudioSession")
-			try? AVAudioSession.sharedInstance().setActive(true)
+		try? AVAudioSession.sharedInstance().setCategory(allowRecording ? .playAndRecord : .playback, mode: .default)
+		try? AVAudioSession.sharedInstance().setActive(true)
 		#endif
 	}
 	
@@ -122,16 +124,16 @@ fileprivate let logger = Logger(subsystem: "suite", category: "soundEffects")
 		} else {
 			let actualBundle = bundle ?? Bundle.main
 			if let data = NSDataAsset(name: name, bundle: actualBundle)?.data {
-				self.init(data: data, preload: preload, uncached: uncached)
+				self.init(data: data, preload: preload, uncached: uncached, ambient: ambient)
 			} else if let url = actualBundle.url(forResource: name, withExtension: nil) {
-				self.init(url: url, preload: preload, uncached: uncached)
+				self.init(url: url, preload: preload, uncached: uncached, ambient: ambient)
 				if !uncached { SoundEffect.cachedSounds[name] = self }
 			} else if let data = NSDataAsset(name: name, bundle: actualBundle)?.data {
-				self.init(data: data, preload: preload, uncached: uncached)
+				self.init(data: data, preload: preload, uncached: uncached, ambient: ambient)
 				if !uncached { SoundEffect.cachedSounds[name] = self }
 			} else {
 				logg(error: nil, "Unable to locate a sound named \(name) in \(bundle?.description ?? "--")")
-				self.init(data: nil, preload: false, uncached: false)
+				self.init(data: nil, preload: false, uncached: false, ambient: ambient)
 				return nil
 			}
 		}
