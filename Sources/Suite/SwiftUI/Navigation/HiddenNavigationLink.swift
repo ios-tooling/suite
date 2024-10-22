@@ -17,9 +17,9 @@ public struct HiddenNavigationLink<Label: View, Value: Hashable>: View {
 	}
 	
 	public var body: some View {
-		ZStack {
-			NavigationLink(value: value, label: { EmptyView() }).opacity(0)
-			label
-		}
+		label
+			.background {
+				NavigationLink(value: value, label: { EmptyView() }).opacity(0)
+			}
 	}
 }
