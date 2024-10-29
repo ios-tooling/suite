@@ -13,6 +13,7 @@ public actor Slog {
 	public static let instance = Slog()
 	var file: File?
 	var printLogs = Gestalt.isAttachedToDebugger
+	var disabled = true
 	
 	let logger = Logger(subsystem: "suite", category: "general")
 	
@@ -24,13 +25,17 @@ public actor Slog {
 		printLogs = print
 	}
 	
+	public func setEnabled(_ enabled: Bool) {
+		disabled = !enabled
+	}
+	
 	public func record(_ message: (any CustomStringConvertible)?) async {
 		guard let message else { return }
 		let raw: String = "\(message)"
 		logger.info("\(raw)")
 		if printLogs { print(raw) }
 		
-		await file?.record(raw)
+		if !disabled { await file?.record(raw) }
 	}
 }
 
