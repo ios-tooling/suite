@@ -51,7 +51,7 @@ public struct SlogScreen: View {
 		}
 		.task {
 			files = Slog.File.allFiles()
-			current = files.first
+			current = await Slog.instance.file ?? files.first
 		}
 	}
 }

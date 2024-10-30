@@ -12,9 +12,11 @@ fileprivate let delimiter = "/"
 
 @available(iOS 15.0, macOS 14, watchOS 9, *)
 extension Slog {
-	actor File: Sendable, Hashable, Equatable, Identifiable {
+	actor File: Sendable, Hashable, Equatable, Identifiable, Comparable {
 		nonisolated let url: URL
 		var lines: [Line] = []
+		nonisolated let initialCount: Int
+		nonisolated let startedAt: Date
 		
 		static func ==(lhs: File, rhs: File) -> Bool { lhs.url == rhs.url }
 		nonisolated func hash(into hasher: inout Hasher) {
@@ -23,17 +25,28 @@ extension Slog {
 		nonisolated var id: URL { url }
 		
 		nonisolated var name: String {
-			url.lastPathComponent
+			startedAt.formatted(date: .abbreviated, time: .shortened) + " (\(initialCount))"
 		}
 		
 		init(url: URL? = nil) {
 			self.url = url ?? .currentURL()
-//			print("Setting up logging to \(self.url.path)")
+			
+			if let header = Self.extractedHeader(from: self.url) {
+				startedAt = header.start
+				initialCount = header.count
+			} else {
+				startedAt = Date()
+				initialCount = 0
+			}
 		}
 		
 		func record(_ message: String) {
 			lines.append(.init(date: Date(), message: message))
 			save()
+		}
+		
+		static func <(lhs: File, rhs: File) -> Bool {
+			lhs.startedAt < rhs.startedAt
 		}
 		
 		static func allFiles() -> [File] {
@@ -54,7 +67,7 @@ extension Slog {
 		@discardableResult func load(headerOnly: Bool = false) -> Header? {
 			guard FileManager.default.fileExists(at: self.url), lines.isEmpty else { return nil }
 			guard let data = try? Data(contentsOf: url) else { return nil }
-			guard let string = String(data: data, encoding: .utf8) else { return nil }
+			guard let string = String(data: headerOnly ? data.prefix(200) : data, encoding: .utf8) else { return nil }
 			let lines = string.components(separatedBy: "\n")
 			guard !lines.isEmpty else { return nil }
 			
@@ -77,6 +90,14 @@ extension Slog {
 			} catch {
 				print("Failed to write slog: \(error) at \(url.path)")
 			}
+		}
+
+		nonisolated static func extractedHeader(from url: URL) -> Header? {
+			guard let data = try? Data(contentsOf: url, options: .mappedIfSafe).prefix(400), let string = String(data: data.prefix(200), encoding: .utf8) else { return nil }
+			let lines = string.components(separatedBy: "\n")
+			guard !lines.isEmpty else { return nil }
+			
+			return Header(rawValue: lines[0])
 		}
 	}
 }

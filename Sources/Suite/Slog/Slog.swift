@@ -32,7 +32,7 @@ public actor Slog {
 	public func record(_ message: (any CustomStringConvertible)?) async {
 		guard let message else { return }
 		let raw: String = "\(message)"
-		logger.info("\(raw)")
+		//logger.info("\(raw)")
 		if printLogs { print(raw) }
 		
 		if !disabled { await file?.record(raw) }
