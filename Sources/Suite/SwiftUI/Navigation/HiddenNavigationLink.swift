@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-@available(iOS 16.0, *)
+@available(iOS 16.0, macOS 13, *)
 public struct HiddenNavigationLink<Label: View, Value: Hashable>: View {
 	let value: Value?
 	let label: Label

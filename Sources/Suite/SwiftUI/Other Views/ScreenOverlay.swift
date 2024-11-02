@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+#if os(iOS)
 
 public extension View {
 	func screenOverlay<Content: View>(alignment: VerticalAlignment = .bottom, shown: Bool = true, @ViewBuilder content: () -> Content) -> some View {
@@ -133,3 +134,4 @@ extension UIWindowScene {
 				.first { $0.activationState == .foregroundActive && $0 is UIWindowScene } as? UIWindowScene
 	 }
 }
+#endif
