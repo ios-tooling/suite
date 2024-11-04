@@ -21,6 +21,12 @@ public func isJSON(_ any: Any) -> Bool {
 	return any is (any JSONDataType)
 }
 
+public extension Data {
+	func decodeJSON<Output: Decodable>() throws -> Output {
+		try Output.loadJSON(data: self)
+	}
+}
+
 public extension JSONDictionary {
 	var plist: PropertyListDictionary { self as? PropertyListDictionary ?? [:] }
 }
