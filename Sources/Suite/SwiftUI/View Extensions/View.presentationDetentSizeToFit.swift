@@ -7,16 +7,18 @@
 
 import SwiftUI
 
+@available(iOS 16.0, macOS 14, *)
 public extension View {
 	func presentationDetentSizeToFit() -> some View {
 		PresentationDetentSizeToFit { self }
 	}
 }
 
-extension PreferenceValues {
+fileprivate extension PreferenceValues {
 	#GeneratedPreferenceKey(name: "detentHeight", type: CGFloat, defaultValue: 0.0)
 }
 
+@available(iOS 16.0, macOS 14, *)
 struct PresentationDetentSizeToFit<Content: View>: View {
 	let content: () -> Content
 	
