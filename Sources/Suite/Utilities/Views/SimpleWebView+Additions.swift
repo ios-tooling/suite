@@ -43,7 +43,7 @@ struct SimpleWebViewAccessor<Content: View>: View {
 	var body: some View {
 		content
 			.onPreferenceChange(SimpleWebViewPreferenceKey.self, perform: { webView in
-				self.webView = webView
+				Task { @MainActor in self.webView = webView }
 			})
 			.onChange(of: webView) { newValue in
 				if let newValue {

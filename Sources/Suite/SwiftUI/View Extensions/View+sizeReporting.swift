@@ -152,7 +152,7 @@ struct SizeOverlay: View {
 					.preference(key: SizePreferenceKey.self, value: geo.size)
 			}
 			.onPreferenceChange(SizePreferenceKey.self) { newSize in
-				size = newSize
+				Task { @MainActor in size = newSize }
 			}
 			
 			if let size = size {
@@ -207,7 +207,7 @@ struct PositionOverlay: View {
 					.preference(key: FramePreferenceKey.self, value: geo.frame(in: coordinateSpace))
 			}
 			.onPreferenceChange(FramePreferenceKey.self) { newFrame in
-				viewFrame = newFrame
+				Task { @MainActor in viewFrame = newFrame }
 			}
 			
 			if let frame = viewFrame {

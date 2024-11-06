@@ -58,7 +58,7 @@ struct EqualSizedChildrenModifier: ViewModifier {
 	func body(content: Content) -> some View {
 		content
 			.getPreference(\.equalSizeSizes) { sizes in
-				reportedSubviewSizes = sizes
+				Task { @MainActor in reportedSubviewSizes = sizes }
 			}
 			.environment(\.enforcedSize, reportedSubviewSizes.maxSize)
 	}

@@ -32,7 +32,7 @@ struct PresentationDetentSizeToFit<Content: View>: View {
 				}
 			}
 			.onPreferenceChange(PreferenceValues.GeneratedPreferenceKey_detentHeight.self) { newHeight in
-				 sheetHeight = newHeight
+				Task { @MainActor in sheetHeight = newHeight }
 			}
 			.presentationDetents([.height(sheetHeight)])
 

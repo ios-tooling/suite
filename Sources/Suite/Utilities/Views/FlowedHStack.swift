@@ -107,7 +107,8 @@ public struct FlowedHStack<Element: FlowedHStackElement, ElementView: View>: Vie
 				Color.clear.preference(key: FlowSizeKey.self, value: [proxy.size])
 			}
 			.frame(height: 0)
-			.onPreferenceChange(FlowSizeKey.self) { sizes in availableWidth = sizes.first?.width ?? 0.0 }
+			.onPreferenceChange(FlowSizeKey.self) { sizes in
+				Task {@MainActor in availableWidth = sizes.first?.width ?? 0.0 }}
 			
 			ZStack(alignment: .topLeading) {
 				ForEach(Array(zip(elements, elements.indices)), id: \.1) { element, index in
@@ -127,7 +128,7 @@ public struct FlowedHStack<Element: FlowedHStackElement, ElementView: View>: Vie
 					//.border(Color.gray, width: 0.5)
 				}
 			}
-			.onPreferenceChange(FlowSizeKey.self) { sizes in elementSizes = sizes }
+			.onPreferenceChange(FlowSizeKey.self) { sizes in Task { @MainActor in elementSizes = sizes } }
 			.frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
 		}
 		//.border(Color.red)
