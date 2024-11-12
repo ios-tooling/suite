@@ -10,7 +10,7 @@ import Combine
 
 #if !os(visionOS)
 
-@available(OSX 12, iOS 15.0, watchOS 6.0, *)
+@available(OSX 12, iOS 15.0, watchOS 8.0, *)
 public struct OptionalNavigationLink<Check: Sendable, Content: View, Dest: View>: View {
 	@Binding var check: Check?
 	var destination: (Check) -> Dest

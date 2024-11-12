@@ -8,16 +8,16 @@
 import Foundation
 import OSLog
 
-@available(iOS 14.0, macOS 11.0, *)
+@available(iOS 14.0, macOS 11.0, watchOS 7, *)
 fileprivate let logger = Logger(subsystem: "suite", category: "autosaveable")
 
-@available(iOS 14.0, macOS 11.0, *)
+@available(iOS 14.0, macOS 11.0, watchOS 7, *)
 public protocol AutoSaveable: Codable, ObservableObject {
 	static var saveURL: URL { get }
 	init()
 }
 
-@available(iOS 14.0, macOS 11.0, *)
+@available(iOS 14.0, macOS 11.0, watchOS 7, *)
 extension AutoSaveable {
 	@MainActor public static func loadSaved() -> Self {
 		do {

@@ -8,7 +8,7 @@
 import Foundation
 import OSLog
 
-@available(iOS 14.0, macOS 11.0, *)
+@available(iOS 14.0, macOS 11.0, watchOS 7, *)
 fileprivate let logger = Logger(subsystem: "suite", category: "notifications")
 
 public extension NSObject {
@@ -18,7 +18,7 @@ public extension NSObject {
 
 	@nonobjc func addAsObserver(of name: NSNotification.Name, selector sel: Selector, object: Any? = nil) {
 		if !self.responds(to: sel) {
-			if #available(iOS 14.0, macOS 11.0, *) {
+			if #available(iOS 14.0, macOS 11.0, watchOS 7, *) {
 				logger.warning("Trying to register for a notification (\(name.rawValue), but \(String(describing: type(of: self))) doesn't respond to \(sel)")
 			}
 			return

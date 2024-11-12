@@ -12,7 +12,7 @@ import Foundation
 import OSLog
 import Combine
 
-@available(iOS 14.0, macOS 11.0, *)
+@available(iOS 14.0, macOS 11.0, watchOS 7, *)
 fileprivate let logger = Logger(subsystem: "suite", category: "observableObject")
 
 @available(OSX 11, iOS 14.0, watchOS 8.0, *)

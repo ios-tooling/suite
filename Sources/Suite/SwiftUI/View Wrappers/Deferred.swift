@@ -8,7 +8,7 @@
 #if canImport(Combine)
 import SwiftUI
 
-@available(OSX 12, iOS 15.0, watchOS 6.0, *)
+@available(OSX 12, iOS 15.0, watchOS 8.0, *)
 public struct Deferred<Content: View>: View {
 	var builder: () -> Content
 	@State var content: Content?

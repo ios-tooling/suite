@@ -125,7 +125,11 @@ public extension UIImage {
 	}
 
 	@MainActor func resized(to limit: CGSize?, trimmed: Bool = true) -> UIImage? {
-		resized(to: limit, trimmed: trimmed, scale: UIView.screenScale)
+		#if os(watchOS)
+		resized(to: limit, trimmed: trimmed, scale: 1.0)
+		#else
+			resized(to: limit, trimmed: trimmed, scale: UIView.screenScale)
+		#endif
 	}
 	
 	func resized(to limit: CGSize?, trimmed: Bool = true, scale: Double) -> UIImage? {

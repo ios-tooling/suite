@@ -8,7 +8,7 @@
 import Foundation
 import OSLog
 
-@available(iOS 14.0, macOS 11.0, *)
+@available(iOS 14.0, macOS 11.0, watchOS 7, *)
 fileprivate let logger = Logger(subsystem: "suite", category: "JSONEncoding")
 
 extension KeyedEncodingContainer where K == JSONCodingKey {
@@ -52,11 +52,11 @@ extension KeyedEncodingContainer where K == JSONCodingKey {
 		case .formatted(let formatter):
 			try encode(formatter.string(from: date), forKey: key)
 		case .custom:
-			if #available(iOS 14.0, macOS 11.0, *) {
+			if #available(iOS 14.0, macOS 11.0, watchOS 7, *) {
 				logger.error("Failed to encode date using \(String(describing: strategy))")
 			}
 		@unknown default:
-			if #available(iOS 14.0, macOS 11.0, *) {
+			if #available(iOS 14.0, macOS 11.0, watchOS 7, *) {
 				logger.error("Failed to encode date using \(String(describing: strategy))")
 			}
 		}
@@ -101,11 +101,11 @@ extension UnkeyedEncodingContainer {
 		case .formatted(let formatter):
 			try encode(formatter.string(from: date))
 		case .custom:
-			if #available(iOS 14.0, macOS 11.0, *) {
+			if #available(iOS 14.0, macOS 11.0, watchOS 7, *) {
 				logger.error("Failed to encode date using \(String(describing: strategy))")
 			}
 		@unknown default:
-			if #available(iOS 14.0, macOS 11.0, *) {
+			if #available(iOS 14.0, macOS 11.0, watchOS 7, *) {
 				logger.error("Failed to encode date using \(String(describing: strategy))")
 			}
 		}

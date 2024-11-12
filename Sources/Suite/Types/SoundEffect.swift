@@ -23,7 +23,7 @@ import OSLog
 	import UIKit
 #endif
 
-@available(iOS 14.0, macOS 11.0, *)
+@available(iOS 14.0, macOS 11.0, watchOS 7, *)
 fileprivate let logger = Logger(subsystem: "suite", category: "soundEffects")
 
 @MainActor public class SoundEffect: Equatable {
@@ -195,7 +195,7 @@ extension SoundEffect {
 	var actualPlayer: AVAudioPlayer? { return self.original?.internalPlayer ?? self.setupPlayer() }
 	@discardableResult public func play(fadingInOver fadeIn: TimeInterval = 0, completion: (() -> Void)? = nil) -> Bool {
 		guard !SoundEffect.disableAllSounds else {
-			if #available(iOS 14.0, macOS 11.0, *) {
+			if #available(iOS 14.0, macOS 11.0, watchOS 7, *) {
 				logger.warning("Sound effects disabled, not playing \(self.url?.lastPathComponent ?? "sound")")
 			}
 			completion?()

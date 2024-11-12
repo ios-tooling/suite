@@ -8,7 +8,7 @@
 import Foundation
 import Swift
 
-
+#if os(iOS) || os(macOS)
 @available(iOS 17.0, macOS 14, watchOS 9, *)
 public struct SlogButton: View {
 	public init() { }
@@ -24,3 +24,4 @@ public struct SlogButton: View {
 		}
 	}
 }
+#endif

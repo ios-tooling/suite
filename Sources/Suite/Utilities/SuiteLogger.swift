@@ -9,7 +9,7 @@ import Foundation
 @preconcurrency import CoreData
 import OSLog
 
-@available(iOS 14.0, macOS 11.0, *)
+@available(iOS 14.0, macOS 11.0, watchOS 7, *)
 fileprivate let logger = Logger(subsystem: "suite", category: "coredata")
 
 public func logg(_ msg: @Sendable @escaping @autoclosure () -> String, _ level: SuiteLogger.Level = .mild) { SuiteLogger.instance.log(msg(), level: level) }
@@ -77,7 +77,7 @@ public class SuiteLogger: @unchecked Sendable {
 			redirect(string)
 			return
 		}
-		if #available(iOS 14.0, macOS 11.0, *) {
+		if #available(iOS 14.0, macOS 11.0, watchOS 7, *) {
 			logger.info("\(self.prefix) \(string)")
 		}
 		

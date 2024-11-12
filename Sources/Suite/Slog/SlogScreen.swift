@@ -8,7 +8,8 @@
 import Foundation
 import SwiftUI
 
-@available(iOS 17.0, macOS 14, watchOS 9, *)
+#if os(iOS) || os(macOS)
+@available(iOS 17.0, macOS 14, *)
 public struct SlogScreen: View {
 	@State var files: [Slog.File] = []
 	@State var current: Slog.File?
@@ -55,3 +56,4 @@ public struct SlogScreen: View {
 		}
 	}
 }
+#endif
