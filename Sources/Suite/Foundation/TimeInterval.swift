@@ -143,9 +143,19 @@ public extension TimeInterval {
 				return "\(count)\(unit)"
 				
 			default:
-				return "^[\(count) \(unit)](inflect: true)"
+				return Pluralizer.instance.pluralize(count, unit)
 			}
 		}
+
+//		func pluralize(count: Int, unit: String) -> String {
+//			switch self {
+//			case .veryShort:
+//				return "\(count)\(unit)"
+//				
+//			default:
+//				return "^[\(count) \(unit)](inflect: true)"
+//			}
+//		}
 	}
 	func durationWords(includingSeconds: Bool = true, abbreviated: DurationAbbreviation = .none) -> String {
 		var components: [String] = []
