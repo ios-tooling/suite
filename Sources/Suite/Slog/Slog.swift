@@ -14,6 +14,8 @@ public actor Slog {
 	var file: File?
 	var printLogs = Gestalt.isAttachedToDebugger
 	var disabled = true
+	var echoCallback: (@MainActor (String) -> Void)?
+	var echoToConsole = false
 	
 	let logger = Logger(subsystem: "suite", category: "general")
 	
@@ -25,8 +27,20 @@ public actor Slog {
 		printLogs = print
 	}
 	
+	public func setEchoToConsole(_ echo: Bool) {
+		echoToConsole = echo
+	}
+	
 	public func setEnabled(_ enabled: Bool) {
 		disabled = !enabled
+	}
+	
+	public func setEchoCallback(_ callback: @MainActor @escaping (String) -> Void) {
+		echoCallback = callback
+	}
+	
+	public func clearEchoCallback() {
+		echoCallback = nil
 	}
 	
 	public func record(_ message: (any CustomStringConvertible)?) async {
@@ -34,7 +48,12 @@ public actor Slog {
 		let raw: String = "\(message)"
 		//logger.info("\(raw)")
 		if printLogs { print(raw) }
-		
+		if let echoCallback {
+			await echoCallback(raw)
+		}
+		if echoToConsole {
+			await Console.instance.print(raw)
+		}
 		if !disabled { await file?.record(raw) }
 	}
 }
