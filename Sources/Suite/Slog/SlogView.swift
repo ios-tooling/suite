@@ -14,7 +14,14 @@ struct SlogView: View {
 	
 	var body: some View {
 		List {
-			ForEach(lines) { line in
+			ForEach(lines.indices, id: \.self) { index in
+				let line = lines[index]
+				
+				if index > 0, !line.date.isSameDay(as: lines[index - 1].date) {
+					Text(line.date.formatted(date: .long, time: .omitted))
+						.font(.system(size: 12, weight: .bold))
+				}
+				
 				VStack(alignment: .leading) {
 					Text(line.message)
 						.multilineTextAlignment(.leading)
@@ -23,6 +30,7 @@ struct SlogView: View {
 					Text(line.date.formatted(date: .omitted, time: .complete))
 						.font(.caption.monospaced())
 				}
+				.foregroundStyle(line.color?.color ?? .systemLabel)
 			}
 		}
 		.listStyle(.plain)

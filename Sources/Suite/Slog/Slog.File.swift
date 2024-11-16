@@ -40,8 +40,8 @@ extension Slog {
 			}
 		}
 		
-		func record(_ message: String) {
-			lines.append(.init(date: Date(), message: message))
+		func record(_ message: String, color: LogColor? = nil) {
+			lines.append(.init(date: Date(), message: message, color: color))
 			save()
 		}
 		
@@ -136,23 +136,33 @@ extension Slog.File {
 		let id = UUID()
 		let date: Date
 		let message: String
+		let color: Slog.LogColor?
 
 		init?(rawValue: String) {
 			let components = rawValue.components(separatedBy: .init(charactersIn: delimiter))
 			if components.count < 2 { return nil }
 			
 			guard let date = DateFormatter.iso8601.date(from: components[0]) else { return nil }
+			var color: Slog.LogColor?
+			if components.count > 2, components[2].hasPrefix("#") {
+				color = .init(rawValue: components[2])
+			}
 			
-			self.init(date: date, message: components.dropFirst().joined(separator: delimiter))
+			self.init(date: date, message: components.dropFirst().joined(separator: delimiter), color: color)
 		}
 		
-		init (date: Date, message: String) {
+		init (date: Date, message: String, color: Slog.LogColor?) {
 			self.date = date
 			self.message = message
+			self.color = color
 		}
 		
 		var rawValue: String {
-			DateFormatter.iso8601.string(from: date) + delimiter + message
+			var result = DateFormatter.iso8601.string(from: date) + delimiter + message
+			if let color {
+				result += delimiter + color.rawValue
+			}
+			return result
 		}
 	}
 }

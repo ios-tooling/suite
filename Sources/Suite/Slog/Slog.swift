@@ -7,6 +7,7 @@
 
 import Foundation
 import OSLog
+import SwiftUI
 
 @available(iOS 15.0, macOS 14, watchOS 9, *)
 public actor Slog {
@@ -16,6 +17,16 @@ public actor Slog {
 	var disabled = true
 	var echoCallback: (@MainActor (String) -> Void)?
 	var echoToConsole = false
+	
+	public enum LogColor: String, Codable, Sendable { case content = "#content", note = "#note", error = "#error"
+		var color: Color {
+			switch self {
+			case .content: .systemLabel
+			case .note: .systemLabel.opacity(0.4)
+			case .error: .red
+			}
+		}
+	}
 	
 	let logger = Logger(subsystem: "suite", category: "general")
 	
@@ -43,7 +54,7 @@ public actor Slog {
 		echoCallback = nil
 	}
 	
-	public func record(_ message: (any CustomStringConvertible)?) async {
+	public func record(_ message: (any CustomStringConvertible)?, color: LogColor? = nil) async {
 		guard let message else { return }
 		let raw: String = "\(message)"
 		//logger.info("\(raw)")
@@ -54,13 +65,15 @@ public actor Slog {
 		if echoToConsole {
 			await Console.instance.print(raw)
 		}
-		if !disabled { await file?.record(raw) }
+		if !disabled { await file?.record(raw, color: color) }
 	}
 }
 
 @available(iOS 15.0, macOS 14, watchOS 9, *)
-public func slog(_ content: String) {
+public func slog(_ content: String, color: Slog.LogColor? = nil) {
 	Task {
-		await Slog.instance.record(content)
+		await Slog.instance.record(content, color: color)
 	}
 }
+
+
