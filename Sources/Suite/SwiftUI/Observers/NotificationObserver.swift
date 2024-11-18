@@ -30,9 +30,9 @@ public extension Notification.Name {
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
 public extension View {
-	func onReceive(_ name: Notification.Name, perform: @escaping (Notification) -> Void) -> some View {
+	func onReceive(_ name: Notification.Name, object: AnyObject? = nil, perform: @escaping (Notification) -> Void) -> some View {
 		self
-			.onReceive(name.publisher()) { note in
+			.onReceive(name.publisher(object: object)) { note in
 				perform(note)
 			}
 	}
