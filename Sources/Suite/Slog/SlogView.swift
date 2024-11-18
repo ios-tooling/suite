@@ -30,7 +30,7 @@ struct SlogView: View {
 					Text(line.date.formatted(date: .omitted, time: .complete))
 						.font(.caption.monospaced())
 				}
-				.foregroundStyle(line.color?.color ?? .systemLabel)
+				.foregroundStyle(line.color?.color ?? .primary)
 			}
 		}
 		.listStyle(.plain)

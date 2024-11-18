@@ -21,8 +21,8 @@ public actor Slog {
 	public enum LogColor: String, Codable, Sendable { case content = "#content", note = "#note", error = "#error"
 		var color: Color {
 			switch self {
-			case .content: .systemLabel
-			case .note: .systemLabel.opacity(0.4)
+			case .content: .primary
+			case .note: .primary.opacity(0.4)
 			case .error: .red
 			}
 		}
