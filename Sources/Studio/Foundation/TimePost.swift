@@ -34,7 +34,7 @@ public class TimePost: @unchecked Sendable {
 		if !Self.enabled { return }
 
 		startTime = Date()
-		logg("💈 Starting \(message ?? name ?? "")")
+		//logg("💈 Starting \(message ?? name ?? "")")
 	}
 	
 	public func mark(_ message: String) {
@@ -50,7 +50,7 @@ public class TimePost: @unchecked Sendable {
 	public func end(_ message: String? = nil) {
 		if !Self.enabled { return }
 		let elapsed = Date().timeIntervalSince(startTime)
-		logg("💈 \(message ?? name ?? "Total time") [\(elapsed) sec]")
+		//logg("💈 \(message ?? name ?? "Total time") [\(elapsed) sec]")
 		if let name { Self.registered.removeValue(forKey: name) }
 	}
 	

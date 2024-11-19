@@ -49,7 +49,7 @@ import Combine
 				let data = try value.asJSONData()
 				try data.write(to: url)
 			} catch {
-				logg(error: error, "Error writing to \(url.path)")
+				logg(error: error, "Error writing to \(self.url.path)")
 			}
 		}
 	}
@@ -99,7 +99,7 @@ import Combine
 					try? FileManager.default.removeItem(at: url)
 				}
 			} catch {
-				logg(error: error, "Error writing to \(url.path)")
+				logg(error: error, "Error writing to \(self.url.path)")
 			}
 		}
 	}
