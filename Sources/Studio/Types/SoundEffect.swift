@@ -189,7 +189,7 @@ extension SoundEffect {
 	var actualPlayer: AVAudioPlayer? { return self.original?.internalPlayer ?? self.setupPlayer() }
 	@discardableResult public func play(fadingInOver fadeIn: TimeInterval = 0, completion: (() -> Void)? = nil) -> Bool {
 		guard !SoundEffect.disableAllSounds else {
-		//	logg("Sound effects disabled, not playing \(url?.lastPathComponent ?? "sound")")
+			logg("Sound effects disabled, not playing \(self.url?.lastPathComponent ?? "sound")")
 			completion?()
 			return false
 		}
