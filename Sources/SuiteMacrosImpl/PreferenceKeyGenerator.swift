@@ -48,7 +48,7 @@ var \(raw: keyName): \(raw: keyTypeName).Type {
   }
 	
 	static func type(from node: some FreestandingMacroExpansionSyntax) -> String? {
-		let args = node.argumentList.children(viewMode: .sourceAccurate)
+		let args = node.arguments.children(viewMode: .sourceAccurate)
 		
 		guard let segment = args[args.index(after: args.startIndex)].as(LabeledExprSyntax.self)?.expression else { return nil }
 		
@@ -56,9 +56,9 @@ var \(raw: keyName): \(raw: keyTypeName).Type {
 	}
 	
 	static func defaultValue(from node: some FreestandingMacroExpansionSyntax) -> String? {
-		let args = node.argumentList.children(viewMode: .sourceAccurate)
+		let args = node.arguments.children(viewMode: .sourceAccurate)
 		guard args.count == 3 else { return nil }
-		guard let arg = node.argumentList.children(viewMode: .sourceAccurate).last else { return nil }
+		guard let arg = node.arguments.children(viewMode: .sourceAccurate).last else { return nil }
 		
 		guard let segment = arg.as(LabeledExprSyntax.self)?.expression else { return nil }
 		
@@ -66,7 +66,7 @@ var \(raw: keyName): \(raw: keyTypeName).Type {
 	}
 	
 	static func name(from node: some FreestandingMacroExpansionSyntax) -> String? {
-		guard let segment = node.argumentList.first?.as(LabeledExprSyntax.self)?.expression.as(StringLiteralExprSyntax.self)?.segments.first?.as(StringSegmentSyntax.self) else { return nil }
+		guard let segment = node.arguments.first?.expression.as(StringLiteralExprSyntax.self)?.segments.first else { return nil }
 		
 		return segment.description
 	}

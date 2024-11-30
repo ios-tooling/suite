@@ -20,7 +20,7 @@ public struct NonisolatedContainerGenerator: PeerMacro {
 			return []
 		}
 		
-		guard var patternBinding = varDecl.bindings.first?.as(PatternBindingSyntax.self) else {
+		guard var patternBinding = varDecl.bindings.first else {
 			context.diagnose(Diagnostic(node: Syntax(node), message: MacroFeedback.missingAnnotation))
 			return []
 		}
@@ -33,7 +33,7 @@ public struct NonisolatedContainerGenerator: PeerMacro {
 		var hasNonisolatedKeyword = false
 		for child in varDecl.children(viewMode: .all) {
 			if let modifier = child.as(DeclModifierListSyntax.self) {
-				if let keyword = modifier.first?.as(DeclModifierSyntax.self) {
+				if let keyword = modifier.first {
 					if keyword.name.text.lowercased() == "nonisolated" {
 						hasNonisolatedKeyword = true
 					}
@@ -74,18 +74,18 @@ public struct NonisolatedContainerGenerator: PeerMacro {
 
 extension VariableDeclSyntax {
 	var optionalSyntaxType: TypeSyntax? {
-		bindings.first?.as(PatternBindingSyntax.self)?.typeAnnotation?.type.as(OptionalTypeSyntax.self)?.wrappedType
+		bindings.first?.typeAnnotation?.type.as(OptionalTypeSyntax.self)?.wrappedType
 	}
 	
 	var nonOptionalSyntaxType: TypeSyntax? {
-		bindings.first?.as(PatternBindingSyntax.self)?.typeAnnotation?.type.as(TypeSyntax.self)
+		bindings.first?.typeAnnotation?.type
 	}
 }
 
 extension IdentifierTypeSyntax {
 	 var type: SyntaxProtocol? {
-		  genericArgumentClause?.arguments.first?.as(GenericArgumentSyntax.self)?.argument.as(OptionalTypeSyntax.self)?.wrappedType
-		  ?? genericArgumentClause?.arguments.first?.as(GenericArgumentSyntax.self)
+		  genericArgumentClause?.arguments.first?.argument.as(OptionalTypeSyntax.self)?.wrappedType
+		  ?? genericArgumentClause?.arguments.first
 	 }
 }
 
@@ -95,7 +95,7 @@ extension NonisolatedContainerGenerator: AccessorMacro {
 		// Skip non-variables
 		guard let varDecl = declaration.as(VariableDeclSyntax.self) else { return [] }
 		
-		guard let patternBinding = varDecl.bindings.first?.as(PatternBindingSyntax.self) else {
+		guard let patternBinding = varDecl.bindings.first else {
 			context.diagnose(Diagnostic(node: Syntax(node), message: MacroFeedback.missingAnnotation))
 			return []
 		}
