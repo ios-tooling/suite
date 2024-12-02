@@ -71,6 +71,13 @@ public extension Date {
 		public var name: String { return Calendar.current.monthSymbols[self.rawValue - 1] }
 		public var previous: Month? { .init(rawValue: rawValue - 1) }
 		public var next: Month? { .init(rawValue: rawValue + 1) }
+		public var standardDayCount: Int {
+			switch self {
+			case .jan, .mar, .may, .jul, .aug, .oct, .dec: 31
+			case .apr, .jun, .sep, .nov: 30
+			case .feb: 28
+			}
+		}
 
 		public static func <(lhs: Self, rhs: Self) -> Bool { lhs.rawValue < rhs.rawValue }
 	}
