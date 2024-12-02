@@ -14,7 +14,7 @@ public struct EnvironmentKeyGenerator: PeerMacro {
 				
 		guard let varDecl = declaration.as(VariableDeclSyntax.self) else { return [] }
 		
-		guard var patternBinding = varDecl.bindings.first?.as(PatternBindingSyntax.self) else {
+		guard var patternBinding = varDecl.bindings.first else {
 			context.diagnose(Diagnostic(node: Syntax(node), message: MacroFeedback.missingAnnotation))
 			return []
 		}
@@ -125,7 +125,7 @@ extension EnvironmentKeyGenerator: AccessorMacro {
 		
 		guard let varDecl = declaration.as(VariableDeclSyntax.self) else { return [] }
 		
-		guard let patternBinding = varDecl.bindings.first?.as(PatternBindingSyntax.self) else {
+		guard let patternBinding = varDecl.bindings.first else {
 			context.diagnose(Diagnostic(node: Syntax(node), message: MacroFeedback.missingAnnotation))
 			return []
 		}

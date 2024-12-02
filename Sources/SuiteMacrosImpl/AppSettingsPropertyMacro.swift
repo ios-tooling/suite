@@ -14,7 +14,7 @@ public struct AppSettingsPropertyMacro: AccessorMacro {
 		
 		
 		guard let variableDecl = declaration.as(VariableDeclSyntax.self),
-				let patternBinding = variableDecl.bindings.as(PatternBindingListSyntax.self)?.first?.as(PatternBindingSyntax.self) else {
+				let patternBinding = variableDecl.bindings.first else {
 			
 			context.diagnose(Diagnostic(node: node, message: MacroFeedback.message("no pattern binding found.")))
 			

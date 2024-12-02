@@ -41,7 +41,7 @@ public struct AppSettingsGenerator: MemberMacro {
 
 extension VariableDeclSyntax {
 	var patternBinding: PatternBindingSyntax? {
-		bindings.first?.as(PatternBindingSyntax.self)
+		bindings.first
 	}
 }
 
