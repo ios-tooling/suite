@@ -117,6 +117,15 @@ public extension URL {
 		}
 		
 	}
+	
+	func pathRelative(to parent: URL) -> String? {
+		let myPath = self.normalizedString
+		let parentPath = parent.normalizedString
+		
+		if !myPath.hasPrefix(parentPath) { return nil }
+		
+		return String(myPath.dropFirst(parentPath.count))
+	}
 
 	static let bundleScheme = "bundle"
 	var isBundleURL: Bool { scheme == Self.bundleScheme }
@@ -208,7 +217,11 @@ public extension URL {
 		let queryString = queryItems.map { $0.name + "=" + $0.value }.joined(separator: "&")
 		let scheme = components.scheme ?? "https"
 		let host = components.host ?? "sample.com"
-		let path = components.path
+		var path = components.path
+		
+		if isFileURL, (path.hasPrefix("/private/var") || path.hasPrefix("private/var")) {
+			path = path.replacingOccurrences(of: "private/var/", with: "var/")
+		}
 		
 		var result = scheme + "://" + host
 		if let port = components.port { result += ":\(port)" }
