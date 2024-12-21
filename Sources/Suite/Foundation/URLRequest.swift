@@ -26,7 +26,7 @@ public extension URLRequest {
 		var command = [baseCommand]
 		
 		if requestMethod != .get, requestMethod != .head {
-			command.append("-X \(requestMethod.rawValue)")
+			command.append("-X \(requestMethod.rawValue.uppercased())")
 		}
 		
 		if let headers = allHTTPHeaderFields {
