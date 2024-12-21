@@ -17,7 +17,7 @@ public extension DateFormatter {
 	static let fractionalISO8601: ISO8601DateFormatter = {
 		let formatter = ISO8601DateFormatter()
 		
-		formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+		formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds, .withColonSeparatorInTimeZone]
 		
 		return formatter
 	}()
