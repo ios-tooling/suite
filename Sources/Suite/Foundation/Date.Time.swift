@@ -156,8 +156,9 @@ public extension Date {
 		}
 
 		public func byAdding(timeInterval: TimeInterval) -> Date.Time {
-			let hours = timeInterval / .hour
-			let minutes = (timeInterval - floor(hours) * .hour) / .minute
+			let sign = timeInterval >= 0 ? 1.0 : -1.0
+			let hours = timeInterval > .hour ? floor(timeInterval / .hour) : 0
+			let minutes = sign * (abs(timeInterval) - floor(hours) * .hour) / .minute
 			let seconds = TimeInterval(Int(timeInterval) % 60)
 			
 			return byAdding(hours: Int(hours), minutes: Int(minutes), seconds: seconds)

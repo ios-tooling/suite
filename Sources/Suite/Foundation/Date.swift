@@ -407,6 +407,20 @@ public extension Date {
 		DateFormatter(format: format).string(from: self)
 	}
 	
+	@available(iOS 15.0, *)
+	func ageString(style: DateFormatter.Style = .short, showTimeAfter limit: TimeInterval? = nil) -> String {
+		
+		let age = timeIntervalSinceNow
+		
+		if let limit, abs(age) > limit {
+			if isToday { return formatted(date: .omitted, time: .shortened) }
+			
+			return formatted(date: .abbreviated, time: .shortened)
+		}
+		
+		return Date.ageString(age: timeIntervalSinceNow, style: style)
+	}
+	
 	static func ageString(age: TimeInterval, style: DateFormatter.Style = .short) -> String {
 		let seconds = abs(Int(age))
 		let minutes = seconds / 60
