@@ -125,6 +125,14 @@ public extension JSONEncoder.DateEncodingStrategy {
 		}
 		return nil
 	}
+	
+	static let fractionalSecond8601: JSONEncoder.DateEncodingStrategy = {
+		.custom { date, encoder in
+			let string = DateFormatter.fractionalISO8601.string(from: date)
+			var container = encoder.singleValueContainer()
+			try container.encode(string)
+		}
+	}()
 }
 
 public extension JSONDecoder.DateDecodingStrategy {
