@@ -82,6 +82,15 @@ public extension Encodable {
 	var prettyJSON: String? {
 		do {
 			let encoder = JSONEncoder()
+			encoder.dateEncodingStrategy = .custom { date, encoder in
+				var container = encoder.singleValueContainer()
+				
+				if #available(iOS 15.0, *) {
+					try container.encode(date.formatted())
+				} else {
+					try container.encode(date.localTimeString())
+				}
+			}
 			encoder.outputFormatting = .prettyPrinted
 			let json = try encoder.encode(self)
 			let string = String(data: json, encoding: .utf8)
