@@ -407,7 +407,7 @@ public extension Date {
 		DateFormatter(format: format).string(from: self)
 	}
 	
-	@available(iOS 15.0, *)
+	@available(iOS 15.0, macOS 12, *)
 	func ageString(style: DateFormatter.Style = .short, showTimeAfter limit: TimeInterval? = nil) -> String {
 		
 		let age = timeIntervalSinceNow
