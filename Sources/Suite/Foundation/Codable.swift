@@ -85,7 +85,7 @@ public extension Encodable {
 			encoder.dateEncodingStrategy = .custom { date, encoder in
 				var container = encoder.singleValueContainer()
 				
-				if #available(iOS 15.0, *) {
+				if #available(iOS 15.0, macOS 12, *) {
 					try container.encode(date.formatted())
 				} else {
 					try container.encode(date.localTimeString())
