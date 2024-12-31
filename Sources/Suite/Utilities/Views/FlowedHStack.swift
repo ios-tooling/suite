@@ -7,11 +7,9 @@
 
 import SwiftUI
 
-extension String: @retroactive View {}
 extension String: FlowedHStackElement {
 	public var isNewLine: Bool { self == "\n" }
 	public var offset: CGSize { .zero }
-	public var body: some View { Text(self) }
 }
 
 public protocol FlowedHStackElement {
@@ -36,14 +34,10 @@ public struct FlowedHStackImage: View, FlowedHStackImageElement {
 }
 
 public struct FlowSizeKey: PreferenceKey {
-	nonisolated(unsafe) public static var defaultValue: [CGSize] = []
+	public static let defaultValue: [CGSize] = []
 	public static func reduce(value: inout [CGSize], nextValue: () -> [CGSize]) {
 		value.append(contentsOf: nextValue())
 	}
-}
-
-public struct FlowedHStackNewLineView: View {
-	public var body: some View { Color.clear.frame(width: 0, height: 12) }
 }
 
 public struct FlowedHStack<Element: FlowedHStackElement, ElementView: View>: View {
@@ -61,9 +55,9 @@ public struct FlowedHStack<Element: FlowedHStackElement, ElementView: View>: Vie
 	
 	@State private var availableWidth: CGFloat = 0.0
 	@State private var elementSizes: [CGSize] = []
-	@State private var totalHeight = 0.0
 	
 	func layout(sizes: [CGSize], spacing proposedSpacing: CGSize? = nil) -> [CGPoint] {
+		if availableWidth == 0.0 { return [] }
 		let spacing = proposedSpacing ?? .init(width: horizontalSpacing, height: verticalSpacing)
 		var rows: [[CGSize]] = []
 		var origins: [CGPoint] = []
@@ -104,11 +98,10 @@ public struct FlowedHStack<Element: FlowedHStackElement, ElementView: View>: Vie
 		
 		VStack(spacing: 0) {
 			GeometryReader { proxy in
-				Color.clear.preference(key: FlowSizeKey.self, value: [proxy.size])
+				Color.clear
+					.onAppear { availableWidth = proxy.width }
 			}
 			.frame(height: 0)
-			.onPreferenceChange(FlowSizeKey.self) { sizes in
-				Task {@MainActor in availableWidth = sizes.first?.width ?? 0.0 }}
 			
 			ZStack(alignment: .topLeading) {
 				ForEach(Array(zip(elements, elements.indices)), id: \.1) { element, index in
