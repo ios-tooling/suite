@@ -45,6 +45,7 @@ struct DraggableView<Content: View>: View {
 	@EnvironmentObject var dragCoordinator: DragCoordinator
 	@Environment(\.isDragAndDropEnabled) var isDragAndDropEnabled
 	@Environment(\.isScrolling) var isScrolling
+	@GestureState var offset: CGSize = .zero
 	@State var frame: CGRect?
 	@State var isDragging = false
 	@Environment(\.dragCoordinatorSnapbackDuration) var snapbackDuration
@@ -91,20 +92,21 @@ struct DraggableView<Content: View>: View {
 	
 	private var dragGesture: some Gesture {
 		DragGesture(coordinateSpace: .dragAndDropSpace)
-			.onChanged { action in
+			.updating($offset) { value, offset, transaction in
+				offset = value.translation
 				if !isDragging {
 					phaseChanged?(.starting)
 					isDragging = true
 					let renderer = ImageRenderer(content: dragContent())
 					var sourcePoint: CGPoint = .zero
 					if let frame {
-						sourcePoint = CGPoint(x: action.location.x - frame.minX, y: action.location.y - frame.minY)
+						sourcePoint = CGPoint(x: value.location.x - frame.minX, y: value.location.y - frame.minY)
 					} else {
 						sourcePoint = .zero
 					}
-					dragCoordinator.startDragging(at: action.location, source: frame, sourcePoint: sourcePoint, type: type, object: object, image: renderer.dragImage)
+					dragCoordinator.startDragging(at: value.location, source: frame, sourcePoint: sourcePoint, type: type, object: object, image: renderer.dragImage)
 				}
-				dragCoordinator.currentPosition = action.location
+				dragCoordinator.currentPosition = value.location
 			}
 			.onEnded { action in
 				Task {
