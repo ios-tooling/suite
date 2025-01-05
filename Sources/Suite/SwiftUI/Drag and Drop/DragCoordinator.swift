@@ -31,6 +31,26 @@ extension EnvironmentValues {
 	@Published var sourcePoint = CGPoint.zero
 	@Published var dragAcceptance = DragAcceptance.rejected
 	
+	func describe() {
+		var text = ""
+		if let draggedImage { text += "draggedImage: \(draggedImage)\n" }
+		if let currentPosition { text += "currentPosition: \(currentPosition)\n"}
+		if let startPosition { text += "startPosition: \(startPosition)\n" }
+		if let dropPosition { text += "dropPosition: \(dropPosition)\n" }
+		if let sourceFrame { text += "sourceFrame: \(sourceFrame)\n" }
+		if isDragging { text += "isDragging: true\n" }
+		if let dragType { text += "dragType: \(dragType)\n" }
+		if let draggedObject { text += "draggedObject: \(draggedObject)\n" }
+		if acceptedDrop { text += "acceptedDrop: \(acceptedDrop)\n" }
+		if let currentDropTarget { text += "currentDropTarget: \(currentDropTarget)\n" }
+		if cancelledDrop { text += "cancelledDrop: true\n" }
+		text += "dropScale: \(dropScale)\n"
+		text += "sourcePoint: \(sourcePoint)\n"
+		text += "dragAcceptance: \(dragAcceptance)\n"
+		print(text)
+	}
+	
+
 	public enum DragAcceptance { case rejected, accepted, acceptedHighlight, acceptedHidden, acceptedHiddenHighlight
 		var showAccepted: Bool {
 			self == .acceptedHighlight || self == .acceptedHiddenHighlight
@@ -93,11 +113,17 @@ extension EnvironmentValues {
 	}
 	
 	func completeDrag() {
+		print("All done")
 		isDragging = false
 		dropPosition = nil
 		draggedObject = nil
 		dragType = nil
 		currentPosition = nil
+		startPosition = nil
+		draggedImage = nil
+		sourceFrame = nil
+		sourcePoint = .zero
+		dropScale = 1.0
 	}
 	
 	var currentTranslation: CGSize? {

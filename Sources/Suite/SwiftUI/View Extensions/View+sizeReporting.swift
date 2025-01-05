@@ -87,11 +87,21 @@ public extension View {		// Tracks the size available for the view
 		self
 			.background(
 				GeometryReader { geo in
-					Color.clear
-						.onAppear {
-							frame?.wrappedValue = geo.frame(in: space)
-							size?.wrappedValue = geo.frame(in: space).size
-						}
+					let myFrame = geo.frame(in: space)
+					
+					if #available(iOS 17.0, macOS 14, *) {
+						Color.clear
+							.onChange(of: myFrame, initial: true) {
+								frame?.wrappedValue = myFrame
+								size?.wrappedValue = myFrame.size
+							}
+					} else {
+						Color.clear
+							.onAppear {
+								frame?.wrappedValue = myFrame
+								size?.wrappedValue = myFrame.size
+							}
+					}
 				}
 			)
 	}
