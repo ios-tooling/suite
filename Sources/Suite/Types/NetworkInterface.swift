@@ -51,11 +51,12 @@ public struct NetworkInterface: CustomStringConvertible, Sendable {
 				guard let cString = interface?.ifa_name else { continue }
 				
 				if let saLen = (interface?.ifa_addr.pointee.sa_len) {
-					var hostname = [UInt8](repeating: 0, count: Int(NI_MAXHOST))
+					var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
 					let ifaAddr = interface?.ifa_addr
 					getnameinfo(ifaAddr, socklen_t(saLen), &hostname, socklen_t(hostname.count), nil, socklen_t(0), NI_NUMERICHOST)
 					
-					let address: String = String(decoding: hostname, as: UTF8.self)
+					//let address: String = String(decoding: hostname, as: UTF8.self)
+					let address = String(NSString(cString: hostname, encoding: NSUTF8StringEncoding) ?? "")
 					//let address = String(cString: hostname)
 					if !address.isEmpty {
 						results.append(.init(address: address, name: String(cString: cString), family: addrFamily))
