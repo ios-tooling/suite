@@ -218,6 +218,8 @@ public extension Date {
 		return Double(second) + (interval - floor(interval))
 	}
 	
+	var yearString: String { String(format: "%d", year) }
+	
 	var dayOfWeek: DayOfWeek { DayOfWeek(rawValue: self.components(which: .weekday).weekday!) ?? .sunday }
 	var dayOfMonth: Int {
 		let date = Calendar.current.component(.day, from: self)
