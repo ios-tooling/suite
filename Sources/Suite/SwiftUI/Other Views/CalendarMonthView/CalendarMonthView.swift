@@ -9,51 +9,54 @@ import SwiftUI
 
 
 public struct CalendarMonthViewOptions: Equatable, Sendable {
-	public init(showMonthName: Bool = true, showYear: Bool = true) {
+	public enum WeekdayLabelFormat: Sendable { case letter, short, veryShort, none }
+	
+	public init(showMonthName: Bool = true, showYear: Bool = true, weekdayLabels: WeekdayLabelFormat = .short) {
 		self.showMonthName = showMonthName
 		self.showYear = showYear
+		self.weekdayLabels = weekdayLabels
 	}
 	
 	public var showMonthName = true
 	public var showYear = true
+	public var weekdayLabels = WeekdayLabelFormat.short
 }
 
 @available(iOS 16, macOS 14.0, watchOS 10, *)
-public struct CalendarMonthView<DayView: View>: View {
+public struct CalendarMonthView<DayView: View, WeekDayLabel: View>: View {
 	@State var date: Date
 	@Binding var selected: Date
 	
 	@State var showingMonthsAndYears = false
 	let options: CalendarMonthViewOptions
 	let dayBuilder: (Date.Day, MonthDayOptions) -> DayView
-	
-	public init(date: Binding<Date>, display: Date? = nil, options: CalendarMonthViewOptions = .init(), @ViewBuilder builder: @escaping (Date.Day, MonthDayOptions) -> DayView) {
+	let weekDayLabelBuilder: (Date.DayOfWeek) -> WeekDayLabel
+
+	public init(date: Binding<Date>, display: Date? = nil, options: CalendarMonthViewOptions = .init(), @ViewBuilder dayBuilder: @escaping (Date.Day, MonthDayOptions) -> DayView, @ViewBuilder weekDayLabelBuilder: @escaping (Date.DayOfWeek) -> WeekDayLabel) {
 		_selected = date
 		_date = State(initialValue: display ??  date.wrappedValue)
-		dayBuilder = builder
+		self.dayBuilder = dayBuilder
+		self.weekDayLabelBuilder = weekDayLabelBuilder
 		self.options = options
 	}
 	
 	public var body: some View {
 		VStack {
 			if options.showYear || options.showMonthName {
-				HStack {
-					showYearMonthListButton
-					Spacer()
-					if options.showMonthName {
-						previousMonthButton
-						nextMonthButton
-					}
-				}
+				monthYearBar(includeSpacer: false).opacity(0)
 			}
+			
 			if showingMonthsAndYears {
 				monthYearList
 				#if os(macOS)
-					WeeksView(date: date, selected: $selected, builder: dayBuilder)
+					WeeksView(date: date, selected: $selected, options: options, dayBuilder: dayBuilder, weekDayLabelBuilder: weekDayLabelBuilder)
 				#endif
 			} else {
-				WeeksView(date: date, selected: $selected, builder: dayBuilder)
+				WeeksView(date: date, selected: $selected, options: options, dayBuilder: dayBuilder, weekDayLabelBuilder: weekDayLabelBuilder)
 			}
+		}
+		.overlay(alignment: .top) {
+			monthYearBar(includeSpacer: true)
 		}
 		.clipped()
 	}
@@ -70,27 +73,64 @@ public struct CalendarMonthView<DayView: View>: View {
 			date = Calendar.current.date(from: components) ?? date
 		})
 	}
-}
-
-@available(iOS 16, macOS 14.0, watchOS 10, *)
-extension CalendarMonthView where DayView == CalendarSingleDayView {
-	public init(date: Binding<Date>, display: Date? = nil, options: CalendarMonthViewOptions = .init()) {
-		self.init(date: date, display: display, options: options) { day, options in
-			CalendarSingleDayView(day: day, options: options, rowSize: 24.0)
+	
+	@ViewBuilder func monthYearBar(includeSpacer: Bool) -> some View {
+		if options.showYear || options.showMonthName {
+			HStack {
+				showYearMonthListButton
+				if includeSpacer { Spacer() }
+				if options.showMonthName {
+					previousMonthButton
+					nextMonthButton
+				}
+			}
 		}
 	}
 }
 
-//#Preview {
-//	@Previewable @State var date: Date = .now
-//	VStack {
-//		Text(date.formatted(date: .complete, time: .omitted))
-//		CalendarMonthView(date: $date)
-//		CalendarMonthView(date: $date, options: .init(showMonthName: false))
-//		CalendarMonthView(date: $date, options: .init(showYear: false))
-//		CalendarMonthView(date: $date, options: .init(showMonthName: false, showYear: false))
-//	}
-//	.font(.title)
-//	.padding()
-//}
+@available(iOS 16, macOS 14.0, watchOS 10, *)
+extension CalendarMonthView where DayView == CalendarSingleDayView, WeekDayLabel == CalendarWeekDayLabel {
+	public init(date: Binding<Date>, display: Date? = nil, options: CalendarMonthViewOptions = .init()) {
+		self.init(date: date, display: display, options: options, dayBuilder: { day, options in
+			CalendarSingleDayView(day: day, options: options, rowSize: 24.0)
+		}, weekDayLabelBuilder: { day in CalendarWeekDayLabel(day: day, options: options) })
+	}
+}
+
+@available(iOS 16, macOS 14.0, watchOS 10, *)
+extension CalendarMonthView where WeekDayLabel == CalendarWeekDayLabel {
+	public init(date: Binding<Date>, display: Date? = nil, options: CalendarMonthViewOptions = .init(), @ViewBuilder dayBuilder: @escaping (Date.Day, MonthDayOptions) -> DayView) {
+		self.init(date: date, display: display, options: options, dayBuilder: dayBuilder, weekDayLabelBuilder: { day in CalendarWeekDayLabel(day: day, options: options) })
+	}
+}
+
+@available(iOS 16, *)
+struct CalendarPreview: View {
+	@State var date: Date = .now
+	
+	var body: some View {
+		VStack {
+			Text(date.formatted(date: .complete, time: .omitted))
+			CalendarMonthView(date: $date)
+				.border(.red)
+			CalendarMonthView(date: $date, options: .init(showMonthName: false))
+				.border(.red)
+			CalendarMonthView(date: $date, options: .init(showYear: false))
+				.border(.red)
+			CalendarMonthView(date: $date, options: .init(showMonthName: false, showYear: false, weekdayLabels: .letter))
+				.border(.red)
+		}
+		.font(.title)
+		.padding()
+	}
+}
+
+#Preview  {
+	
+	if #available(iOS 16, *) {
+		CalendarPreview(date: .now)
+	} else {
+		// Fallback on earlier versions
+	}
+}
 

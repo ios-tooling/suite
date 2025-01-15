@@ -23,21 +23,76 @@ extension CalendarMonthView {
 	struct WeeksView: View {
 		let date: Date
 		@Binding var selected: Date
-		@ViewBuilder var builder: (Date.Day, MonthDayOptions) -> DayView
-				
+		let options: CalendarMonthViewOptions
+		@ViewBuilder var dayBuilder: (Date.Day, MonthDayOptions) -> DayView
+		@ViewBuilder var weekDayLabelBuilder: (Date.DayOfWeek) -> WeekDayLabel
+
 		let rowSize = 24.0
 		var body: some View {
-			let cells = Array(repeating: GridItem(.fixed(rowSize), alignment: .center), count: 7)
-			
-			LazyVGrid(columns: cells, spacing: 0) {
-				ForEach(dates, id: \.self) { dayDate in
-					let day = Date.Day(day: dayDate, month: date.month, year: date.year)
-					let options = options(for: dayDate)
-					Button(action: { selected = day.date }) {
-						builder(day, options)
-							.contentShape(.rect)
+			let weeks = weeks
+			VStack {
+				if options.weekdayLabels != .none {
+					weekLabels(maximizeWidth: false).opacity(0)
+				}
+
+				Grid() {
+					ForEach(weeks.indices, id: \.self) { weekIndex in
+						let week = weeks[weekIndex]
+						GridRow {
+							ForEach(week.indices, id: \.self) { dayIndex in
+								let dayDate = week[dayIndex]
+								let day = Date.Day(day: dayDate, month: date.month, year: date.year)
+								let options = options(for: dayDate)
+								Button(action: { selected = day.date }) {
+									dayBuilder(day, options)
+										.contentShape(.rect)
+								}
+								.buttonStyle(.plain)
+							}
+						}
 					}
-					.buttonStyle(.plain)
+				}
+			}
+			.overlay(alignment: .top) {
+				if options.weekdayLabels != .none {
+					weekLabels(maximizeWidth: true)
+				}
+			}
+		}
+		
+		@ViewBuilder func weekLabels(maximizeWidth: Bool) -> some View {
+			Grid() {
+				GridRow {
+					ForEach(Date.DayOfWeek.weekdays) { day in
+						weekDayLabelBuilder(day)
+							.frame(maxWidth: maximizeWidth ? .infinity : nil)
+					}
+				}
+			}
+		}
+		
+		@ViewBuilder var oldBody: some View {
+			let cells = Array(repeating: GridItem(.fixed(rowSize), alignment: .center), count: 7)
+
+			VStack(spacing: 0) {
+				if options.weekdayLabels != .none {
+					LazyVGrid(columns: cells, spacing: 0) {
+						ForEach(Date.DayOfWeek.weekdays) { day in
+							weekDayLabelBuilder(day)
+						}
+					}
+				}
+				
+				LazyVGrid(columns: cells, spacing: 0) {
+					ForEach(dates, id: \.self) { dayDate in
+						let day = Date.Day(day: dayDate, month: date.month, year: date.year)
+						let options = options(for: dayDate)
+						Button(action: { selected = day.date }) {
+							dayBuilder(day, options)
+								.contentShape(.rect)
+						}
+						.buttonStyle(.plain)
+					}
 				}
 			}
 		}
@@ -51,6 +106,10 @@ extension CalendarMonthView {
 			return results
 		}
 		
+		var weeks: [[Int]] {
+			dates.breakIntoChunks(ofSize: 7)
+		}
+
 		var dates: [Int] {
 			var days = Array(1...date.numberOfDaysInMonth).map { $0 }
 			for i in 1..<date.firstDayOfWeekInMonth.rawValue {
