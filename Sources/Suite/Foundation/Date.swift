@@ -575,7 +575,12 @@ extension Set where Element == Calendar.Component {
 }
 
 public extension Date {
-	enum Meridian: Sendable { case am, pm }
+	enum Meridian: Sendable { case am, pm
+		
+		public static var shows: Bool {
+			DateFormatter.dateFormat(fromTemplate: "j", options: 0, locale: .current)?.contains("a") == true
+		}
+	}
 	
 	var meridian: Meridian {
 		get { hour < 12 ? .am : .pm }

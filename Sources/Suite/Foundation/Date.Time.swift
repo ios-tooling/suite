@@ -315,6 +315,11 @@ public extension Date {
 		public static let never = Date.Time(hour: -1, minute: -1)
 		
 		public var isNever: Bool { hour == -1 || minute == -1 }
+
+		public var meridian: Meridian {
+			if hour < 12 || hour == 24 { return .am }
+			return .pm
+		}
 	}
 
 	var time: Time {
