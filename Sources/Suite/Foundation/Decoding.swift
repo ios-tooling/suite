@@ -51,7 +51,7 @@ public extension JSONDecoder {
 }
 
 extension JSONDecoder.DateDecodingStrategy {
-    var encodingStrategy: JSONEncoder.DateEncodingStrategy {
+    public var encodingStrategy: JSONEncoder.DateEncodingStrategy {
         switch self {
         case .deferredToDate: return .deferredToDate
         case .secondsSince1970: return .secondsSince1970
@@ -63,7 +63,7 @@ extension JSONDecoder.DateDecodingStrategy {
 }
 
 extension JSONEncoder.DateEncodingStrategy {
-    var decodingStrategy: JSONDecoder.DateDecodingStrategy {
+	public var decodingStrategy: JSONDecoder.DateDecodingStrategy {
         switch self {
         case .deferredToDate: return .deferredToDate
         case .secondsSince1970: return .secondsSince1970
