@@ -29,11 +29,7 @@ extension EnvironmentValues {
 	@Published var dropScale = 1.0
 	@Published var snapbackDuration = 0.2
 	@Published var sourcePoint = CGPoint.zero
-	@Published var dragAcceptance = DragAcceptance.rejected { didSet {
-		if oldValue != dragAcceptance {
-			print("Drag acceptance set to \(dragAcceptance) \(currentDropTargetID ?? "--")")
-		}
-	}}
+	@Published var dragAcceptance = DragAcceptance.rejected
 	
 	func describe() {
 		var text = ""
