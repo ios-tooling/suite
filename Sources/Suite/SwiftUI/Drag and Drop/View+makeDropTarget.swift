@@ -21,8 +21,8 @@ public typealias DragDroppedCallback = (String, Any, CGPoint, CGPoint) -> Bool
 
 @available(OSX 13, iOS 15, tvOS 13, watchOS 8, *)
 public extension View {
-	func makeDropTarget(enabled: Bool = true, types: [String], targetID: Any? = nil, showDropPoint: DeviceFilter = .debug, hover: @escaping DragHoverCallback = { _, _, _, _ in .accepted }, dropped: @escaping DragDroppedCallback) -> some View {
-		DropTargetView(enabled: enabled, content: self, types: types, targetID: targetID, showDropPoint: showDropPoint.matches, hover: hover, dropped: dropped)
+	func makeDropTarget(enabled: Bool = true, priority: Int = 0, dropTargetID: String, types: [String], showDropPoint: DeviceFilter = .debug, hover: DragHoverCallback? = nil, dropped: @escaping DragDroppedCallback) -> some View {
+		DropTargetView(enabled: enabled, content: self, types: types, dropTargetID: dropTargetID, priority: priority, showDropPoint: showDropPoint.matches, hover: hover ?? { _, _, _, _ in .accepted(priority) }, dropped: dropped)
 	}
 	
 	func dragAndDropCoordinateSpace() -> some View {
@@ -37,7 +37,8 @@ struct DropTargetView<Content: View>: View {
 	var enabled: Bool = true
 	let content: Content
 	let types: [String]
-	let targetID: Any?
+	let dropTargetID: String
+	let priority: Int
 	let showDropPoint: Bool
 	let hover: DragHoverCallback
 	let dropped: DragDroppedCallback
@@ -45,7 +46,7 @@ struct DropTargetView<Content: View>: View {
 	@EnvironmentObject var dragCoordinator: DragCoordinator
 	@Environment(\.isDragAndDropEnabled) var isDragAndDropEnabled
 	@State var frame: CGRect?
-	@State var isDropTarget = false
+	var isDropTarget: Bool { dragCoordinator.currentDropTargetID == dropTargetID }
 	@State var dropPoint: CGPoint?
 	
 	func convert(point: CGPoint?, using geo: GeometryProxy) -> CGPoint? {
@@ -92,7 +93,7 @@ struct DropTargetView<Content: View>: View {
 		if let point = dropPosition(at: dropPoint), let type = dragCoordinator.dragType, let object = dragCoordinator.draggedObject {
 			if dropped(type, object, point, dragCoordinator.sourcePoint) {
 				dragCoordinator.acceptedDrop = true
-				dragCoordinator.currentDropTarget = targetID
+				dragCoordinator.currentDropTargetID = dropTargetID
 			}
 		}
 	}
@@ -106,14 +107,20 @@ struct DropTargetView<Content: View>: View {
 		if dragCoordinator.cancelledDrop {
 			_ = hover(type, object, nil, dragCoordinator.sourcePoint)
 		} else if let point = dropPosition(at: dragPosition) {
+			if dragCoordinator.dragAcceptance.priority > priority {
+				_ = hover(type, object, nil, dragCoordinator.sourcePoint)
+				return
+			}
 			if showDropPoint { dropPoint = point }
-			isDropTarget = true
+			dragCoordinator.currentDropTargetID = dropTargetID
 			dragCoordinator.dragAcceptance = hover(type, object, point, dragCoordinator.sourcePoint)
 		} else if isDropTarget || dropPoint != nil {
 			_ = hover(type, object, nil, dragCoordinator.sourcePoint)
-			isDropTarget = false
-			dragCoordinator.dragAcceptance = .rejected
-			dropPoint = nil
+			if dragCoordinator.currentDropTargetID == dropTargetID {
+				dragCoordinator.currentDropTargetID = nil
+				dragCoordinator.dragAcceptance = .rejected
+				dropPoint = nil
+			}
 		}
 	}
 

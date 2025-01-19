@@ -24,12 +24,16 @@ extension EnvironmentValues {
 	@Published var dragType: String?
 	@Published var draggedObject: Any?
 	@Published var acceptedDrop = false
-	@Published var currentDropTarget: Any?
+	@Published var currentDropTargetID: String?
 	@Published var cancelledDrop = false
 	@Published var dropScale = 1.0
 	@Published var snapbackDuration = 0.2
 	@Published var sourcePoint = CGPoint.zero
-	@Published var dragAcceptance = DragAcceptance.rejected
+	@Published var dragAcceptance = DragAcceptance.rejected { didSet {
+		if oldValue != dragAcceptance {
+			print("Drag acceptance set to \(dragAcceptance) \(currentDropTargetID ?? "--")")
+		}
+	}}
 	
 	func describe() {
 		var text = ""
@@ -42,7 +46,7 @@ extension EnvironmentValues {
 		if let dragType { text += "dragType: \(dragType)\n" }
 		if let draggedObject { text += "draggedObject: \(draggedObject)\n" }
 		if acceptedDrop { text += "acceptedDrop: \(acceptedDrop)\n" }
-		if let currentDropTarget { text += "currentDropTarget: \(currentDropTarget)\n" }
+		if let currentDropTargetID { text += "currentDropTargetID: \(currentDropTargetID)\n" }
 		if cancelledDrop { text += "cancelledDrop: true\n" }
 		text += "dropScale: \(dropScale)\n"
 		text += "sourcePoint: \(sourcePoint)\n"
@@ -51,13 +55,29 @@ extension EnvironmentValues {
 	}
 	
 
-	public enum DragAcceptance { case rejected, accepted, acceptedHighlight, acceptedHidden, acceptedHiddenHighlight
+	public enum DragAcceptance: Equatable { case rejected, accepted(Int), acceptedHighlight(Int), acceptedHidden(Int), acceptedHiddenHighlight(Int)
 		var showAccepted: Bool {
-			self == .acceptedHighlight || self == .acceptedHiddenHighlight
+			switch self {
+			case .acceptedHighlight, .acceptedHiddenHighlight: true
+			default: false
+			}
 		}
 
 		var isHidden: Bool {
-			self == .acceptedHidden || self == .acceptedHiddenHighlight
+			switch self {
+			case .acceptedHidden, .acceptedHiddenHighlight: true
+			default: false
+			}
+		}
+		
+		var priority: Int {
+			switch self {
+			case .rejected: 0
+			case .accepted(let priority): priority
+			case .acceptedHighlight(let priority): priority
+			case .acceptedHidden(let priority): priority
+			case .acceptedHiddenHighlight(let priority): priority
+			}
 		}
 	}
 
@@ -70,7 +90,7 @@ extension EnvironmentValues {
 		dragType = type
 		isDragging = true
 		acceptedDrop = false
-		currentDropTarget = nil
+		currentDropTargetID = nil
 		dropScale = 1.0
 		cancelledDrop = false
 		self.sourcePoint = sourcePoint

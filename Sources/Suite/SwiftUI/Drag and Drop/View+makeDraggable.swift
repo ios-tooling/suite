@@ -8,7 +8,7 @@
 import SwiftUI
 
 public enum DragPhase: Equatable {
-	case idle, starting, dropped(Any?), cancelled
+	case idle, starting, dropped(String), cancelled
 		
 	public static func ==(lhs: Self, rhs: Self) -> Bool {
 		switch (lhs, rhs) {
@@ -115,7 +115,11 @@ struct DraggableView<Content: View>: View {
 				Task {
 					try? await Task.sleep(for: .seconds(snapbackDuration))
 					isDragging = false
-					phaseChanged?(dragCoordinator.acceptedDrop ? .dropped(dragCoordinator.currentDropTarget) : .cancelled)
+					if dragCoordinator.acceptedDrop, let targetID = dragCoordinator.currentDropTargetID {
+						phaseChanged?(.dropped(targetID))
+					} else {
+						phaseChanged?(.cancelled)
+					}
 				}
 				dragCoordinator.drop(at: action.location)
 			}
