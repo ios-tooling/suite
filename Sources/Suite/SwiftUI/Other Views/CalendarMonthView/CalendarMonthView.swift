@@ -26,6 +26,7 @@ public struct CalendarMonthViewOptions: Equatable, Sendable {
 public struct CalendarMonthView<DayView: View, WeekDayLabel: View>: View {
 	@State var date: Date
 	@Binding var selected: Date
+	let overrideDate: Date?
 	
 	@State var showingMonthsAndYears = false
 	let options: CalendarMonthViewOptions
@@ -38,6 +39,7 @@ public struct CalendarMonthView<DayView: View, WeekDayLabel: View>: View {
 		self.dayBuilder = dayBuilder
 		self.weekDayLabelBuilder = weekDayLabelBuilder
 		self.options = options
+		self.overrideDate = display
 	}
 	
 	public var body: some View {
@@ -59,6 +61,7 @@ public struct CalendarMonthView<DayView: View, WeekDayLabel: View>: View {
 			monthYearBar(includeSpacer: true)
 		}
 		.clipped()
+		.onChange(of: overrideDate) { newDate in if let newDate { date = newDate } }
 	}
 	
 	var monthNames: [String] { Date.Month.allCases.map { $0.name }}
