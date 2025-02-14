@@ -26,7 +26,7 @@ public extension ModelContext {
 		do {
 			try save()
 		} catch {
-			print("Failed to save database: \(error)")
+			SuiteLogger.error("Failed to save database \(error, privacy: .public)")
 		}
 	}
 	

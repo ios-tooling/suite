@@ -47,7 +47,6 @@ extension EnvironmentValues {
 		text += "dropScale: \(dropScale)\n"
 		text += "sourcePoint: \(sourcePoint)\n"
 		text += "dragAcceptance: \(dragAcceptance)\n"
-		print(text)
 	}
 	
 
@@ -129,7 +128,7 @@ extension EnvironmentValues {
 	}
 	
 	func completeDrag() {
-		print("All done")
+		SuiteLogger.debug("Drag completed")
 		isDragging = false
 		dropPosition = nil
 		draggedObject = nil
