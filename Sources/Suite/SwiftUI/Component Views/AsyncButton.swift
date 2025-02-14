@@ -56,7 +56,9 @@ public struct ButtonIsPerformingActionKey: PreferenceKey {
 			do {
 				try await action()
 			} catch {
-				SuiteLogger.instance.log(error: error, "AsyncButton action failed", level: .loud)
+				if #available(iOS 14.0, macOS 12, watchOS 9, *) {
+					SuiteLogger.warning("AsyncButton action failed \(error, privacy: .public)")
+				}
 			}
 			await MainActor.run { isPerformingAction = false }
 		}

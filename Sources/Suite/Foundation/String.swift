@@ -123,7 +123,9 @@ public extension String {
 				var random: UInt8 = 0
 				let errorCode = SecRandomCopyBytes(kSecRandomDefault, 1, &random)
 				if errorCode != errSecSuccess {
-					SuiteLogger.instance.log("Unable to generate random string. SecRandomCopyBytes failed with OSStatus \(errorCode)")
+					if #available(iOS 14.0, macOS 12, watchOS 9, *) {
+						SuiteLogger.error("Unable to generate a random string, SecRandomCopyBytes failed with OSStatus \(errorCode, privacy: .public)")
+					}
 					return 0
 				}
 				return random
