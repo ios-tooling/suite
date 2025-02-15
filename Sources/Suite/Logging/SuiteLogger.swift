@@ -10,7 +10,7 @@ import Foundation
 import OSLog
 
 @available(iOS 14.0, macOS 11.0, watchOS 7, *)
-fileprivate let logger = Logger(subsystem: .suiteLoggerSubsystem, category: "coredata")
+fileprivate let logger = Logger(subsystem: .suiteLoggerSubsystem, category: "suite")
 
 public func logg(_ msg: @Sendable @escaping @autoclosure () -> String, _ level: OldSuiteLogger.Level = .mild) { OldSuiteLogger.instance.log(msg(), level: level) }
 public func logg<What: AnyObject & Sendable>(raw: What, _ level: OldSuiteLogger.Level = .mild) { OldSuiteLogger.instance.log(raw: raw, level) }
