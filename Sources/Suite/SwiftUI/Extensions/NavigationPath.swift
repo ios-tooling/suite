@@ -13,3 +13,20 @@ public extension NavigationPath {
 		while count > 0 { self.removeLast() }
 	}
 }
+
+@available(iOS 16.0, macOS 12, watchOS 9, *)
+public extension Binding<NavigationPath> {
+	func append<V>(_ value: V) where V : Hashable {
+		wrappedValue.append(value)
+	}
+	
+	func removeLast() {
+		wrappedValue.removeLast()
+	}
+	
+	func popToRoot() {
+		wrappedValue.popToRoot()
+	}
+	
+	var count: Int { wrappedValue.count }
+}
