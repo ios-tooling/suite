@@ -10,13 +10,17 @@ import SwiftUI
 @available(iOS 16.0, macOS 12, watchOS 9, *)
 public extension NavigationPath {
 	mutating func popToRoot() {
-		while count > 0 { self.removeLast() }
+		popToIndex(0)
+	}
+	
+	mutating func popToIndex(_ index: Int) {
+		while count > index { self.removeLast() }
 	}
 }
 
 @available(iOS 16.0, macOS 12, watchOS 9, *)
 public extension Binding<NavigationPath> {
-	func append<V>(_ value: V) where V : Hashable {
+	func append<V: Hashable>(_ value: V) {
 		wrappedValue.append(value)
 	}
 	
@@ -26,6 +30,10 @@ public extension Binding<NavigationPath> {
 	
 	func popToRoot() {
 		wrappedValue.popToRoot()
+	}
+	
+	func popToIndex(_ index: Int) {
+		wrappedValue.popToIndex(index)
 	}
 	
 	var count: Int { wrappedValue.count }
