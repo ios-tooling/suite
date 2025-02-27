@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-@available(iOS 16.0, macOS 12, watchOS 9, *)
+@available(iOS 16.0, macOS 13, watchOS 9, *)
 public extension NavigationPath {
 	mutating func popToRoot() {
 		popToIndex(0)
@@ -18,7 +18,7 @@ public extension NavigationPath {
 	}
 }
 
-@available(iOS 16.0, macOS 12, watchOS 9, *)
+@available(iOS 16.0, macOS 13, watchOS 9, *)
 public extension Binding<NavigationPath> {
 	func append<V: Hashable>(_ value: V) {
 		wrappedValue.append(value)
