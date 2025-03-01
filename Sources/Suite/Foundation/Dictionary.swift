@@ -40,17 +40,6 @@ public struct KeyDifferences: CustomStringConvertible {
 	}
 }
 
-extension Array {
-	func isEqual(to other: [Any]) -> Bool {
-		if other.count != count { return false }
-		
-		for i in 0..<count {
-			if !ValuesAreEqual(self[i], other[i]) { return false }
-		}
-		return true
-	}
-}
-
 public extension Dictionary where Key == String {
 	func diff(relativeTo other: [String: Any]) -> KeyDifferences {
 		var diffs = KeyDifferences()
@@ -63,7 +52,7 @@ public extension Dictionary where Key == String {
 				continue
 			}
 			
-			if ValuesAreEqual(value, otherValue) { continue }
+			if isEqual(value, otherValue) { continue }
 
 			if let myDict = value as? [String: Any], let otherDict = otherValue as? [String: Any] {
 				let dictDiffs = myDict.diff(relativeTo: otherDict)
@@ -78,19 +67,4 @@ public extension Dictionary where Key == String {
 		
 		return diffs
 	}
-}
-
-func ValuesAreEqual(_ myValue: Any, _ theirValue: Any) -> Bool {
-	if let mine = myValue as? Int, let theirs = theirValue as? Int, mine == theirs { return true }
-	if let mine = myValue as? Double, let theirs = theirValue as? Double, mine == theirs { return true }
-	if let mine = myValue as? String, let theirs = theirValue as? String, mine == theirs { return true }
-	if let mine = myValue as? Float, let theirs = theirValue as? Float, mine == theirs { return true }
-	if let mine = myValue as? Bool, let theirs = theirValue as? Bool, mine == theirs { return true }
-
-	if let mine = myValue as? [Any], let theirs = theirValue as? [Any], mine.isEqual(to: theirs) { return true }
-	if let myDict = myValue as? [String: Any], let otherDict = theirValue as? [String: Any] {
-		if myDict.diff(relativeTo: otherDict).isEmpty { return true }
-	}
-
-	return false
 }
