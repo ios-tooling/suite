@@ -58,7 +58,7 @@ public extension CGPoint {
 public extension CGRect {
 	func point(for angle: Angle, radius r: Double) -> CGPoint {
 		let adjustedAngle = angle.adjustedForQuadrant
-		let maxRadius = min(width, height)
+		let maxRadius = min(width, height) / 2
 		
 		let x = r * maxRadius * sin(adjustedAngle.radians)
 		let y = r * maxRadius * cos(adjustedAngle.radians)
