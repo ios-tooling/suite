@@ -104,7 +104,7 @@ extension CalendarMonthView where WeekDayLabel == CalendarWeekDayLabel {
 	}
 }
 
-@available(iOS 16, *)
+@available(iOS 16, macOS 14, *)
 struct CalendarPreview: View {
 	@State var date: Date = .now
 	
@@ -127,7 +127,7 @@ struct CalendarPreview: View {
 
 #Preview  {
 	
-	if #available(iOS 16, *) {
+	if #available(iOS 16, macOS 14, *) {
 		CalendarPreview(date: .now)
 	} else {
 		// Fallback on earlier versions
