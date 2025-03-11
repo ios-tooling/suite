@@ -11,7 +11,7 @@ import SwiftUI
 extension CalendarMonthView {
 	var nextMonthButton: some View {
 		Button(action: {
-			date = date.byAdding(months: 1)
+			selected = date.byAdding(months: 1)
 		}) {
 			Image(systemName: "chevron.right")
 				.foregroundStyle(.red)

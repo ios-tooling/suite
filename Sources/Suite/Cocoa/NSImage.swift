@@ -23,7 +23,7 @@ public extension NSImage {
 		return result
 	}
 	
-	func resized(to size: CGSize, trimmed: Bool = true, changeScaleTo: CGFloat? = nil) -> NSImage? {
+	@MainActor func resized(to size: CGSize, trimmed: Bool = true, changeScaleTo: CGFloat? = nil) -> NSImage? {
 		var frame = self.size.rect.within(limit: size.rect, placed: .scaleAspectFit).rounded()
 		
 		

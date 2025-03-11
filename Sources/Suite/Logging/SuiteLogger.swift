@@ -1,6 +1,6 @@
 //
-//  SuiteLogger.swift
-//  
+//  OldSuiteLogger.swift
+//
 //
 //  Created by ben on 12/4/19.
 //
@@ -10,14 +10,14 @@ import Foundation
 import OSLog
 
 @available(iOS 14.0, macOS 11.0, watchOS 7, *)
-fileprivate let logger = Logger(subsystem: "suite", category: "coredata")
+fileprivate let logger = Logger(subsystem: .suiteLoggerSubsystem, category: "suite")
 
-public func logg(_ msg: @Sendable @escaping @autoclosure () -> String, _ level: SuiteLogger.Level = .mild) { SuiteLogger.instance.log(msg(), level: level) }
-public func logg<What: AnyObject & Sendable>(raw: What, _ level: SuiteLogger.Level = .mild) { SuiteLogger.instance.log(raw: raw, level) }
-public func logg(_ special: SuiteLogger.Special, _ level: SuiteLogger.Level = .mild) { SuiteLogger.instance.log(special, level: level) }
-public func dlogg(_ msg: @Sendable @escaping @autoclosure () -> String, _ level: SuiteLogger.Level = .mild) { SuiteLogger.instance.log(msg(), level: level) }
-public func logg(error: Error?, _ msg: @escaping @autoclosure () -> String, _ level: SuiteLogger.Level = .mild) { SuiteLogger.instance.log(error: error, msg(), level: level) }
-public func dlogg(_ something: Sendable, _ level: SuiteLogger.Level = .mild) { SuiteLogger.instance.log("\(something)", level: level) }
+public func logg(_ msg: @Sendable @escaping @autoclosure () -> String, _ level: OldSuiteLogger.Level = .mild) { OldSuiteLogger.instance.log(msg(), level: level) }
+public func logg<What: AnyObject & Sendable>(raw: What, _ level: OldSuiteLogger.Level = .mild) { OldSuiteLogger.instance.log(raw: raw, level) }
+public func logg(_ special: OldSuiteLogger.Special, _ level: OldSuiteLogger.Level = .mild) { OldSuiteLogger.instance.log(special, level: level) }
+public func dlogg(_ msg: @Sendable @escaping @autoclosure () -> String, _ level: OldSuiteLogger.Level = .mild) { OldSuiteLogger.instance.log(msg(), level: level) }
+public func logg(error: Error?, _ msg: @escaping @autoclosure () -> String, _ level: OldSuiteLogger.Level = .mild) { OldSuiteLogger.instance.log(error: error, msg(), level: level) }
+public func dlogg(_ something: Sendable, _ level: OldSuiteLogger.Level = .mild) { OldSuiteLogger.instance.log("\(something)", level: level) }
 public func logg<T>(result: Result<T, Error>, _ msg: @escaping @autoclosure () -> String) {
 	switch result {
 	case .failure(let error): logg(error: error, msg())
@@ -36,8 +36,8 @@ public func logg<Failure>(completion: Subscribers.Completion<Failure>, _ msg: @e
 }
 #endif
 
-public class SuiteLogger: @unchecked Sendable {
-	static public let instance = SuiteLogger()
+public class OldSuiteLogger: @unchecked Sendable {
+	static public let instance = OldSuiteLogger()
 	
 	private init() { }
 	
@@ -109,7 +109,7 @@ public class SuiteLogger: @unchecked Sendable {
 			if (error as NSError).code == 4 {
 				logFileExists = false
 			} else {
-				SuiteLogger.instance.log(error: error, self.prefix + "Failed to log to file")
+				OldSuiteLogger.instance.log(error: error, self.prefix + "Failed to log to file")
 			}
 		}
 	}
@@ -128,14 +128,14 @@ public class SuiteLogger: @unchecked Sendable {
 		return .quiet
 	}()
 	
-	public func log(_ special: Special, level: SuiteLogger.Level = .mild) {
+	public func log(_ special: Special, level: OldSuiteLogger.Level = .mild) {
 		if level > self.level { return }
 		switch special {
 		case .break: output("\n")
 		}
 	}
 	
-	public func log<What: AnyObject & Sendable>(raw: What, _ level: SuiteLogger.Level = .mild) {
+	public func log<What: AnyObject & Sendable>(raw: What, _ level: OldSuiteLogger.Level = .mild) {
         self.log("\(address(of: raw))", level: level)
 	}
 	
@@ -157,7 +157,7 @@ public class SuiteLogger: @unchecked Sendable {
 }
 
 public extension NSManagedObject {
-	func logObject(_ level: SuiteLogger.Level = .mild) { dlogg("\(self)", level) }
+	func logObject(_ level: OldSuiteLogger.Level = .mild) { dlogg("\(self)", level) }
 }
 
 public func  address(of obj: AnyObject) -> String { "\(Unmanaged.passUnretained(obj).toOpaque())" }

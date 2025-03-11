@@ -14,16 +14,6 @@ public extension Array where Element: Equatable {
 		}
 		return self
 	}
-	
-	@discardableResult mutating func toggle(_ item: Element) -> Self {
-		if self.contains(item) {
-			self.remove(item)
-		} else {
-			self.append(item)
-		}
-		
-		return self
-	}
 }
 
 extension Array: @retroactive RawRepresentable where Element: RawRepresentable, Element.RawValue == String {
@@ -87,6 +77,14 @@ public extension Array where Element: Equatable {
 		}
 		
 		return result
+	}
+	
+	mutating func toggle(_ element: Element) {
+		if let index = firstIndex(of: element) {
+			remove(at: index)
+		} else {
+			append(element)
+		}
 	}
 }
 

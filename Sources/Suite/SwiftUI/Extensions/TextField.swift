@@ -22,7 +22,6 @@ import SwiftUI
 		public static let streetAddressLine1 = NSTextContentType(rawValue: "streetAddressLine1")
 		public static let fullStreetAddress = NSTextContentType(rawValue: "fullStreetAddress")
 		public static let newPassword = NSTextContentType(rawValue: "newPassword")
-		public static let emailAddress = NSTextContentType(rawValue: "emailAddress")
 		public static let flightNumber = NSTextContentType(rawValue: "flightNumber")
 		public static let shipmentTrackingNumber = NSTextContentType(rawValue: "shipmentTrackingNumber")
 		public static let URL = NSTextContentType(rawValue: "URL")
@@ -30,7 +29,7 @@ import SwiftUI
 #endif
 
 #if os(iOS) || os(macOS)
-@available(macOS 11.0, *)
+@available(macOS 14.0, *)
 public extension View {
 	@ViewBuilder func addTextContentType(_ type: TextContentType?) -> some View {
 		if let type {
@@ -56,7 +55,7 @@ public extension View {
 	}
 }
 
-@available(macOS 11.0, *)
+@available(macOS 14.0, *)
 private extension TextContentType {
 	#if os(iOS)
 	var keyboardType: UIKeyboardType {

@@ -65,10 +65,6 @@ public extension Dictionary where Key == String {
 		}
 	}
 	
-	func isEqual(to dict: JSONDictionary) -> Bool {
-		dict.diff(relativeTo: self).isEmpty
-	}
-	
 	var title: String? {
 		self["title"] as? String ?? self["name"] as? String ?? self["description"] as? String ?? self["desc"] as? String
 	}
@@ -135,20 +131,6 @@ public extension Encodable {
 		let data = try encoder.encode(self)
 		UserDefaults.standard.set(data, forKey: key)
 	}
-	
-//	func echo(level: SuiteLogger.Level = .mild) {
-//		do {
-//			let data = try self.asJSONData()
-//			guard let raw = String(data: data, encoding: .utf8) else {
-//				SuiteLogger.instance.log("Unabled to encode \(self)")
-//				return
-//			}
-//			
-//			SuiteLogger.instance.log(raw.cleanedFromJSON, level: level)
-//		} catch {
-//			SuiteLogger.instance.log("Failed to encode \(self): \(error)", level: level)
-//		}
-//	}
 }
 
 extension Decodable {
