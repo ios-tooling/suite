@@ -1,15 +1,16 @@
 //
-//  SwiftUIView.swift
+//  SimpleWebViewAdditions.swift
 //  
 //
 //  Created by Ben Gottlieb on 2/4/24.
 //
 
+#if canImport(WebKit)
 import SwiftUI
 import WebKit
 
 struct WebViewDidFinishLoadingEnvironmentKey: EnvironmentKey {
-	static var defaultValue: WebViewErrorCallback?
+	nonisolated(unsafe) static var defaultValue: WebViewErrorCallback?
 }
 
 public extension EnvironmentValues {
@@ -42,7 +43,7 @@ struct SimpleWebViewAccessor<Content: View>: View {
 	var body: some View {
 		content
 			.onPreferenceChange(SimpleWebViewPreferenceKey.self, perform: { webView in
-				self.webView = webView
+				Task { @MainActor in self.webView = webView }
 			})
 			.onChange(of: webView) { newValue in
 				if let newValue {
@@ -61,3 +62,4 @@ public extension View {
 		SimpleWebViewAccessor(content: self, callback: callback)
 	}
 }
+#endif

@@ -62,10 +62,10 @@ public struct PartlyRoundedRectangle: Shape {
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
 public extension Angle {
-	static var twelveOClock = Angle(degrees: 270)
-	static var threeOClock = Angle(degrees: 0)
-	static var sixOClock = Angle(degrees: 90)
-	static var nineOClock = Angle(degrees: 180)
+	static let twelveOClock = Angle(degrees: 270)
+	static let threeOClock = Angle(degrees: 0)
+	static let sixOClock = Angle(degrees: 90)
+	static let nineOClock = Angle(degrees: 180)
 }
 
 

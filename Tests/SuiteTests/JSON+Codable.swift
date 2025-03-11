@@ -6,7 +6,7 @@
 //
 
 import XCTest
-@testable import Studio
+@testable import Suite
 
 final class JSON_Codable: XCTestCase {
 	struct TestCodable: Codable {
@@ -34,8 +34,8 @@ final class JSON_Codable: XCTestCase {
 		 let string = String(data: data, encoding: .utf8)!
 		 let decoded = try JSONDecoder().decode(TestCodable.self, from: data)
 		 
-		 dlogg(string)
-		 dlogg(decoded)
+//		 dlogg(string)
+//		 dlogg(decoded)
 		 
 		 XCTAssert(!data.isEmpty, "Shouldn't encode empty data")
         // This is an example of a functional test case.
@@ -51,12 +51,14 @@ final class JSON_Codable: XCTestCase {
 	}
 	
 	func testCodableJSONDictionary() {
-		let json: [String: Any] = ["a": 1.0, "b": "string", "c": Date().nearestSecond, "d": ["1": "hello", "2a": 44, "array": [1, 2, 3, 4, 9, 8]]]
+		let subDict: [String: any JSONDataType] = ["1": "hello", "2a": 44, "array": [1, 2, 3, 4, 9, 8]]
+		var json: [String: any JSONDataType] = ["a": 1.0, "b": "string", "c": Date().nearestSecond]
+		json["d"] = subDict as? (any JSONDataType)
+		
 		let starter = CodableJSONDictionary(json)!
 		let container = CodingTest(dict: starter, val: "hello again")
 		let data = try! JSONEncoder().encode(container)
 		let string = String(data: data, encoding: .utf8)
-		print(string ?? "--")
 		
 		let rehydrated = try! JSONDecoder().decode(CodingTest.self, from: data)
 		XCTAssert(rehydrated == container, "Decoded struct should match original.")

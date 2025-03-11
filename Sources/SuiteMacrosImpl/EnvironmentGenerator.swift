@@ -14,7 +14,7 @@ public struct EnvironmentKeyGenerator: PeerMacro {
 				
 		guard let varDecl = declaration.as(VariableDeclSyntax.self) else { return [] }
 		
-		guard var patternBinding = varDecl.bindings.first?.as(PatternBindingSyntax.self) else {
+		guard var patternBinding = varDecl.bindings.first else {
 			context.diagnose(Diagnostic(node: Syntax(node), message: MacroFeedback.missingAnnotation))
 			return []
 		}
@@ -38,7 +38,7 @@ public struct EnvironmentKeyGenerator: PeerMacro {
 			if let signature = varDecl.closureSignature(node: node, in: context) {
 				return [
 					  """
-					  private struct GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
+					  private actor GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
 					  static let defaultValue: \(raw: signature) = \(raw: initialValue)
 					  }
 					  """
@@ -48,7 +48,7 @@ public struct EnvironmentKeyGenerator: PeerMacro {
 
 				return [
 					 """
-					 private struct GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
+					 private actor GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
 					 static let defaultValue = \(raw: initialValue)
 					 }
 					 """
@@ -57,7 +57,7 @@ public struct EnvironmentKeyGenerator: PeerMacro {
 		} else {
 			return [
 				"""
-				private struct GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
+				private actor GeneratedEnvironmentKey_\(raw: identifier): EnvironmentKey {
 					static let \(patternBinding) \(raw: isOptional && !hasDefaultValue ? "= nil" : "")
 				}
 				"""
@@ -125,7 +125,7 @@ extension EnvironmentKeyGenerator: AccessorMacro {
 		
 		guard let varDecl = declaration.as(VariableDeclSyntax.self) else { return [] }
 		
-		guard let patternBinding = varDecl.bindings.first?.as(PatternBindingSyntax.self) else {
+		guard let patternBinding = varDecl.bindings.first else {
 			context.diagnose(Diagnostic(node: Syntax(node), message: MacroFeedback.missingAnnotation))
 			return []
 		}

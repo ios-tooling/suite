@@ -32,12 +32,12 @@ import SwiftUI
 
 @available(OSX 13, iOS 15, tvOS 13, watchOS 8, *)
 struct CurrentDragPositionEnvironmentKey: EnvironmentKey {
-	static var defaultValue: CGPoint?
+	nonisolated(unsafe) static var defaultValue: CGPoint?
 }
 
 @available(OSX 13, iOS 15, tvOS 13, watchOS 8, *)
 struct DragAndDropEnabledEnvironmentKey: EnvironmentKey {
-	static var defaultValue = false
+	nonisolated(unsafe) static var defaultValue = false
 }
 
 @available(OSX 13, iOS 15, tvOS 13, watchOS 8, *)

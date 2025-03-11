@@ -7,6 +7,8 @@
 
 import Foundation
 
+enum SuiteURLSessionError: Error { case unknownErrorOccurred }
+
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
 extension URLSession {
 	public func data(for url: URL) async throws -> (Data, URLResponse) {
@@ -21,7 +23,7 @@ extension URLSession {
 				} else if let data = data, let resp = response {
 					continuation.resume(returning: (data, resp))
 				} else {
-					continuation.resume(throwing: NSError())
+					continuation.resume(throwing: SuiteURLSessionError.unknownErrorOccurred)
 				}
 			}
 			task.resume()

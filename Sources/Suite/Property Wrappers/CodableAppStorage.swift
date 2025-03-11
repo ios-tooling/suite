@@ -9,7 +9,7 @@
 import SwiftUI
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
-@propertyWrapper public struct CodableAppStorage<StoredValue: Codable & Equatable>: DynamicProperty {
+@MainActor @propertyWrapper public struct CodableAppStorage<StoredValue: Codable & Equatable & Sendable>: DynamicProperty {
 	public init(wrappedValue: StoredValue, _ key: String, store: UserDefaults = .standard) {
 		self.key = key
 		self.store = .standard

@@ -14,6 +14,13 @@ public macro GeneratedEnvironmentKey() = #externalMacro(module: "SuiteMacrosImpl
 @freestanding(declaration, names: arbitrary)
 public macro GeneratedPreferenceKey<V>(name: String, type: V.Type, defaultValue: V? = nil) = #externalMacro(module: "SuiteMacrosImpl", type: "PreferenceKeyGenerator")
 
-@attached(peer, names: prefixed(nonIsolatedActorAccessor_))
+@attached(peer, names: prefixed(nonIsolatedBackingContainer_))
 @attached(accessor, names: named(get), named(set))
-public macro AddIsolatedAccessors(observing: Bool = false) = #externalMacro(module: "SuiteMacrosImpl", type: "NonIsolatedActorAccessorGenerator")
+public macro NonisolatedContainer(observing: Bool = false) = #externalMacro(module: "SuiteMacrosImpl", type: "NonisolatedContainerGenerator")
+
+//@attached(member, names: arbitrary)
+@attached(extension, names: arbitrary, conformances: UserDefaultsContainer & ObservableObject)
+public macro AppSettings(_ group: String? = nil) = #externalMacro(module: "SuiteMacrosImpl", type: "AppSettingsGenerator")
+
+@attached(accessor)
+public macro AppSettingsProperty() = #externalMacro(module: "SuiteMacrosImpl", type: "AppSettingsPropertyMacro")

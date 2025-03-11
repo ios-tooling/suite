@@ -12,7 +12,7 @@ extension EnvironmentValues {
 }
 
 @available(OSX 13, iOS 15, tvOS 13, watchOS 8, *)
-public class DragCoordinator: ObservableObject {
+@MainActor public class DragCoordinator: ObservableObject {
 	var containerFrame: CGRect?
 	
 	@Published var draggedImage: DragImage?
@@ -24,20 +24,55 @@ public class DragCoordinator: ObservableObject {
 	@Published var dragType: String?
 	@Published var draggedObject: Any?
 	@Published var acceptedDrop = false
-	@Published var currentDropTarget: Any?
+	@Published var currentDropTargetID: String?
 	@Published var cancelledDrop = false
 	@Published var dropScale = 1.0
 	@Published var snapbackDuration = 0.2
 	@Published var sourcePoint = CGPoint.zero
 	@Published var dragAcceptance = DragAcceptance.rejected
 	
-	public enum DragAcceptance { case rejected, accepted, acceptedHighlight, acceptedHidden, acceptedHiddenHighlight
+	func describe() {
+		var text = ""
+		if let draggedImage { text += "draggedImage: \(draggedImage)\n" }
+		if let currentPosition { text += "currentPosition: \(currentPosition)\n"}
+		if let startPosition { text += "startPosition: \(startPosition)\n" }
+		if let dropPosition { text += "dropPosition: \(dropPosition)\n" }
+		if let sourceFrame { text += "sourceFrame: \(sourceFrame)\n" }
+		if isDragging { text += "isDragging: true\n" }
+		if let dragType { text += "dragType: \(dragType)\n" }
+		if let draggedObject { text += "draggedObject: \(draggedObject)\n" }
+		if acceptedDrop { text += "acceptedDrop: \(acceptedDrop)\n" }
+		if let currentDropTargetID { text += "currentDropTargetID: \(currentDropTargetID)\n" }
+		if cancelledDrop { text += "cancelledDrop: true\n" }
+		text += "dropScale: \(dropScale)\n"
+		text += "sourcePoint: \(sourcePoint)\n"
+		text += "dragAcceptance: \(dragAcceptance)\n"
+	}
+	
+
+	public enum DragAcceptance: Equatable { case rejected, accepted(Int), acceptedHighlight(Int), acceptedHidden(Int), acceptedHiddenHighlight(Int)
 		var showAccepted: Bool {
-			self == .acceptedHighlight || self == .acceptedHiddenHighlight
+			switch self {
+			case .acceptedHighlight, .acceptedHiddenHighlight: true
+			default: false
+			}
 		}
 
 		var isHidden: Bool {
-			self == .acceptedHidden || self == .acceptedHiddenHighlight
+			switch self {
+			case .acceptedHidden, .acceptedHiddenHighlight: true
+			default: false
+			}
+		}
+		
+		var priority: Int {
+			switch self {
+			case .rejected: 0
+			case .accepted(let priority): priority
+			case .acceptedHighlight(let priority): priority
+			case .acceptedHidden(let priority): priority
+			case .acceptedHiddenHighlight(let priority): priority
+			}
 		}
 	}
 
@@ -50,7 +85,7 @@ public class DragCoordinator: ObservableObject {
 		dragType = type
 		isDragging = true
 		acceptedDrop = false
-		currentDropTarget = nil
+		currentDropTargetID = nil
 		dropScale = 1.0
 		cancelledDrop = false
 		self.sourcePoint = sourcePoint
@@ -93,11 +128,17 @@ public class DragCoordinator: ObservableObject {
 	}
 	
 	func completeDrag() {
+		SuiteLogger.debug("Drag completed")
 		isDragging = false
 		dropPosition = nil
 		draggedObject = nil
 		dragType = nil
 		currentPosition = nil
+		startPosition = nil
+		draggedImage = nil
+		sourceFrame = nil
+		sourcePoint = .zero
+		dropScale = 1.0
 	}
 	
 	var currentTranslation: CGSize? {

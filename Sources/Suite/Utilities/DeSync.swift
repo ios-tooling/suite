@@ -7,14 +7,14 @@
 
 import Foundation
 
-public func desync<Output>(block: @escaping () async -> Output, completion: @escaping (Output) -> Void) {
+public func desync<Output: Sendable>(block: @Sendable @escaping () async -> Output, completion: @Sendable @escaping (Output) -> Void) {
 	Task {
 		let result = await block()
 		completion(result)
 	}
 }
 
-public func desync<Output>(block: @escaping () async throws -> Output, completion: @escaping (Result<Output, Error>) -> Void) {
+public func desync<Output: Sendable>(block: @Sendable @escaping () async throws -> Output, completion: @Sendable @escaping (Result<Output, Error>) -> Void) {
 	Task {
 		do {
 			let result = try await block()
@@ -25,11 +25,12 @@ public func desync<Output>(block: @escaping () async throws -> Output, completio
 	}
 }
 
+/*
 @available(OSX 12, iOS 15.0, tvOS 13, watchOS 8, *)
-public extension Publisher where Failure == Error  {
-	func convertToAsync<MyOutput>(block: @escaping (Output) async throws -> MyOutput) -> AnyPublisher<MyOutput, Error> {
+public extension Publisher where Failure == Error, Output: Sendable  {
+	func convertToAsync<MyOutput: Sendable>(block: @Sendable @escaping (Output) async throws -> MyOutput) -> AnyPublisher<MyOutput, Error> {
 		flatMap { (input: Output) -> AnyPublisher<MyOutput, Error> in
-			let future = Future<MyOutput, Error> { promise in
+			let future = Future<MyOutput, Error> { (promise: (Result<MyOutput, Error>) -> Void) in
 				Task {
 					do {
 						let result = try await block(input)
@@ -46,8 +47,8 @@ public extension Publisher where Failure == Error  {
 }
 
 @available(OSX 12, iOS 15.0, tvOS 13, watchOS 8, *)
-public extension Publisher where Failure == Never  {
-	func convertToAsync<MyOutput>(block: @escaping (Output) async -> MyOutput) -> AnyPublisher<MyOutput, Never> {
+public extension Publisher where Failure == Never, Output: Sendable  {
+	func convertToAsync<MyOutput: Sendable>(block: @Sendable @escaping (Output) async -> MyOutput) -> AnyPublisher<MyOutput, Never> {
 		flatMap { (input: Output) -> AnyPublisher<MyOutput, Never> in
 			let future = Future<MyOutput, Never> { promise in
 				Task {
@@ -60,9 +61,9 @@ public extension Publisher where Failure == Never  {
 		.eraseToAnyPublisher()
 	}
 }
-
+*/
 @available(OSX 12, iOS 15.0, tvOS 13, watchOS 8, *)
-public extension Publisher where Failure == Error  {
+public extension Publisher where Failure == Error, Output: Sendable  {
 	func asynchronize() async throws -> Output {
 		var cancellable: AnyCancellable!
 		var hasContinued = false

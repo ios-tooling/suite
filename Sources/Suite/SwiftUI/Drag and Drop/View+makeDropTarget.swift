@@ -7,10 +7,10 @@
 
 import SwiftUI
 
-extension CoordinateSpace {
-	static let dragAndDropSpaceName = "dragAndDropSpace" 
-	static var dragAndDropSpace = CoordinateSpace.named(Self.dragAndDropSpaceName)
-	static var dragAndDropSpaceCreatedNotification: Notification.Name { Notification.Name("dragAndDropSpaceCreatedNotification") }
+@MainActor extension CoordinateSpace {
+	static let dragAndDropSpaceName = "dragAndDropSpace"
+	static let dragAndDropSpace = CoordinateSpace.named(Self.dragAndDropSpaceName)
+	static let dragAndDropSpaceCreatedNotification = Notification.Name("dragAndDropSpaceCreatedNotification")
 }
 
 @available(OSX 13, iOS 15, tvOS 13, watchOS 8, *)
@@ -21,8 +21,8 @@ public typealias DragDroppedCallback = (String, Any, CGPoint, CGPoint) -> Bool
 
 @available(OSX 13, iOS 15, tvOS 13, watchOS 8, *)
 public extension View {
-	func makeDropTarget(types: [String], targetID: Any? = nil, showDropPoint: DeviceFilter = .debug, hover: @escaping DragHoverCallback = { _, _, _, _ in .accepted }, dropped: @escaping DragDroppedCallback) -> some View {
-		DropTargetView(content: self, types: types, targetID: targetID, showDropPoint: showDropPoint.matches, hover: hover, dropped: dropped)
+	func makeDropTarget(enabled: Bool = true, priority: Int = 0, dropTargetID: String, types: [String], showDropPoint: DeviceFilter = .debug, hover: DragHoverCallback? = nil, dropped: @escaping DragDroppedCallback) -> some View {
+		DropTargetView(enabled: enabled, content: self, types: types, dropTargetID: dropTargetID, priority: priority, showDropPoint: showDropPoint.matches, hover: hover ?? { _, _, _, _ in .accepted(priority) }, dropped: dropped)
 	}
 	
 	func dragAndDropCoordinateSpace() -> some View {
@@ -34,19 +34,21 @@ public extension View {
 
 @available(OSX 13, iOS 15, tvOS 13, watchOS 8, *)
 struct DropTargetView<Content: View>: View {
+	var enabled: Bool = true
 	let content: Content
 	let types: [String]
-	let targetID: Any?
+	let dropTargetID: String
+	let priority: Int
 	let showDropPoint: Bool
 	let hover: DragHoverCallback
 	let dropped: DragDroppedCallback
-
+	
 	@EnvironmentObject var dragCoordinator: DragCoordinator
 	@Environment(\.isDragAndDropEnabled) var isDragAndDropEnabled
 	@State var frame: CGRect?
-	@State var isDropTarget = false
+	var isDropTarget: Bool { dragCoordinator.currentDropTargetID == dropTargetID }
 	@State var dropPoint: CGPoint?
-
+	
 	func convert(point: CGPoint?, using geo: GeometryProxy) -> CGPoint? {
 		guard let point, let frame else { return point }
 		
@@ -58,20 +60,20 @@ struct DropTargetView<Content: View>: View {
 	let dropIndicatorSize = 30.0
 	
 	var body: some View {
-		if isDragAndDropEnabled {
-			ZStack(alignment: .topLeading) {
-				content
-				if showDropPoint, let dropPoint {
-					Circle()
-						.fill(Color(white: 0.5).opacity(0.5))
-						.frame(width: dropIndicatorSize, height: dropIndicatorSize)
-						.offset(x: dropPoint.x - dropIndicatorSize / 2, y: dropPoint.y - dropIndicatorSize / 2)
-				}
+		ZStack(alignment: .topLeading) {
+			content
+			if showDropPoint, let dropPoint {
+				Circle()
+					.fill(Color(white: 0.5).opacity(0.5))
+					.frame(width: dropIndicatorSize, height: dropIndicatorSize)
+					.offset(x: dropPoint.x - dropIndicatorSize / 2, y: dropPoint.y - dropIndicatorSize / 2)
 			}
-				.background {
-					GeometryReader { geo in
-						Color.clear
-							.onAppear { frame = geo.frame(in: .dragAndDropSpace) }
+		}
+		.background {
+			if isDragAndDropEnabled, enabled {
+				GeometryReader { geo in
+					Color.clear
+						.onAppear { frame = geo.frame(in: .dragAndDropSpace) }
 						#if os(visionOS)
 							.onChange(of: dragCoordinator.currentPosition) { currentPositionChanged(to: dragCoordinator.currentPosition, using: geo) }
 							.onChange(of: dragCoordinator.dropPosition) { dropPositionChanged(to: dragCoordinator.dropPosition, using: geo) }
@@ -79,20 +81,19 @@ struct DropTargetView<Content: View>: View {
 							.onChange(of: dragCoordinator.currentPosition) { newPosition in currentPositionChanged(to: newPosition, using: geo) }
 							.onChange(of: dragCoordinator.dropPosition) { dropPoint in dropPositionChanged(to: dropPoint, using: geo) }
 						#endif
-					}
-					.border(Color.red, width: dragCoordinator.dragAcceptance.showAccepted ? 4 : 0)
 				}
-		} else {
-			content
+				.border(Color.red, width: dragCoordinator.dragAcceptance.showAccepted ? 4 : 0)
+			}
 		}
 	}
+
 	
 	func dropPositionChanged(to dropPoint: CGPoint?, using geo: GeometryProxy) {
 		guard let dropPoint = convert(point: dropPoint, using: geo) else { return }
 		if let point = dropPosition(at: dropPoint), let type = dragCoordinator.dragType, let object = dragCoordinator.draggedObject {
 			if dropped(type, object, point, dragCoordinator.sourcePoint) {
 				dragCoordinator.acceptedDrop = true
-				dragCoordinator.currentDropTarget = targetID
+				dragCoordinator.currentDropTargetID = dropTargetID
 			}
 		}
 	}
@@ -106,14 +107,20 @@ struct DropTargetView<Content: View>: View {
 		if dragCoordinator.cancelledDrop {
 			_ = hover(type, object, nil, dragCoordinator.sourcePoint)
 		} else if let point = dropPosition(at: dragPosition) {
+			if dragCoordinator.dragAcceptance.priority > priority {
+				_ = hover(type, object, nil, dragCoordinator.sourcePoint)
+				return
+			}
 			if showDropPoint { dropPoint = point }
-			isDropTarget = true
+			dragCoordinator.currentDropTargetID = dropTargetID
 			dragCoordinator.dragAcceptance = hover(type, object, point, dragCoordinator.sourcePoint)
 		} else if isDropTarget || dropPoint != nil {
 			_ = hover(type, object, nil, dragCoordinator.sourcePoint)
-			isDropTarget = false
-			dragCoordinator.dragAcceptance = .rejected
-			dropPoint = nil
+			if dragCoordinator.currentDropTargetID == dropTargetID {
+				dragCoordinator.currentDropTargetID = nil
+				dragCoordinator.dragAcceptance = .rejected
+				dropPoint = nil
+			}
 		}
 	}
 

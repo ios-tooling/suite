@@ -8,7 +8,7 @@
 import SwiftUI
 
 public enum DragPhase: Equatable {
-	case idle, starting, dropped(Any?), cancelled
+	case idle, starting, dropped(String), cancelled
 		
 	public static func ==(lhs: Self, rhs: Self) -> Bool {
 		switch (lhs, rhs) {
@@ -24,9 +24,9 @@ public typealias DropPhaseChangedCallback = (@Sendable (DragPhase) -> Void)
 
 @available(OSX 13, iOS 15, tvOS 13, watchOS 9, *)
 public extension View {
-	@ViewBuilder func makeDraggable(type: String, object: Any, hideWhenDragging: Bool = true, draggedOpacity: Double = 1.0, phaseChanged:  DropPhaseChangedCallback? = nil) -> some View {
+	@ViewBuilder func makeDraggable(enabled: Bool = true, type: String, object: Any, hideWhenDragging: Bool = true, draggedOpacity: Double = 1.0, phaseChanged:  DropPhaseChangedCallback? = nil) -> some View {
 		if #available(iOS 16, *) {
-			DraggableView(content: self, type: type, object: object, hideWhenDragging: hideWhenDragging, draggedOpacity: draggedOpacity, phaseChanged: phaseChanged)
+			DraggableView(enabled: enabled, content: self, type: type, object: object, hideWhenDragging: hideWhenDragging, draggedOpacity: draggedOpacity, phaseChanged: phaseChanged)
 		} else {
 			self
 		}
@@ -35,6 +35,7 @@ public extension View {
 
 @available(OSX 13, iOS 16, tvOS 13, watchOS 9, *)
 struct DraggableView<Content: View>: View {
+	var enabled = true
 	let content: Content
 	let type: String
 	let object: Any
@@ -45,6 +46,7 @@ struct DraggableView<Content: View>: View {
 	@EnvironmentObject var dragCoordinator: DragCoordinator
 	@Environment(\.isDragAndDropEnabled) var isDragAndDropEnabled
 	@Environment(\.isScrolling) var isScrolling
+	@GestureState var offset: CGSize = .zero
 	@State var frame: CGRect?
 	@State var isDragging = false
 	@Environment(\.dragCoordinatorSnapbackDuration) var snapbackDuration
@@ -64,7 +66,7 @@ struct DraggableView<Content: View>: View {
 						dragCoordinator.currentPosition = nil
 						dragCoordinator.cancelledDrop = true
 						dragCoordinator.drop(at: nil)
-						phaseChanged?(false)
+						phaseChanged?(.cancelled)
 					}
 				}
 			#else
@@ -91,26 +93,33 @@ struct DraggableView<Content: View>: View {
 	
 	private var dragGesture: some Gesture {
 		DragGesture(coordinateSpace: .dragAndDropSpace)
-			.onChanged { action in
+			.updating($offset) { value, offset, transaction in
+				if !enabled { return }
+				offset = value.translation
 				if !isDragging {
 					phaseChanged?(.starting)
 					isDragging = true
 					let renderer = ImageRenderer(content: dragContent())
 					var sourcePoint: CGPoint = .zero
 					if let frame {
-						sourcePoint = CGPoint(x: action.location.x - frame.minX, y: action.location.y - frame.minY)
+						sourcePoint = CGPoint(x: value.location.x - frame.minX, y: value.location.y - frame.minY)
 					} else {
 						sourcePoint = .zero
 					}
-					dragCoordinator.startDragging(at: action.location, source: frame, sourcePoint: sourcePoint, type: type, object: object, image: renderer.dragImage)
+					dragCoordinator.startDragging(at: value.location, source: frame, sourcePoint: sourcePoint, type: type, object: object, image: renderer.dragImage)
 				}
-				dragCoordinator.currentPosition = action.location
+				dragCoordinator.currentPosition = value.location
 			}
 			.onEnded { action in
+				if !enabled { return }
 				Task {
 					try? await Task.sleep(for: .seconds(snapbackDuration))
 					isDragging = false
-					phaseChanged?(dragCoordinator.acceptedDrop ? .dropped(dragCoordinator.currentDropTarget) : .cancelled)
+					if dragCoordinator.acceptedDrop, let targetID = dragCoordinator.currentDropTargetID {
+						phaseChanged?(.dropped(targetID))
+					} else {
+						phaseChanged?(.cancelled)
+					}
 				}
 				dragCoordinator.drop(at: action.location)
 			}

@@ -11,7 +11,7 @@
 import WidgetKit
 
 @available(iOS 14.0, macOS 11.0, watchOS 9.0, *)
-public extension WidgetFamily {
+@MainActor public extension WidgetFamily {
 	#if os(macOS)
 		var size: CGSize {
 			return CGSize(width: 170, height: 170)

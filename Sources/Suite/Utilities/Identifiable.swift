@@ -32,19 +32,19 @@ public extension Array where Element: Identifiable {
 	}
 }
 
-extension String: Identifiable {
+extension String: @retroactive Identifiable {
 	public var id: Self { self }
 }
 
-extension Int: Identifiable {
+extension Int: @retroactive Identifiable {
 	public var id: Self { self }
 }
 
-extension Double: Identifiable {
+extension Double: @retroactive Identifiable {
 	public var id: Self { self }
 }
 
-extension Float: Identifiable {
+extension Float: @retroactive Identifiable {
 	public var id: Self { self }
 }
 #endif
