@@ -42,9 +42,7 @@ struct SimpleWebViewAccessor<Content: View>: View {
 	
 	var body: some View {
 		content
-			.onPreferenceChange(SimpleWebViewPreferenceKey.self, perform: { webView in
-				Task { @MainActor in self.webView = webView }
-			})
+			.onPreferenceChange(SimpleWebViewPreferenceKey.self) { [$webView] newView in $webView.wrappedValue = newView }
 			.onChange(of: webView) { newValue in
 				if let newValue {
 					callback(newValue)
