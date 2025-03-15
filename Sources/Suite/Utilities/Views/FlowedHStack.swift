@@ -57,7 +57,7 @@ public struct FlowedHStack<Element: FlowedHStackElement, ElementView: View>: Vie
 	@State private var elementSizes: [CGSize] = []
 	
 	func layout(sizes: [CGSize], spacing proposedSpacing: CGSize? = nil) -> [CGPoint] {
-		if availableWidth == 0.0 { return [] }
+		if availableWidth == 0.0 || sizes.isEmpty { return [] }
 		let spacing = proposedSpacing ?? .init(width: horizontalSpacing, height: verticalSpacing)
 		var rows: [[CGSize]] = []
 		var origins: [CGPoint] = []
@@ -121,7 +121,7 @@ public struct FlowedHStack<Element: FlowedHStackElement, ElementView: View>: Vie
 					//.border(Color.gray, width: 0.5)
 				}
 			}
-			.onPreferenceChange(FlowSizeKey.self) { sizes in Task { @MainActor in elementSizes = sizes } }
+			.onPreferenceChange(FlowSizeKey.self) { [$elementSizes] sizes in $elementSizes.wrappedValue = sizes }
 			.frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
 		}
 		//.border(Color.red)

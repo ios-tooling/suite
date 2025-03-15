@@ -31,8 +31,8 @@ struct PresentationDetentSizeToFit<Content: View>: View {
 					Color.clear.preference(key: PreferenceValues.GeneratedPreferenceKey_detentHeight.self, value: geo.size.height)
 				}
 			}
-			.onPreferenceChange(PreferenceValues.GeneratedPreferenceKey_detentHeight.self) { newHeight in
-				Task { @MainActor in sheetHeight = newHeight }
+			.onPreferenceChange(PreferenceValues.GeneratedPreferenceKey_detentHeight.self) { [$sheetHeight] newHeight in
+				$sheetHeight.wrappedValue = newHeight
 			}
 			.presentationDetents([.height(sheetHeight)])
 
