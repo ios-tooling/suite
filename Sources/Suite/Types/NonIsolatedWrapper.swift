@@ -20,7 +20,7 @@ public final class NonIsolatedWrapper<Value: Sendable>: Sendable {
 
     }
 
-    public nonisolated(unsafe) var value: Value {
+    public nonisolated var value: Value {
         get {
             os_unfair_lock_lock(lock)
             let v = _value
