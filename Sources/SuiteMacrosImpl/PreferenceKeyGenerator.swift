@@ -36,7 +36,7 @@ public enum PreferenceKeyGenerator: DeclarationMacro {
 """
 struct \(raw: keyTypeName): PreferenceKey {
 \(raw: defaultClause == nil ? "" : defaultClause!)
-static func reduce(value: inout \(raw: keyType), nextValue: () -> \(raw: keyType)) {
+public static func reduce(value: inout \(raw: keyType), nextValue: () -> \(raw: keyType)) {
 		preferenceReduce(value: &value, nextValue: nextValue)
 	}
 }
