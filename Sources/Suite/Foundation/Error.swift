@@ -22,6 +22,8 @@ public extension Error {
 	}
 	
 	var isCancellation: Bool {
+        if self is CancellationError { return true }
+        
 		let error = self as NSError
 		
 		return error.code == 1001

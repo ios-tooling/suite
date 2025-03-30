@@ -7,13 +7,14 @@
 
 import Foundation
 
-indirect enum AppSettingsType { case string, bool, integer, double, data, date, other(String), optional(AppSettingsType)
+indirect enum AppSettingsType { case string, bool, integer, double, float, data, date, other(String), optional(AppSettingsType)
 	var declaration: String {
 		switch self {
 		case .string: "String"
 		case .bool: "Bool"
 		case .integer: "Int"
 		case .double: "Double"
+		case .float: "Float"
 		case .data: "Data"
 		case .date: "Date"
 		case .other(let name): "\(name)"
@@ -34,6 +35,7 @@ indirect enum AppSettingsType { case string, bool, integer, double, data, date, 
 		case .bool: "bool"
 		case .integer: "int"
 		case .double: "double"
+		case .float: "float"
 		case .data: "data"
 		case .date: "date"
 		case .optional(let kind): kind.accessorName
@@ -47,6 +49,7 @@ indirect enum AppSettingsType { case string, bool, integer, double, data, date, 
 		case .bool: "setBool"
 		case .integer: "setInt"
 		case .double: "setDouble"
+		case .float: "setFloat"
 		case .data: "setData"
 		case .date: "setDate"
 		case .optional(let kind): kind.setterName
@@ -62,6 +65,7 @@ indirect enum AppSettingsType { case string, bool, integer, double, data, date, 
 		case "Bool": self = .bool
 		case "Int": self = .integer
 		case "Double": self = .double
+		case "Float": self = .float
 		case "Data": self = .data
 		case "Date": self = .date
 		default: self = .other(rawValue)

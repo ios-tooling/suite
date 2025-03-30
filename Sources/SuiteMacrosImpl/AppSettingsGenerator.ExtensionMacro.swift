@@ -33,7 +33,7 @@ extension AppSettingsGenerator: ExtensionMacro {
 		 */
 
 		results.append(try userDefaultsDecl(type: type, suiteName: node.arguments?.trimmedDescription))
-		results.append(try ExtensionDeclSyntax("extension \(type.trimmed): ObservableObject, UserDefaultsContainer {}"))
+		results.append(try ExtensionDeclSyntax("extension \(type.trimmed): UserDefaultsContainer {}"))
 
 //		context.diagnose(Diagnostic(node: node, message: MacroFeedback.message(node.arguments!.trimmedDescription.debugDescription ?? "--")))
 		return results

@@ -20,7 +20,7 @@ public enum PreferenceKeyGenerator: DeclarationMacro {
 	  }
 	  
 	  guard let keyType = type(from: node) else {
-		  context.diagnose(Diagnostic(node: Syntax(node), message: MacroFeedback.error("Please provide a type for this key (as a raw type).")))
+		  context.diagnose(Diagnostic(node: Syntax(node), message: MacroFeedback.error("Please provide a type for this key.")))
 		  return []
 	  }
 
@@ -52,7 +52,11 @@ var \(raw: keyName): \(raw: keyTypeName).Type {
 		
 		guard let segment = args[args.index(after: args.startIndex)].as(LabeledExprSyntax.self)?.expression else { return nil }
 		
-		return segment.description
+        let typeString = segment.description
+        if typeString.hasSuffix(".self") {
+            return String(typeString.prefix(typeString.count - 5))
+        }
+		return typeString
 	}
 	
 	static func defaultValue(from node: some FreestandingMacroExpansionSyntax) -> String? {

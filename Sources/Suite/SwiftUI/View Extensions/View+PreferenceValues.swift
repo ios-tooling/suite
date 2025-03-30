@@ -51,7 +51,7 @@ public extension View {
 		return self.preference(key: key, value: BlockWrapper(block: value))
 	}
 	
-	func getPreference<K: PreferenceKey, V: Equatable>(_ keyPath: KeyPath<PreferenceValues, K.Type>, _ perform: @Sendable @escaping (V) -> Void) -> some View where K.Value == V {
+    func getPreference<K: PreferenceKey>(_ keyPath: KeyPath<PreferenceValues, K.Type>, _ perform: @Sendable @escaping (K.Value) -> Void) -> some View where K.Value : Equatable {
 		
 		let key = PreferenceValues.instance[keyPath: keyPath]
 		return self.onPreferenceChange(key, perform: perform)

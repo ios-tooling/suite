@@ -161,8 +161,8 @@ struct SizeOverlay: View {
 				Color.clear
 					.preference(key: SizePreferenceKey.self, value: geo.size)
 			}
-			.onPreferenceChange(SizePreferenceKey.self) { newSize in
-				Task { @MainActor in size = newSize }
+			.onPreferenceChange(SizePreferenceKey.self) { [$size] newSize in
+				$size.wrappedValue = newSize
 			}
 			
 			if let size = size {
@@ -216,8 +216,8 @@ struct PositionOverlay: View {
 				Color.clear
 					.preference(key: FramePreferenceKey.self, value: geo.frame(in: coordinateSpace))
 			}
-			.onPreferenceChange(FramePreferenceKey.self) { newFrame in
-				Task { @MainActor in viewFrame = newFrame }
+			.onPreferenceChange(FramePreferenceKey.self) { [$viewFrame] newFrame in
+				$viewFrame.wrappedValue = newFrame
 			}
 			
 			if let frame = viewFrame {

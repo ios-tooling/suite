@@ -18,7 +18,7 @@ public extension View {
 }
 
 extension PreferenceValues {
-	#GeneratedPreferenceKey(name: "equalSizeSizes", type: [CGSize], defaultValue: [])
+    #GeneratedPreferenceKey(name: "equalSizeSizes", type: [CGSize].self, defaultValue: [])
 }
 
 extension EnvironmentValues {
@@ -47,7 +47,7 @@ struct EqualSizeModifier: ViewModifier {
 	func body(content: Content) -> some View {
 		content
 			.sizeReporting($reportedSize)
-			.setPreference(\.equalSizeSizes, [reportedSize])
+            .setPreference(\.equalSizeSizes, [reportedSize])
 			.frame(width: axis.contains(.horizontal) ? enforcedSize?.width : nil, height: axis.contains(.vertical) ? enforcedSize?.height : nil, alignment: alignment)
 	}
 }
@@ -57,9 +57,9 @@ struct EqualSizedChildrenModifier: ViewModifier {
 	
 	func body(content: Content) -> some View {
 		content
-			.getPreference(\.equalSizeSizes) { sizes in
-				Task { @MainActor in reportedSubviewSizes = sizes }
-			}
+            .getPreference(\.equalSizeSizes.self) { sizes in
+                Task { @MainActor in reportedSubviewSizes = sizes }
+            }
 			.environment(\.enforcedSize, reportedSubviewSizes.maxSize)
 	}
 }
