@@ -6,8 +6,9 @@
 //
 
 import Foundation
+import SwiftUI
 
-public protocol UserDefaultsContainer {
+public protocol UserDefaultsContainer: ObservableObject {
 	nonisolated var userDefaults: UserDefaults { get }
 }
 

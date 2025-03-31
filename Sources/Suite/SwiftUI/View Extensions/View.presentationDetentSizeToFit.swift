@@ -15,7 +15,7 @@ public extension View {
 }
 
 fileprivate extension PreferenceValues {
-	#GeneratedPreferenceKey(name: "detentHeight", type: CGFloat, defaultValue: 0.0)
+    #GeneratedPreferenceKey(name: "detentHeight", type: CGFloat.self, defaultValue: 0.0)
 }
 
 @available(iOS 16.0, macOS 14, watchOS 9, *)
@@ -28,12 +28,12 @@ struct PresentationDetentSizeToFit<Content: View>: View {
 		content()
 			.background {
 				GeometryReader { geo in
-					Color.clear.preference(key: PreferenceValues.GeneratedPreferenceKey_detentHeight.self, value: geo.size.height)
+                    Color.clear.setPreference(\.detentHeight, geo.size.height)
 				}
 			}
-			.onPreferenceChange(PreferenceValues.GeneratedPreferenceKey_detentHeight.self) { [$sheetHeight] newHeight in
-				$sheetHeight.wrappedValue = newHeight
-			}
+            .getPreference(\.detentHeight) { [$sheetHeight] newHeight in
+                $sheetHeight.wrappedValue = newHeight
+            }
 			.presentationDetents([.height(sheetHeight)])
 
 	}

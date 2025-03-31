@@ -19,7 +19,7 @@ public macro GeneratedPreferenceKey<V>(name: String, type: V.Type, defaultValue:
 public macro NonisolatedContainer(observing: Bool = false) = #externalMacro(module: "SuiteMacrosImpl", type: "NonisolatedContainerGenerator")
 
 //@attached(member, names: arbitrary)
-@attached(extension, names: arbitrary, conformances: UserDefaultsContainer & ObservableObject)
+@attached(extension, names: arbitrary, conformances: UserDefaultsContainer)
 public macro AppSettings(_ group: String? = nil) = #externalMacro(module: "SuiteMacrosImpl", type: "AppSettingsGenerator")
 
 @attached(accessor)
