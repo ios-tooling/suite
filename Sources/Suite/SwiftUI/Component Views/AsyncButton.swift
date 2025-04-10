@@ -79,7 +79,7 @@ extension AsyncButton where Label == AsyncButtonLabel, Busy == AsyncButtonBusyLa
 	public init(_ title: LocalizedStringKey? = nil, systemImage: String? = nil, spinnerScale: Double = 1.0, action: @MainActor @escaping () async throws -> Void) {
 		self.action = action
 		self.label = { AsyncButtonLabel(title: title, systemImage: systemImage) }
-		self.busy = { AsyncButtonBusyLabel(spinnerScale: spinnerScale) }
+        self.busy = { AsyncButtonBusyLabel(title: title, spinnerScale: spinnerScale) }
 	}
 }
 
@@ -89,7 +89,7 @@ extension AsyncButton where Label == AsyncButtonLabel, Busy == AsyncButtonBusyLa
 		self.action = action
 		self.role = role
 		self.label = { AsyncButtonLabel(title: title, systemImage: systemImage) }
-		self.busy = { AsyncButtonBusyLabel(spinnerScale: spinnerScale) }
+		self.busy = { AsyncButtonBusyLabel(title: title, spinnerScale: spinnerScale) }
 	}
 }
 
@@ -99,7 +99,7 @@ extension AsyncButton where Busy == AsyncButtonBusyLabel {
 		self.action = action
 		self.role = role
 		self.label = label
-		self.busy = { AsyncButtonBusyLabel(spinnerScale: spinnerScale) }
+		self.busy = { AsyncButtonBusyLabel(title: nil, spinnerScale: spinnerScale) }
 	}
 }
 
@@ -120,6 +120,7 @@ public struct AsyncButtonLabel: View {
 }
 
 public struct AsyncButtonBusyLabel: View {
+	let title: LocalizedStringKey?
 	var spinnerColor = Color.white
 	var spinnerScale: Double
 
