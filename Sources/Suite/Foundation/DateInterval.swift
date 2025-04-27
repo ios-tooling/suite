@@ -58,6 +58,29 @@ public extension Array where Element == DateInterval {
 }
 
 @available(iOS 10.0, watchOS 5.0, *)
+extension DateInterval: @retroactive RawRepresentable {
+	static let separator = "/"
+	public init?(rawValue: String) {
+		let components = rawValue.components(separatedBy: Self.separator)
+		if components.count != 2 { return nil }
+		let formatter = ISO8601DateFormatter()
+		
+		guard let startDate = formatter.date(from: components[0]),
+				let endDate = formatter.date(from: components[1]) else { return nil }
+			
+		self = .init(start: startDate, end: endDate)
+	}
+	
+	public var rawValue: String {
+		let formatter = ISO8601DateFormatter()
+		
+		return "\(formatter.string(from: start))\(Self.separator)\(formatter.string(from: end))"
+	}
+	
+
+}
+
+@available(iOS 10.0, watchOS 5.0, *)
 public extension DateInterval {
 	func contains(_ interval: DateInterval) -> Bool {
 		start <= interval.start && end >= interval.end
