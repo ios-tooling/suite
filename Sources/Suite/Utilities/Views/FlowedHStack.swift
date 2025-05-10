@@ -41,7 +41,7 @@ public struct FlowSizeKey: PreferenceKey {
 }
 
 public struct FlowedHStack<Element: FlowedHStackElement, ElementView: View>: View {
-	public init(_ elements: [Element], hSpacing: Double = 2, vSpacing: Double = 2, content: @escaping (Element) -> ElementView) {
+	public init(_ elements: [Element], hSpacing: Double = 2, vSpacing: Double = 2, @ViewBuilder content: @escaping (Element) -> ElementView) {
 		self.elements = elements
 		horizontalSpacing = hSpacing
 		verticalSpacing = vSpacing

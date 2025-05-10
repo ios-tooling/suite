@@ -18,7 +18,9 @@ public extension ProcessInfo {
 
 	static func int(for key: String) -> Int? {
 		guard let raw = self.string(for: key) else { return nil }
-		return Int(raw.numbersOnly)
+		guard let number = Int(raw.numbersOnly) else { return nil }
+		if raw.hasPrefix("-") { return number * -1 }
+		return number
 	}
 
 	static func uint64(for key: String) -> UInt64? {
