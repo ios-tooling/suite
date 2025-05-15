@@ -99,7 +99,13 @@ public extension Date {
 		public var mdyString: String { mdyString() }
 
 		public func dmyString(_ delim: String = "/") -> String { "\(day)\(delim)\(month.rawValue)\(delim)\(year)" }
-		public func ymdString(_ delim: String = "/") -> String { "\(year)\(delim)\(month.rawValue)\(delim)\(day)" }
+		public func ymdString(_ delim: String = "/", useLeadingZeros: Bool = false) -> String {
+			if useLeadingZeros {
+				String(format: "\(year)\(delim)%02d\(delim)%02d", month.rawValue, day)
+			} else {
+				"\(year)\(delim)\(month.rawValue)\(delim)\(day)"
+			}
+		}
 		public func mdyString(_ delim: String = "/") -> String { "\(month.rawValue)\(delim)\(day)\(delim)\(year)" }
 
 		public func dmString(_ delim: String = "/") -> String { "\(day)\(delim)\(month.rawValue)" }
