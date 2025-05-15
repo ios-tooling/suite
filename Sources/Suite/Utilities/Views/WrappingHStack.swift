@@ -8,7 +8,7 @@
 import SwiftUI
 
 
-@available(iOS 16.0, *)
+@available(iOS 16.0, macOS 13, watchOS 10, tvOS 16.0, *)
 public struct WrappingHStack: Layout {
 	public struct CacheStorage {
 		
