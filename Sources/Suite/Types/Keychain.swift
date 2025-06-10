@@ -95,7 +95,7 @@ public actor Keychain {
 		
 		query = self.addAccessGroupWhenPresent(query)
 		query = self.addSynchronizableIfRequired(query, addingItems: true)
-		lastQueryParameters = query
+		lastQueryParameters.send(query)
 		
 		lastResultCode = SecItemAdd(query as CFDictionary, nil)
 		
@@ -185,7 +185,7 @@ public actor Keychain {
 			
 			query = self.addAccessGroupWhenPresent(query)
 			query = self.addSynchronizableIfRequired(query, addingItems: false)
-			lastQueryParameters = query
+			lastQueryParameters.send(query)
 			
 			var result: AnyObject?
 			
@@ -231,7 +231,7 @@ public actor Keychain {
 		
 		query = self.addAccessGroupWhenPresent(query)
 		query = self.addSynchronizableIfRequired(query, addingItems: false)
-		lastQueryParameters = query
+		lastQueryParameters.send(query)
 		
 		lastResultCode = SecItemDelete(query as CFDictionary)
 		
@@ -249,7 +249,7 @@ public actor Keychain {
 		var query: [String: Any] = [ kSecClass as String: kSecClassGenericPassword ]
 		query = self.addAccessGroupWhenPresent(query)
 		query = self.addSynchronizableIfRequired(query, addingItems: false)
-		lastQueryParameters = query
+		lastQueryParameters.send(query)
 		
 		lastResultCode = SecItemDelete(query as CFDictionary)
 		
@@ -286,7 +286,7 @@ public actor Keychain {
 		return result
 	}
 	
-	static var lastQueryParameters: [String: Any]? // Used by tests
+	static let lastQueryParameters: CurrentValueSubject<[String: Any]?, Never> = .init(nil) // Used by tests
 }
 
 extension Keychain {
