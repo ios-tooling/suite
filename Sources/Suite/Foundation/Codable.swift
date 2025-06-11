@@ -169,24 +169,6 @@ extension String {
 	}
 }
 
-public extension JSONEncoder {
-	static let `default`: JSONEncoder = {
-		let encoder = JSONEncoder()
-		encoder.outputFormatting = [ .withoutEscapingSlashes, .prettyPrinted, .sortedKeys ]
-		return encoder
-	}()
-}
-
-@available(iOS 10.0, *)
-public extension JSONEncoder {
-	static let iso8601Encoder: JSONEncoder = {
-		let encoder = JSONEncoder.default
-		
-		encoder.dateEncodingStrategy = .iso8601
-		return encoder
-	}()
-}
-
 public extension JSONDecoder {
 	static let `default` = JSONDecoder()
 	
