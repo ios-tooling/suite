@@ -256,6 +256,10 @@ public extension Date {
 			return Time.lastSecond.timeInterval(since: other) + self.timeInterval(since: .midnight)
 		}
 		
+		public static var now: Date.Time {
+			.init(timeInterval: Date().timeIntervalSince(Date().midnight))
+		}
+		
 		public init(timeInterval: TimeInterval) {
 			hour = Int(timeInterval / 3600) % 24
 			minute = Int(timeInterval / 60) % 60
