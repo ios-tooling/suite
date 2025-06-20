@@ -20,9 +20,13 @@ public struct SeededRandomNumberGenerator: RandomNumberGenerator {
 	}
 	
 	public init(seed: Int = Int(Date().timeIntervalSinceReferenceDate)) {
+		if seed == 0 { print("Seeding a zero generator") }
 		self.mersenne = GKMersenneTwisterRandomSource(seed: UInt64(seed))
 	}
 	
+	public var isZeroGenerator: Bool {
+		mersenne.seed == 0
+	}
 }
 
 #endif
