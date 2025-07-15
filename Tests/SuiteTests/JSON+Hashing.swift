@@ -25,9 +25,9 @@ struct Test {
 		 let testDict1 = testJSON1.data(using: .utf8)!.jsonDictionary!
 		 let testDict2 = testJSON2.data(using: .utf8)!.jsonDictionary!
 //		 let testDict3 = try testStruct.asJSON()
-		 let testHash1 = testDict1.stableMD5
-		 let testHash2 = testDict2.stableMD5
-		 let testHash3 = testStruct.stableMD5()
+		 let testHash1 = try testDict1.stableMD5
+		 let testHash2 = try testDict2.stableMD5
+		 let testHash3 = try testStruct.stableMD5()
 
 		 #expect(testHash1 == testHash3)
 		 #expect(testHash1 == testHash2)

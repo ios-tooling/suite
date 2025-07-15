@@ -27,26 +27,13 @@ public func isEqual(_ lhs: Any, _ rhs: Any) -> Bool {
 		return true
 	}
 	
-	func f<LHS>(lhs: LHS) -> Bool {
-		if let typeInfo = WrappedAnyEquatable<LHS>.self as? AnyEquatable.Type {
-			return typeInfo.isEqual(lhs: lhs, rhs: rhs)
-		}
-		return false
+	if let eq = lhs as? any Equatable {
+		return checkEquality(eq, rhs)
 	}
-	return _openExistential(lhs, do: f)
+	return false
 }
 
-public protocol AnyEquatable {
-	static func isEqual(lhs: Any, rhs: Any) -> Bool
-}
-
-public enum WrappedAnyEquatable<T> { }
-
-extension WrappedAnyEquatable: AnyEquatable where T: Equatable {
-	public static func isEqual(lhs: Any, rhs: Any) -> Bool {
-		guard let l = lhs as? T, let r = rhs as? T else {
-			return false
-		}
-		return l == r
-	}
+func checkEquality<T: Equatable>(_ lhs: T, _ rhs: Any) -> Bool {
+	if let r = rhs as? T { return r == lhs }
+	return false
 }

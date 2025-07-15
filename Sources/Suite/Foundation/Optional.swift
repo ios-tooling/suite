@@ -9,8 +9,8 @@ import Foundation
 
 public extension Optional where Wrapped: Comparable {
 	static func <(lhs: Wrapped?, rhs: Wrapped?) -> Bool {
-		guard let lh = lhs else { return false }
-		guard let rh = rhs else { return true }
+		guard let lh = lhs else { return true }
+		guard let rh = rhs else { return false }
 		return lh < rh
 	}
 }
