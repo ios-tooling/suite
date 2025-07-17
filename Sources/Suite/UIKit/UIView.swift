@@ -36,11 +36,7 @@ public extension UIView {
 	#if !os(visionOS)
 		@available(iOSApplicationExtension, unavailable)
 		static var frontSafeAreaInsets: UIEdgeInsets {
-			if #available(iOS 13.0, *) {
-				return UIApplication.shared.currentScene?.frontWindow?.rootViewController?.view.safeAreaInsets ?? .zero
-			} else {
-				return UIApplication.shared.keyWindow?.rootViewController?.view.safeAreaInsets ?? .zero
-			}
+			UIApplication.shared.currentScene?.frontWindow?.rootViewController?.view.safeAreaInsets ?? .zero
 		}
 	#endif
 
@@ -75,12 +71,7 @@ public extension UIView {
 				return spinner
 			}
 			
-			let spinner: UIActivityIndicatorView
-			if #available(iOS 13.0, *) {
-				spinner = UIActivityIndicatorView(style: .medium)
-			} else {
-				spinner = UIActivityIndicatorView(style: .white)
-			}
+			let spinner = UIActivityIndicatorView(style: .medium)
 			spinner.color = color
 			spinner.tag = UIView.activityIndicatorTag
 			spinner.translatesAutoresizingMaskIntoConstraints = false
