@@ -12,13 +12,11 @@ import Combine
 	public var target: Content!
 	var cancellable: AnyCancellable?
 	
-	public init(_ target: @escaping () async -> Content) {
-		Task {
-			self.target = await target()
-			
-			cancellable = self.target?.objectWillChange.sink { [weak self] _ in
-				self?.objectWillChange.send()
-			}
+	@MainActor public init(_ target: @escaping () async -> Content) async {
+		self.target = await target()
+		
+		cancellable = self.target?.objectWillChange.sink { [weak self] _ in
+			self?.objectWillChange.send()
 		}
 	}
 }

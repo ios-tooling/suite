@@ -52,6 +52,9 @@ public struct ButtonIsPerformingActionKey: PreferenceKey {
 	
 	func performAction() {
 		isPerformingAction = true
+		let action = action
+		let isPerformingAction = _isPerformingAction
+		
 		Task.detached {
 			do {
 				try await action()
@@ -60,7 +63,7 @@ public struct ButtonIsPerformingActionKey: PreferenceKey {
 					SuiteLogger.warning("AsyncButton action failed \(error, privacy: .public)")
 				}
 			}
-			await MainActor.run { isPerformingAction = false }
+			await MainActor.run { isPerformingAction.wrappedValue = false }
 		}
 	}
 	

@@ -72,7 +72,8 @@ public extension View {		// Tracks the size available for the view
 			})
 	}
 	
-	@ViewBuilder func frameReporting<Key: Hashable>(_ frames: Binding<[Key: CGRect]>, key: Key, in space: CoordinateSpace = .global, firstTimeOnly: Bool = false) -> some View {
+	@ViewBuilder func frameReporting<Key: Hashable & Sendable>(_ frames: Binding<[Key: CGRect]>, key: Key, in space: CoordinateSpace = .global, firstTimeOnly: Bool = false) -> some View {
+		
 		self
 			.background(GeometryReader() { geo -> Color in
 				let rect = geo.frame(in: space)
