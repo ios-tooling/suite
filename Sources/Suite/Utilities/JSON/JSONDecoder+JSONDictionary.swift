@@ -7,8 +7,6 @@
 
 import Foundation
 
-enum JSONDecodingError: Error, Sendable { case invalidKey, noJSONValueFound }
-
 extension KeyedDecodingContainer where K == JSONCodingKey {
 	func decodeJSONDictionary(dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .iso8601) throws -> [String: Sendable] {
 		var results: [String: Sendable] = [:]
@@ -50,7 +48,7 @@ extension KeyedDecodingContainer where K == JSONCodingKey {
 			return try childContainer.decodeJSONArray(dateDecodingStrategy: dateDecodingStrategy)
 		}
 		
-		throw JSONDecodingError.noJSONValueFound
+		throw SuiteDecodingError.noJSONValueFound
 	}
 }
 
@@ -94,7 +92,7 @@ extension UnkeyedDecodingContainer {
 			return try childContainer.decodeJSONArray(dateDecodingStrategy: dateDecodingStrategy)
 		}
 		
-		throw JSONDecodingError.noJSONValueFound
+		throw SuiteDecodingError.noJSONValueFound
 	}
 
 }

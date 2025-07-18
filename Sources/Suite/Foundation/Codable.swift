@@ -8,6 +8,8 @@
 
 import Foundation
 
+enum SuiteDecodingError: Error, Sendable { case unknownKey(String), badString, jsonDecodeFailed, fileNotFound, noJSONValueFound }
+
 public func isJSON(_ any: Any) -> Bool {
 	if let dict = any as? [String: Any] {
 		for (_, value) in dict { if !isJSON(value) { return false }}
@@ -135,7 +137,7 @@ public extension Encodable {
 
 extension Decodable {
 	public static func loadJSON(data: Data?, using decoder: JSONDecoder = .default) throws -> Self {
-		guard let data = data else { throw JSONDecoder.DecodingError.fileNotFound }
+		guard let data = data else { throw SuiteDecodingError.fileNotFound }
 		return try decoder.decode(self, from: data)
 	}
 	
@@ -145,7 +147,7 @@ extension Decodable {
 	}
 	
 	public static func loadJSON(file url: URL?, using decoder: JSONDecoder = .default) throws -> Self {
-		guard let url = url else { throw JSONDecoder.DecodingError.fileNotFound }
+		guard let url = url else { throw SuiteDecodingError.fileNotFound }
 		let data = try Data(contentsOf: url)
 		return try self.loadJSON(data: data, using: decoder)
 	}
@@ -157,7 +159,7 @@ extension Decodable {
 	
 	@available(iOS 10.0, *)
 	public static func load(fromString string: String, using decoder: JSONDecoder = .default) throws -> Self {
-		guard let data = string.data(using: .utf8) else { throw JSONDecoder.DecodingError.badString }
+		guard let data = string.data(using: .utf8) else { throw SuiteDecodingError.badString }
 		
 		return try decoder.decode(Self.self, from: data)
 	}
@@ -171,8 +173,6 @@ extension String {
 
 public extension JSONDecoder {
 	static let `default` = JSONDecoder()
-	
-	enum DecodingError: Error, Sendable { case unknownKey(String), badString, jsonDecodeFailed, fileNotFound }
 }
 
 @available(iOS 10.0, *)
