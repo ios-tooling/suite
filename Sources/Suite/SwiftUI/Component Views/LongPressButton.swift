@@ -34,11 +34,12 @@ public struct LongPressButton<Label: View>: View {
 	}
 
 	func pressed() {
+		let action = action
 		if longPressTriggered {
 			longPressTriggered = false
 			return
 		}
-		Task {
+		Task { @MainActor in
 			do {
 				try await action()
 			} catch {
@@ -48,6 +49,7 @@ public struct LongPressButton<Label: View>: View {
 	}
 	
 	func longPressed() {
+		let longPress = longPress
 		cancelTimeOut()
 		longPressTriggered = true
 		Task {
@@ -61,25 +63,29 @@ public struct LongPressButton<Label: View>: View {
 	}
 	
 	public var body: some View {
+		let longPressStartedAt = _longPressStartedAt
+		let longPressed = longPressed
+		let delay = delay
+		
 		Button(action: { pressed() }) {
 			label()
 		}
 		.simultaneousGesture(DragGesture(minimumDistance: 0, coordinateSpace: .local)
 			.onChanged { value in
-				if longPressStartedAt == nil {
-					longPressStartedAt = Date()
+				if longPressStartedAt.wrappedValue == nil {
+					longPressStartedAt.wrappedValue = Date()
 					longPressInvalidated = false
 					longPressTriggered = false
 					timeOutTask = Task {
 						do {
 							try await Task.sleep(nanoseconds: UInt64(1_000_000_000 * delay))
-							longPressStartedAt = nil
+							longPressStartedAt.wrappedValue = nil
 							longPressed()
 						} catch { }
 					}
 				}
 				
-				if !longPressInvalidated, abs(longPressStartedAt.timeIntervalSinceNow) > delay {
+				if !longPressInvalidated, abs(longPressStartedAt.wrappedValue?.timeIntervalSinceNow ?? 0) > delay {
 					longPressed()
 				} else if !longPressInvalidated {
 					let distance = sqrt(pow(value.translation.width, 2) + pow(value.translation.height, 2))
@@ -92,7 +98,7 @@ public struct LongPressButton<Label: View>: View {
 			}
 			.onEnded{ value in
 				cancelTimeOut()
-				longPressStartedAt = nil
+				longPressStartedAt.wrappedValue = nil
 			}
 		)
 	}
