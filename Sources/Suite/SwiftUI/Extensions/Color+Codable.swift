@@ -8,7 +8,7 @@
 import SwiftUI
 
 @available(iOS 14.0, tvOS 13, macOS 11, watchOS 7, *)
-extension Color: Codable {
+extension Color: @retroactive Codable {
 	enum ColorDecodeError: Error, Sendable { case unableToExtractColor }
 	public init(from decoder: Decoder) throws {
 		let container = try decoder.singleValueContainer()

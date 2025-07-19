@@ -129,7 +129,9 @@ public extension UnitPoint {
 	}
 }
 
-extension UnitPoint: Codable {
+extension UnitPoint: @retroactive Codable {}
+
+extension UnitPoint {
     enum CodingKeys: String, CodingKey, Sendable { case x, y }
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
