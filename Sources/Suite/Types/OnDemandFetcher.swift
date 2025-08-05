@@ -18,17 +18,17 @@ public struct OnDemandFetcher {
 	
 	enum OnDemandResourceError: Error, Sendable { case resourceNotFound }
 	
-	public static func fetchDictionary(key: String, version: Int = 1) async throws -> [String: String] {
-		let keychainKey = "ondemand_\(key)"
+	public static func fetchDictionary(name: String, tag: String? = nil, version: Int = 1) async throws -> [String: String] {
+		let keychainKey = "ondemand_\(name)"
 		if let keychainData = Keychain.data(forKey: keychainKey), let cached = try? JSONDecoder().decode(StoredDictionary.self, from: keychainData), cached.version == version {
 			return cached.dictionary
 		}
 		
-		let request = NSBundleResourceRequest(tags: [key], bundle: .main)
+		let request = NSBundleResourceRequest(tags: [tag ?? name], bundle: .main)
 		request.loadingPriority = 1
 		try await request.beginAccessingResources()
 		
-		guard let asset = NSDataAsset(name: key) else { throw OnDemandResourceError.resourceNotFound }
+		guard let asset = NSDataAsset(name: name, bundle: request.bundle) else { throw OnDemandResourceError.resourceNotFound }
 		
 		let json = try JSONDecoder().decode([String: String].self, from: asset.data)
 		let cache = StoredDictionary(version: version, dictionary: json)
