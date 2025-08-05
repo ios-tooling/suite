@@ -20,7 +20,7 @@ public struct AppSettingsGenerator: MemberMacro {
 		
 		for variable in members {
 			if let token = variable.token?.strippedText, let type = variable.type {
-				context.diagnose(Diagnostic(node: variable, message: MacroFeedback.message(variable.debugDescription)))
+				//context.diagnose(Diagnostic(node: variable, message: MacroFeedback.message(variable.debugDescription)))
 				if let value = variable.initialValue {
 					results.append("""
 						var \(raw: token)_backing: \(raw: type.declaration) = \(raw: value)

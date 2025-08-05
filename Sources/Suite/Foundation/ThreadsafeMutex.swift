@@ -35,7 +35,7 @@ final public class ThreadsafeMutex<T>: @unchecked Sendable {
 		os_unfair_lock_unlock(&lock)
 	}
 	
-	public func perform(block: (inout T) -> Void) {
+	nonisolated public func perform(block: (inout T) -> Void) {
 		os_unfair_lock_lock(&lock)
 		block(&_value)
 		os_unfair_lock_unlock(&lock)

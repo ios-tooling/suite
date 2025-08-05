@@ -9,7 +9,7 @@
 import SwiftUI
 
 public struct ButtonIsPerformingActionKey: PreferenceKey {
-	nonisolated(unsafe) public static var defaultValue = false
+	nonisolated public static let defaultValue = false
 	public static func reduce(value: inout Bool, nextValue: () -> Bool) {
 		value = value || nextValue()
 	}
@@ -61,10 +61,10 @@ public struct ButtonIsPerformingActionKey: PreferenceKey {
 	}
 	
 	func performAction() {
-		let taskWrapper = _task
+		let taskWrapper = $task
 		isPerformingAction = true
 		let action = action
-		let isPerformingAction = _isPerformingAction
+		let isPerformingAction = $isPerformingAction
 		
 		taskWrapper.wrappedValue = Task.detached {
 			do {
