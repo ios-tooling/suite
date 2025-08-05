@@ -22,15 +22,18 @@ public extension UIView {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 
-	func toImage() -> UIImage? {
+	func toImage(opaque: Bool = false, scale: CGFloat = 0) -> UIImage? {
 		let rect = self.bounds
-		UIGraphicsBeginImageContextWithOptions(rect.size, false, UIView.screenScale)
-		guard let context = UIGraphicsGetCurrentContext() else { return nil }
-		self.layer.render(in: context)
-
-		let capturedImage = UIGraphicsGetImageFromCurrentImageContext()!
-		UIGraphicsEndImageContext()
-		return capturedImage
+		guard !rect.isEmpty else { return nil }
+		
+		let format = UIGraphicsImageRendererFormat()
+		format.opaque = opaque
+		format.scale = scale > 0 ? scale : UIView.screenScale
+		
+		let renderer = UIGraphicsImageRenderer(size: rect.size, format: format)
+		return renderer.image { context in
+			self.layer.render(in: context.cgContext)
+		}
 	}
 	
 	#if !os(visionOS)
