@@ -28,10 +28,8 @@ public extension UIApplication {
 
 public extension UIApplication {
     var currentWindow: UIWindow? {
-		if #available(iOS 13.0, *) {
-			if let window = self.currentScene?.frontWindow { return window }
-		}
-		
+		 if let window = currentScene?.frontWindow { return window }
+
 		if let window = self.delegate?.window { return window }
 		 #if os(visionOS)
 			return nil

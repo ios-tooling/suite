@@ -92,13 +92,19 @@ struct DraggableView<Content: View>: View {
 	}
 	
 	private var dragGesture: some Gesture {
-		DragGesture(coordinateSpace: .dragAndDropSpace)
+		let snapbackDuration = snapbackDuration
+		let isDragging = _isDragging
+		let dragCoordinator = dragCoordinator
+		let phaseChanged = phaseChanged
+		let enabled = enabled
+		
+		return DragGesture(coordinateSpace: .dragAndDropSpace)
 			.updating($offset) { value, offset, transaction in
 				if !enabled { return }
 				offset = value.translation
-				if !isDragging {
+				if !isDragging.wrappedValue {
 					phaseChanged?(.starting)
-					isDragging = true
+					isDragging.wrappedValue = true
 					let renderer = ImageRenderer(content: dragContent())
 					var sourcePoint: CGPoint = .zero
 					if let frame {
@@ -114,7 +120,7 @@ struct DraggableView<Content: View>: View {
 				if !enabled { return }
 				Task {
 					try? await Task.sleep(for: .seconds(snapbackDuration))
-					isDragging = false
+					isDragging.wrappedValue = false
 					if dragCoordinator.acceptedDrop, let targetID = dragCoordinator.currentDropTargetID {
 						phaseChanged?(.dropped(targetID))
 					} else {

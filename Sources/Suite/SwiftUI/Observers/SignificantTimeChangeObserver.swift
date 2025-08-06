@@ -1,5 +1,5 @@
 //
-//  SignifigantTimeChangeObserver.swift
+//  SignificantTimeChangeObserver.swift
 //  Strongest
 //
 //  Created by Ben Gottlieb on 8/24/21.
@@ -13,8 +13,8 @@ import Combine
 
 #if os(iOS)
 @available(iOS 13.0, *)
-public actor SignifigantTimeChangeObserver: ObservableObject {
-	public static let instance = SignifigantTimeChangeObserver()
+public actor SignificantTimeChangeObserver: ObservableObject {
+	public static let instance = SignificantTimeChangeObserver()
 
 	var cancellable: AnyCancellable?
 

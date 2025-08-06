@@ -47,10 +47,8 @@ public extension UIViewController {
 	
 	@discardableResult
 	func turnOffCardModalPresentation() -> Self {
-		if #available(iOS 13.0, iOSApplicationExtension 13.0, *) {
-			self.isModalInPresentation = true
-			self.modalPresentationStyle = .fullScreen
-		}
+		self.isModalInPresentation = true
+		self.modalPresentationStyle = .fullScreen
 		return self
 	}
 	

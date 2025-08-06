@@ -12,7 +12,7 @@ import Foundation
 	import AppKit
 
 	@MainActor extension Error {
-		public func display(in window: NSWindow? = nil, title: String? = nil, message: String? = nil, buttons: [String]? = nil, completion: ((Int) -> Void)? = nil) {
+		public func display(in window: NSWindow? = nil, title: String? = nil, message: String? = nil, buttons: [String]? = nil, completion: (@Sendable (Int) -> Void)? = nil) {
 			let alert = NSAlert(error: self)
 			
 			if let title = title {

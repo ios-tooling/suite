@@ -12,7 +12,7 @@ import SwiftUI
 @MainActor @propertyWrapper public struct CodableAppStorage<StoredValue: Codable & Equatable & Sendable>: DynamicProperty {
 	public init(wrappedValue: StoredValue, _ key: String, store: UserDefaults = .standard) {
 		self.key = key
-		self.store = .standard
+		self.store = store
 		let initialValue: StoredValue? = Self.initialValue(for: key, in: store)
 		self._value = State(initialValue: initialValue ?? wrappedValue)
 	}

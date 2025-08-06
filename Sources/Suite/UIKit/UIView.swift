@@ -22,25 +22,24 @@ public extension UIView {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 
-	func toImage() -> UIImage? {
+	func toImage(opaque: Bool = false, scale: CGFloat = 0) -> UIImage? {
 		let rect = self.bounds
-		UIGraphicsBeginImageContextWithOptions(rect.size, false, UIView.screenScale)
-		guard let context = UIGraphicsGetCurrentContext() else { return nil }
-		self.layer.render(in: context)
-
-		let capturedImage = UIGraphicsGetImageFromCurrentImageContext()!
-		UIGraphicsEndImageContext()
-		return capturedImage
+		guard !rect.isEmpty else { return nil }
+		
+		let format = UIGraphicsImageRendererFormat()
+		format.opaque = opaque
+		format.scale = scale > 0 ? scale : UIView.screenScale
+		
+		let renderer = UIGraphicsImageRenderer(size: rect.size, format: format)
+		return renderer.image { context in
+			self.layer.render(in: context.cgContext)
+		}
 	}
 	
 	#if !os(visionOS)
 		@available(iOSApplicationExtension, unavailable)
 		static var frontSafeAreaInsets: UIEdgeInsets {
-			if #available(iOS 13.0, *) {
-				return UIApplication.shared.currentScene?.frontWindow?.rootViewController?.view.safeAreaInsets ?? .zero
-			} else {
-				return UIApplication.shared.keyWindow?.rootViewController?.view.safeAreaInsets ?? .zero
-			}
+			UIApplication.shared.currentScene?.frontWindow?.rootViewController?.view.safeAreaInsets ?? .zero
 		}
 	#endif
 
@@ -75,12 +74,7 @@ public extension UIView {
 				return spinner
 			}
 			
-			let spinner: UIActivityIndicatorView
-			if #available(iOS 13.0, *) {
-				spinner = UIActivityIndicatorView(style: .medium)
-			} else {
-				spinner = UIActivityIndicatorView(style: .white)
-			}
+			let spinner = UIActivityIndicatorView(style: .medium)
 			spinner.color = color
 			spinner.tag = UIView.activityIndicatorTag
 			spinner.translatesAutoresizingMaskIntoConstraints = false

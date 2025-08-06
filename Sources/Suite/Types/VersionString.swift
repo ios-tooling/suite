@@ -11,11 +11,29 @@ public struct VersionString: Comparable {
 	let string: String
 	
 	var components: [Int] {
-		string.components(separatedBy: ".").compactMap { Int($0) }
+		string.components(separatedBy: ".").compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
 	}
 	
 	public static func ==(lhs: VersionString, rhs: VersionString) -> Bool {
-		lhs.components == rhs.components
+		let lhComponents = lhs.components
+		let rhComponents = rhs.components
+		let minCount = min(lhComponents.count, rhComponents.count)
+		
+		let lPrefix = lhComponents.first(minCount)
+		let rPrefix = rhComponents.first(minCount)
+		
+		if lPrefix != rPrefix { return false }
+		if lhComponents.count > minCount {
+			let suffix = lhComponents.suffix(from: lhComponents.count - minCount)
+			return suffix.allSatisfy { $0 == 0 }
+		}
+
+		if rhComponents.count > minCount {
+			let suffix = rhComponents.suffix(from: rhComponents.count - minCount)
+			return suffix.allSatisfy { $0 == 0 }
+		}
+		
+		return true
 	}
 
 	public static func <(lhs: VersionString, rhs: VersionString) -> Bool {

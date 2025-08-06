@@ -97,11 +97,7 @@ public extension UIColor {
 		#if os(watchOS)
 			return .darkGray
 		#else
-			if #available(iOS 13.0, *) {
-				return UIColor.label
-			} else {
-				return UIColor.black
-			}
+			UIColor.label
 		#endif
 	}()
 	
@@ -109,11 +105,7 @@ public extension UIColor {
 		#if os(watchOS)
 			return .white
 		#else
-			if #available(iOS 13.0, *) {
-				return UIColor.secondaryLabel
-			} else {
-				return UIColor.darkGray
-			}
+			UIColor.secondaryLabel
 		#endif
 	}()
 	
@@ -121,11 +113,7 @@ public extension UIColor {
 		#if os(watchOS)
 			return .lightGray
 		#else
-			if #available(iOS 13.0, *) {
-				return UIColor.tertiaryLabel
-			} else {
-				return UIColor.lightGray
-			}
+			UIColor.tertiaryLabel
 		#endif
 	}()
 	
@@ -133,11 +121,7 @@ public extension UIColor {
 		#if os(watchOS)
 			return .white
 		#else
-			if #available(iOS 13.0, *) {
-				return UIColor.systemBackground
-			} else {
-				return UIColor.white
-			}
+			UIColor.systemBackground
 		#endif
 	}()
 	

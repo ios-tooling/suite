@@ -42,7 +42,7 @@ public struct NonisolatedContainerGenerator: PeerMacro {
 		}
 		
 		if !hasNonisolatedKeyword {
-			context.diagnose(Diagnostic(node: declaration, message: MacroFeedback.message("Please add the `nonisolated` annotation to the variable declaration")))
+			context.diagnose(Diagnostic(node: declaration, message: MacroFeedback.error("Please add the `nonisolated` annotation to the variable declaration")))
 
 		}
 

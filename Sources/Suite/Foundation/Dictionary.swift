@@ -52,6 +52,7 @@ public extension Dictionary where Key == String {
 				continue
 			}
 			
+			print(isEqual(value, otherValue))
 			if isEqual(value, otherValue) { continue }
 
 			if let myDict = value as? [String: Any], let otherDict = otherValue as? [String: Any] {

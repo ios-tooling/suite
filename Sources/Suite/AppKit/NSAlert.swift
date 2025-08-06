@@ -11,7 +11,7 @@ import Foundation
 import AppKit
 
 extension NSAlert {
-	public static func showAlert(title: String, message: String, buttonTitles: [String] = [NSLocalizedString("OK", comment: "OK")], style: NSAlert.Style = .informational, in window: NSWindow? = nil, completion: ((Int) -> Void)? = nil) {
+	public static func showAlert(title: String, message: String, buttonTitles: [String] = [NSLocalizedString("OK", comment: "OK")], style: NSAlert.Style = .informational, in window: NSWindow? = nil, completion: (@MainActor (Int) -> Void)? = nil) {
 		
 		DispatchQueue.main.async {
 			let alert = NSAlert()
@@ -28,8 +28,8 @@ extension NSAlert {
 		}
 	}
 	
-	public func show(in window: NSWindow?, completion: ((Int) -> Void)? = nil) {
-		let finish = { (response: NSApplication.ModalResponse) in
+	public func show(in window: NSWindow?, completion: (@MainActor (Int) -> Void)? = nil) {
+		let finish: @MainActor @Sendable (NSApplication.ModalResponse) -> Void = { response in
 			switch response {
 			case NSApplication.ModalResponse.alertFirstButtonReturn: completion?(0)
 			case NSApplication.ModalResponse.alertSecondButtonReturn: completion?(1)
@@ -38,10 +38,10 @@ extension NSAlert {
 			}
 		}
 		
-		DispatchQueue.main.async {
-			if let window = window {
+		Task { @MainActor in
+			if let window {
 				self.beginSheetModal(for: window) { response in
-					finish(response)
+					Task { @MainActor in finish(response) }
 				}
 			} else {
 				let response = self.runModal()

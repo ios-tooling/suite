@@ -49,7 +49,7 @@ public struct Gestalt {
 	public enum DebugLevel: Int, Comparable, Sendable { case none, testFlight, internalTesting, debugging
 		public static func < (lhs: Gestalt.DebugLevel, rhs: Gestalt.DebugLevel) -> Bool { return lhs.rawValue < rhs.rawValue }
 	}
-	nonisolated(unsafe) public static var debugLevel = Gestalt.isAttachedToDebugger ? DebugLevel.debugging : DebugLevel.none
+	@MainActor public static var debugLevel = Gestalt.isAttachedToDebugger ? DebugLevel.debugging : DebugLevel.none
 	
 	#if targetEnvironment(simulator)
 		public static let isOnSimulator: Bool = true

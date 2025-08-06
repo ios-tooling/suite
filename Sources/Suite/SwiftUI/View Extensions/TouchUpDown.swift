@@ -41,6 +41,8 @@ struct TouchRepeatingView<Content: View>: View {
 	
 	func touchDown() {
 		if task != nil { return }
+		let action = action
+		
 		action()
 		task = Task {
 			var delay: UInt64 = 200_000_000

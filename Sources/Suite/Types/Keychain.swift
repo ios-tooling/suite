@@ -371,7 +371,7 @@ extension Keychain {
 		This is not recommended for application use. Items with this attribute migrate to a new device when using encrypted backups.
 		
 		*/
-		case accessibleAlways
+//		case accessibleAlways
 		
 		/**
 		
@@ -392,7 +392,7 @@ extension Keychain {
 		case accessibleAlwaysThisDeviceOnly
 		
 		static var defaultOption: AccessOptions {
-			return .accessibleAlways
+			return .accessibleAfterFirstUnlock
 		}
 		
 		var value: String {
@@ -401,7 +401,7 @@ extension Keychain {
 			case .accessibleWhenUnlockedThisDeviceOnly: return self.toString(kSecAttrAccessibleWhenUnlockedThisDeviceOnly)
 			case .accessibleAfterFirstUnlock: return self.toString(kSecAttrAccessibleAfterFirstUnlock)
 			case .accessibleAfterFirstUnlockThisDeviceOnly: return self.toString(kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly)
-			case .accessibleAlways: return self.toString(kSecAttrAccessibleAfterFirstUnlock)
+			//case .accessibleAlways: return self.toString(kSecAttrAccessibleAlways)
 			case .accessibleWhenPasscodeSetThisDeviceOnly: return self.toString(kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly)
 			case .accessibleAlwaysThisDeviceOnly: return self.toString(kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly)
 			}
