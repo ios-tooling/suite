@@ -7,8 +7,10 @@
 
 import Foundation
 
+public typealias os_unfair_lock_pointer = UnsafeMutablePointer<os_unfair_lock_s>
+
 @MainActor @propertyWrapper public struct NonIsolatedValue<Value: Sendable>: DynamicProperty {
-    public init(wrappedValue: Value) {
+    public init(_ wrappedValue: Value) {
         _value = State(wrappedValue: ThreadsafeMutex(wrappedValue))
     }
     

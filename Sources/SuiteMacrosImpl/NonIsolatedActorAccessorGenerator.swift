@@ -61,12 +61,12 @@ public struct NonisolatedContainerGenerator: PeerMacro {
 			}
 			
 			if let optionalType {
-				results.append("\(raw: accessorName): NonIsolatedWrapper<\(raw: optionalType)?> = .init(\(trimmedInitializer))")
+				results.append("\(raw: accessorName): ThreadsafeMutex<\(raw: optionalType)?> = .init(\(trimmedInitializer))")
 			} else {
-				results.append("\(raw: accessorName) = NonIsolatedWrapper(\(trimmedInitializer))")
+				results.append("\(raw: accessorName) = ThreadsafeMutex(\(trimmedInitializer))")
 			}
 		} else if let optionalType {
-			results.append("\(raw: accessorName): NonIsolatedWrapper<\(raw: optionalType)?> = .init(nil)")
+			results.append("\(raw: accessorName): ThreadsafeMutex<\(raw: optionalType)?> = .init(nil)")
 		}
 		return results
 	}
