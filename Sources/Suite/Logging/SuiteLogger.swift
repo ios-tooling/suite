@@ -157,7 +157,10 @@ public class OldSuiteLogger: @unchecked Sendable {
 }
 
 public extension NSManagedObject {
-	func logObject(_ level: OldSuiteLogger.Level = .mild) { dlogg("\(self)", level) }
+	func logObject(_ level: OldSuiteLogger.Level = .mild) {
+		let desc = "\(self)"
+		dlogg(desc, level)
+	}
 }
 
 public func  address(of obj: AnyObject) -> String { "\(Unmanaged.passUnretained(obj).toOpaque())" }

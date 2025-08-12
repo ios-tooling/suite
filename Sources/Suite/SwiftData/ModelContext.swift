@@ -46,4 +46,12 @@ public extension ModelContext {
 		return (try? fetch(descriptor).count) ?? 0
 	}
 
+	func reportedFetch<T>(_ descriptor: FetchDescriptor<T>) -> [T] where T : PersistentModel {
+		do {
+			return try fetch(descriptor)
+		} catch {
+			print("Failed to fetch \(String(describing: T.self)): \(error)")
+			return []
+		}
+	}
 }
