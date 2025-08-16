@@ -63,7 +63,7 @@ extension CGRect: StringInitializable {
 	}
 }
 
-extension CGRect.Placement: @retroactive Codable {
+extension CGRect.Placement: Codable {
     public enum PlacementError: Error, Sendable { case invalidIntegerValue, invalidStringValue, noValue }
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
