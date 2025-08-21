@@ -75,7 +75,7 @@ extension Optional: OptionalType {
 }
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
-public extension Binding where Value: OptionalType & Sendable {
+@MainActor public extension Binding where Value: OptionalType {
 	var bool: Binding<Bool> {
 		Binding<Bool>(get: { !wrappedValue.isEmpty }, set: { newValue in
 			if !newValue { wrappedValue.clear() }
