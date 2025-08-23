@@ -63,43 +63,43 @@ extension CGRect: StringInitializable {
 	}
 }
 
-extension CGRect.Placement: Codable {
-    public enum PlacementError: Error, Sendable { case invalidIntegerValue, invalidStringValue, noValue }
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        if let int = try? container.decode(Int.self) {
-            if let value = CGRect.Placement(rawValue: int) {
-                self = value
-            } else {
-                throw PlacementError.invalidIntegerValue
-            }
-        } else if let string = try? container.decode(String.self) {
-            switch string {
-            case "center": self = .center
-            case "top": self = .top
-            case "bottom": self = .bottom
-            case "left": self = .left
-            case "right": self = .right
-            case "topLeft": self = .topLeft
-            case "topRight": self = .topRight
-            case "bottomLeft": self = .bottomLeft
-            case "bottomRight": self = .bottomRight
-            default: throw PlacementError.invalidStringValue
-            }
-        } else {
-            throw PlacementError.noValue
-        }
-
-    }
-    
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        
-        try container.encode(rawValue)
-    }
-    
-    
-}
+//extension CGRect.Placement: Codable {
+//    public enum PlacementError: Error, Sendable { case invalidIntegerValue, invalidStringValue, noValue }
+//    public init(from decoder: Decoder) throws {
+//        let container = try decoder.singleValueContainer()
+//        if let int = try? container.decode(Int.self) {
+//            if let value = CGRect.Placement(rawValue: int) {
+//                self = value
+//            } else {
+//                throw PlacementError.invalidIntegerValue
+//            }
+//        } else if let string = try? container.decode(String.self) {
+//            switch string {
+//            case "center": self = .center
+//            case "top": self = .top
+//            case "bottom": self = .bottom
+//            case "left": self = .left
+//            case "right": self = .right
+//            case "topLeft": self = .topLeft
+//            case "topRight": self = .topRight
+//            case "bottomLeft": self = .bottomLeft
+//            case "bottomRight": self = .bottomRight
+//            default: throw PlacementError.invalidStringValue
+//            }
+//        } else {
+//            throw PlacementError.noValue
+//        }
+//
+//    }
+//    
+//    public func encode(to encoder: Encoder) throws {
+//        var container = encoder.singleValueContainer()
+//        
+//        try container.encode(rawValue)
+//    }
+//    
+//    
+//}
 
 public extension CGRect.Placement {
 	var isLeft: Bool { self == .left || self == .topLeft || self == .bottomLeft }
