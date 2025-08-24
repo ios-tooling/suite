@@ -77,6 +77,18 @@ extension DateInterval: @retroactive RawRepresentable {
 		return "\(formatter.string(from: start))\(Self.separator)\(formatter.string(from: end))"
 	}
 	
+	public var days: [Date.Day] {
+		var result = [start.day]
+		var date = start
+		
+		while true {
+			date = date.nextDay
+			if date > end { break }
+			
+			result.append(date.day)
+		}
+		return result
+	}
 
 }
 
