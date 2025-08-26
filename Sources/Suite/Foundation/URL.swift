@@ -102,9 +102,14 @@ public extension URL {
 		self.path.abbreviatingWithTildeInPath
 	}
 	
-	@available(iOS 16.0, *)
+	@available(iOS 16.0, macOS 13, *)
 	var homeRelativeURL: URL? {
 		URL(fileURLWithPath: path, relativeTo: Self.homeDirectory)
+	}
+	
+	@available(iOS 16.0, macOS 13, *)
+	var relativeToHome: URL? {
+		return URL(fileURLWithPath: path(), relativeTo: Self.homeDirectory)
 	}
 	
 	func isSubdirectory(of url: URL) -> Bool {
