@@ -99,7 +99,12 @@ public extension URL {
 	var filename: String { deletingPathExtension().lastPathComponent }
 
 	var relativePathToHome: String? {
-		return self.path.abbreviatingWithTildeInPath
+		self.path.abbreviatingWithTildeInPath
+	}
+	
+	@available(iOS 16.0, *)
+	var homeRelativeURL: URL? {
+		URL(fileURLWithPath: path, relativeTo: Self.homeDirectory)
 	}
 	
 	func isSubdirectory(of url: URL) -> Bool {
