@@ -98,18 +98,13 @@ public extension URL {
 	
 	var filename: String { deletingPathExtension().lastPathComponent }
 
-	var relativePathToHome: String? {
-		self.path.abbreviatingWithTildeInPath
+	var removingHomeDirectory: URL? {
+		URL(string: path.abbreviatingWithTildeInPath)
 	}
 	
 	@available(iOS 16.0, macOS 13, *)
-	var homeRelativeURL: URL? {
-		URL(fileURLWithPath: path, relativeTo: Self.homeDirectory)
-	}
-	
-	@available(iOS 16.0, macOS 13, *)
-	var relativeToHome: URL? {
-		return URL(fileURLWithPath: path(), relativeTo: Self.homeDirectory)
+	var addingHomeDirectory: URL? {
+		URL(fileURLWithPath: path(percentEncoded: false), relativeTo: Self.homeDirectory)
 	}
 	
 	func isSubdirectory(of url: URL) -> Bool {
