@@ -102,7 +102,7 @@ public extension URL {
 	var containsHomeDirectory: Bool {
 		let path = self.path(percentEncoded: false)
 		let home = Self.homeDirectory
-		return path.contains(home.path)
+		return path.contains(home.path) || path.contains("~")
 	}
 	
 	var removingHomeDirectory: URL {
