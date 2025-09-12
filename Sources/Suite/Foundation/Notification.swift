@@ -33,7 +33,7 @@ public extension Notification.Name {
 	}
 }
 
-extension Notification: @retroactive @unchecked Sendable { }
+//extension Notification: @retroactive @unchecked Sendable { }
 public extension Notification {
 	static func post(name: String, object: Sendable? = nil, userInfo: [String: Sendable]? = nil) {
 		self.post(name: Notification.Name(rawValue: name), object: object, userInfo: userInfo)
@@ -50,12 +50,6 @@ public extension Notification {
 	static func postOnMainThread(name: Notification.Name, object: Sendable? = nil, userInfo: [String: Sendable]? = nil) {
 		DispatchQueue.main.async {
 			self.post(name: name, object: object, userInfo: userInfo)
-		}
-	}
-	
-	func resend(after delay: TimeInterval = 0) {
-		DispatchQueue.main.async(after: delay) {
-			NotificationCenter.default.post(self)
 		}
 	}
 }
