@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-@available(iOS 17.0, *)
+@available(iOS 17.0, macOS 14, watchOS 10, *)
 public extension View {
 	@ViewBuilder func asyncOnChangeOf<T: Equatable>(of value: T, initial: Bool = false, file: StaticString = #file, line: UInt = #line, perform action: @escaping () async throws -> ()) -> some View {
 		onChange(of: value, initial: initial) {
