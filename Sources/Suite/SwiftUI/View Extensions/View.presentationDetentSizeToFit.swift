@@ -15,14 +15,14 @@ public extension View {
 }
 
 fileprivate extension PreferenceValues {
-    #GeneratedPreferenceKey(name: "detentHeight", type: CGFloat.self, defaultValue: 0.0)
+    #GeneratedPreferenceKey(name: "detentHeight", type: CGFloat.self, defaultValue: 10.0)
 }
 
 @available(iOS 16.0, macOS 14, watchOS 9, *)
 struct PresentationDetentSizeToFit<Content: View>: View {
 	let content: () -> Content
 	
-	@State private var sheetHeight = CGFloat.zero
+	@State private var sheetHeight: CGFloat?
 	
 	var body: some View {
 		content()
@@ -31,10 +31,10 @@ struct PresentationDetentSizeToFit<Content: View>: View {
                     Color.clear.setPreference(\.detentHeight, geo.size.height)
 				}
 			}
-            .getPreference(\.detentHeight) { [$sheetHeight] newHeight in
-                $sheetHeight.wrappedValue = newHeight
-            }
-			.presentationDetents([.height(sheetHeight)])
+			.getPreference(\.detentHeight) { [$sheetHeight] newHeight in
+				 $sheetHeight.wrappedValue = newHeight
+			}
+			.presentationDetents([sheetHeight == nil ? .medium : .height(sheetHeight!)])
 
 	}
 }
