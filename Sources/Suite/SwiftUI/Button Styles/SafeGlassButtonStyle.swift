@@ -10,7 +10,7 @@ import SwiftUI
 @available(iOS 15.0, macOS 13, watchOS 9, *)
 public extension View {
 	@ViewBuilder func safeGlassButton(prominent: Bool = false) -> some View {
-		if #available(iOS 26.0, *) {
+		if #available(iOS 26.0, macOS 26, *) {
 			if prominent {
 				self
 					.buttonStyle(.glassProminent)
