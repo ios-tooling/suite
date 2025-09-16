@@ -86,6 +86,7 @@ public struct ButtonIsPerformingActionKey: PreferenceKey {
 			label()
 				.opacity(isPerformingAction ? 0.2 : 1)
 			busy()
+				.layoutPriority(-1)
 				.opacity(isPerformingAction ? 1 : 0)
 		}
 	}
@@ -93,32 +94,32 @@ public struct ButtonIsPerformingActionKey: PreferenceKey {
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 8, *)
 extension AsyncButton where Label == AsyncButtonLabel, Busy == AsyncButtonBusyLabel {
-	public init(_ title: LocalizedStringKey? = nil, systemImage: String? = nil, spinnerScale: Double = 1.0, shouldCancelOnDisappear: Bool = false, action: @MainActor @escaping () async throws -> Void) {
+	public init(_ title: LocalizedStringKey? = nil, systemImage: String? = nil, shouldCancelOnDisappear: Bool = false, action: @MainActor @escaping () async throws -> Void) {
 		self.action = action
 		self.label = { AsyncButtonLabel(title: title, systemImage: systemImage) }
-        self.busy = { AsyncButtonBusyLabel(title: title, spinnerScale: spinnerScale) }
+		self.busy = { AsyncButtonBusyLabel(title: title) }
 		self.shouldCancelOnDisappear = shouldCancelOnDisappear
 	}
 }
 
 @available(macOS 12, iOS 15.0, tvOS 13, watchOS 8, *)
 extension AsyncButton where Label == AsyncButtonLabel, Busy == AsyncButtonBusyLabel {
-	public init(_ title: LocalizedStringKey? = nil, systemImage: String? = nil, role: ButtonRole, spinnerScale: Double = 1.0, shouldCancelOnDisappear: Bool = false, action: @MainActor @escaping () async throws -> Void) {
+	public init(_ title: LocalizedStringKey? = nil, systemImage: String? = nil, role: ButtonRole, shouldCancelOnDisappear: Bool = false, action: @MainActor @escaping () async throws -> Void) {
 		self.action = action
 		self.role = role
 		self.label = { AsyncButtonLabel(title: title, systemImage: systemImage) }
-		self.busy = { AsyncButtonBusyLabel(title: title, spinnerScale: spinnerScale) }
+		self.busy = { AsyncButtonBusyLabel(title: title) }
 		self.shouldCancelOnDisappear = shouldCancelOnDisappear
 	}
 }
 
 @available(macOS 12, iOS 15.0, tvOS 13, watchOS 8, *)
 extension AsyncButton where Busy == AsyncButtonBusyLabel {
-	public init(role: ButtonRole? = nil, shouldCancelOnDisappear: Bool = false, action: @MainActor @escaping () async throws -> Void, spinnerScale: Double = 1.0, @ViewBuilder label: @MainActor @escaping () -> Label) {
+	public init(role: ButtonRole? = nil, shouldCancelOnDisappear: Bool = false, action: @MainActor @escaping () async throws -> Void, @ViewBuilder label: @MainActor @escaping () -> Label) {
 		self.action = action
 		self.role = role
 		self.label = label
-		self.busy = { AsyncButtonBusyLabel(title: nil, spinnerScale: spinnerScale) }
+		self.busy = { AsyncButtonBusyLabel(title: nil) }
 		self.shouldCancelOnDisappear = shouldCancelOnDisappear
 	}
 }
@@ -142,7 +143,6 @@ public struct AsyncButtonLabel: View {
 public struct AsyncButtonBusyLabel: View {
 	let title: LocalizedStringKey?
 	var spinnerColor = Color.white
-	var spinnerScale: Double
 
 	public var body: some View {
 		spinner
@@ -150,12 +150,13 @@ public struct AsyncButtonBusyLabel: View {
 	
 	@ViewBuilder var spinner: some View {
 		if #available(OSX 13, iOS 16, watchOS 9, *) {
-			ProgressView()
-				.scaleEffect(spinnerScale)
-				.tint(spinnerColor)
+			ViewThatFits {
+				ProgressView().scaleEffect(1.0)
+				ProgressView().scaleEffect(0.5)
+			}
+			.tint(spinnerColor)
 		} else if #available(OSX 11, iOS 14.0, watchOS 7, *) {
 			ProgressView()
-				.scaleEffect(spinnerScale)
 				.colorInvert()
 		}
 	}
