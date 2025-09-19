@@ -14,6 +14,11 @@ public extension View {
 		self
 			.sheet(isPresented: isPresented, content: content)
 	}
+	
+	func fullScreenCover<Item: Identifiable, Content: View>(item: Binding<Item?>, @ViewBuilder content: @escaping (Item) -> Content) -> some View {
+		self
+			.sheet(item: item, content: content)
+	}
 }
 
 #endif
