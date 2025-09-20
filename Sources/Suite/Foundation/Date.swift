@@ -212,10 +212,17 @@ public extension Date {
 	var hour: Int { self.components(which: .hour).hour ?? 0 }
 	var minute: Int { self.components(which: .minute).minute ?? 0 }
 	var second: Int { self.components(which: .second).second ?? 0 }
+	var millisecond: Int { (self.components(which: .nanosecond).nanosecond ?? 0) / 1_000_000 }
 	var doubleSecond: TimeInterval {
 		let interval = timeIntervalSinceReferenceDate
 		
 		return Double(second) + (interval - floor(interval))
+	}
+	var timeDescriptionWithMillisecond: String {
+		let components = Calendar.current.dateComponents([.hour, .minute, .second, .nanosecond], from: self)
+		
+		return String(format: "%d:%02d:%02d.%03d", components.hour ?? 0, components.minute ?? 0, components.second ?? 0, components.nanosecond! / 1_000_000)
+		
 	}
 	
 	var yearString: String { String(format: "%d", year) }
