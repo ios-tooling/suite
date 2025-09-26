@@ -9,14 +9,6 @@
 import Foundation
 
 #if canImport(SwiftUI)
-extension Date.Month: Identifiable {
-	public var id: Int { return self.rawValue }
-}
-
-extension Date.DayOfWeek: Identifiable {
-	public var id: Int { return self.rawValue }
-}
-
 extension Date: @retroactive Identifiable {
 	public var id: TimeInterval { return self.timeIntervalSinceReferenceDate }
 }
@@ -25,62 +17,6 @@ extension Date: @retroactive Identifiable {
 
 public extension Date {
 	enum StringLength: Int, Sendable { case normal, short, veryShort }
-	
-	enum DayOfWeek: Int, CaseIterable, Codable, Comparable, CustomStringConvertible, Sendable { case sunday = 1, monday, tuesday, wednesday, thursday, friday, saturday
-		public var nextDay: DayOfWeek { increment(count: 1) }
-		public var previousDay: DayOfWeek { increment(count: 6) }
-		public func increment(count: Int) -> DayOfWeek { return DayOfWeek(rawValue: (self.rawValue + count - 1) % 7 + 1)! }
-		public var abbreviation: String { return Calendar.current.veryShortWeekdaySymbols[self.rawValue - 1] }
-		public var veryShortName: String {
-			let str = Calendar.current.shortWeekdaySymbols[self.rawValue - 1]
-			return str.count < 3 ? str : String(str.dropLast(str.count - 2))
-		}
-		public var shortName: String { return Calendar.current.shortWeekdaySymbols[self.rawValue - 1] }
-		public var name: String { return Calendar.current.weekdaySymbols[self.rawValue - 1] }
-		public var isWeekendDay: Bool { return self == .saturday || self == .sunday }
-		public var isWeekDay: Bool { return !self.isWeekendDay }
-		
-		public static let firstDayOfWeek: DayOfWeek = { DayOfWeek(rawValue: Calendar.current.firstWeekday) ?? .monday }()
-		public static let lastDayOfWeek: DayOfWeek = { firstDayOfWeek.previousDay }()
-		public static let weekdays: [DayOfWeek] = {
-			var days: [DayOfWeek] = []
-			let first = Calendar.current.firstWeekday
-			for i in 0..<7 {
-				days.append(DayOfWeek(rawValue: (i + first + 7 - 1) % 7 + 1)!)
-			}
-			return days
-		}()
-		public static func <(lhs: DayOfWeek, rhs: DayOfWeek) -> Bool { return lhs.rawValue < rhs.rawValue }
-		
-		public var description: String { shortName }
-		public func days(since day: DayOfWeek) -> Int {
-			if day == self { return 0 }
-			let weekdays = Self.weekdays
-			let firstIndex = weekdays.firstIndex(of: day) ?? 0
-			let lastIndex = weekdays.firstIndex(of: self) ?? 0
-			
-			return abs(lastIndex - firstIndex)
-		}
-	}
-	
-	enum Month: Int, CaseIterable, Codable, Comparable, Sendable { case jan = 1, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec
-		public var nextMonth: Month { return self.increment(by: 1) }
-		public func increment(by: Int) -> Month { return Month(rawValue: (self.rawValue + by - 1) % 12 + 1)! }
-		public var abbrev: String { return Calendar.current.veryShortMonthSymbols[self.rawValue] }
-		public var shortName: String { return Calendar.current.shortMonthSymbols[self.rawValue - 1] }
-		public var name: String { return Calendar.current.monthSymbols[self.rawValue - 1] }
-		public var previous: Month? { .init(rawValue: rawValue - 1) }
-		public var next: Month? { .init(rawValue: rawValue + 1) }
-		public var standardDayCount: Int {
-			switch self {
-			case .jan, .mar, .may, .jul, .aug, .oct, .dec: 31
-			case .apr, .jun, .sep, .nov: 30
-			case .feb: 28
-			}
-		}
-
-		public static func <(lhs: Self, rhs: Self) -> Bool { lhs.rawValue < rhs.rawValue }
-	}
 	
 	func durationStringUntilNow(style: TimeInterval.DurationStyle = .seconds, showLeadingZero: Bool = true, roundUp: Bool = true) -> String { (-1 * timeIntervalSinceNow).durationString(style: style, showLeadingZero: showLeadingZero, roundUp: roundUp) }
 }
