@@ -68,7 +68,7 @@ public extension Date {
 		public func isSameWeek(as day: Date.Day, startingAt startDay: Date.DayOfWeek = .firstDayOfWeek) -> Bool {
 			if day == self { return true }
 			
-			let daysApart = daysFrom(day)
+			let daysApart = abs(daysFrom(day))
 			if daysApart >= 7 { return false }
 			
 			let day1 = dayOfWeek
@@ -80,7 +80,11 @@ public extension Date {
 			let modulatedFirst = (first + startDay.rawValue - 1) % 7
 			let modulatedSecond = (second + startDay.rawValue - 1) % 7
 
-			return modulatedFirst < modulatedSecond
+			if modulatedFirst < modulatedSecond {
+				return true
+			}
+			
+			return false
 		}
 		
 		public var previousDay: Date.Day { date.previousDay.day }
