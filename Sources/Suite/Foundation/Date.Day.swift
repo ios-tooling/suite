@@ -56,6 +56,33 @@ public extension Date {
 			return day
 		}
 		
+		public func firstDayOfWeek(startingAt startDay: Date.DayOfWeek = .firstDayOfWeek) -> Date.Day {
+			var day = self
+			
+			while day.dayOfWeek != startDay {
+				day = day.previousDay
+			}
+			return day
+		}
+		
+		public func isSameWeek(as day: Date.Day, startingAt startDay: Date.DayOfWeek = .firstDayOfWeek) -> Bool {
+			if day == self { return true }
+			
+			let daysApart = daysFrom(day)
+			if daysApart >= 7 { return false }
+			
+			let day1 = dayOfWeek
+			let day2 = day.dayOfWeek
+			
+			let first = self < day ? day1.rawValue : day2.rawValue
+			let second = self < day ? day2.rawValue : day1.rawValue
+
+			let modulatedFirst = (first + startDay.rawValue - 1) % 7
+			let modulatedSecond = (second + startDay.rawValue - 1) % 7
+
+			return modulatedFirst < modulatedSecond
+		}
+		
 		public var previousDay: Date.Day { date.previousDay.day }
 		public var nextDay: Date.Day { date.nextDay.day }
 
@@ -112,7 +139,8 @@ public extension Date {
 		public func mdString(_ delim: String = "/") -> String { "\(month.rawValue)\(delim)\(day)" }
 
 		public var daysAgo: Int { Date().interval(ofComponent: .day, from: date) }
-		
+		public func daysFrom(_ day: Date.Day) -> Int { date.interval(ofComponent: .day, from: day.date) }
+
 		public static var now: Date.Day { Date.Day(Date()) }
 		public static var today: Date.Day { now }
 	}
