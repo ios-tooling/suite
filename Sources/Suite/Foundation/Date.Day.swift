@@ -74,8 +74,8 @@ public extension Date {
 			let day1 = dayOfWeek
 			let day2 = day.dayOfWeek
 			
-			let first = self < day ? day1.rawValue : day2.rawValue
-			let second = self < day ? day2.rawValue : day1.rawValue
+			let first = (self < day ? day1.rawValue : day2.rawValue) - 1
+			let second = (self < day ? day2.rawValue : day1.rawValue) - 1
 
 			let modulatedFirst = (first + startDay.rawValue - 1) % 7
 			let modulatedSecond = (second + startDay.rawValue - 1) % 7
