@@ -23,6 +23,9 @@ public extension Date {
 			let str = Calendar.current.shortWeekdaySymbols[self.rawValue - 1]
 			return str.count < 3 ? str : String(str.dropLast(str.count - 2))
 		}
+		public var veryShortSymbol: String {
+			Calendar.current.veryShortWeekdaySymbols[self.rawValue - 1]
+		}
 		public var shortName: String { return Calendar.current.shortWeekdaySymbols[self.rawValue - 1] }
 		public var name: String { return Calendar.current.weekdaySymbols[self.rawValue - 1] }
 		public var isWeekendDay: Bool { return self == .saturday || self == .sunday }
