@@ -66,25 +66,7 @@ public extension Date {
 		}
 		
 		public func isSameWeek(as day: Date.Day, startingAt startDay: Date.DayOfWeek = .firstDayOfWeek) -> Bool {
-			if day == self { return true }
-			
-			let daysApart = abs(daysFrom(day))
-			if daysApart >= 7 { return false }
-			
-			let day1 = dayOfWeek
-			let day2 = day.dayOfWeek
-			
-			let first = (self < day ? day1.rawValue : day2.rawValue) - 1
-			let second = (self < day ? day2.rawValue : day1.rawValue) - 1
-
-			let modulatedFirst = (first + startDay.rawValue - 1) % 7
-			let modulatedSecond = (second + startDay.rawValue - 1) % 7
-
-			if modulatedFirst < modulatedSecond {
-				return true
-			}
-			
-			return false
+			day.firstDayOfWeek(startingAt: startDay) == firstDayOfWeek(startingAt: startDay)
 		}
 		
 		public var previousDay: Date.Day { date.previousDay.day }
@@ -123,6 +105,21 @@ public extension Date {
 		
 		public var date: Date {
 			Date(calendar: .current, timeZone: .current, year: year, month: month.rawValue, day: day) ?? Date()
+		}
+		
+		public var isInFuture: Bool {
+			let now = Date.Day.now
+			return self > now
+		}
+		
+		public var isInPast: Bool {
+			let now = Date.Day.now
+			return self < now
+		}
+		
+		public var isToday: Bool {
+			let now = Date.Day.now
+			return self == now
 		}
 		
 		public var dmyString: String { dmyString() }
