@@ -122,6 +122,10 @@ public extension Date {
 			return self == now
 		}
 		
+		public var thisMinute: Date {
+			Date(self, Date().time)
+		}
+		
 		public var dmyString: String { dmyString() }
 		public var ymdString: String { ymdString() }
 		public var mdyString: String { mdyString() }
