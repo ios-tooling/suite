@@ -217,7 +217,7 @@ public extension Date {
 	var firstDayInWeek: Date {
 		let weekDay = DayOfWeek.firstDayOfWeek
 		let delta = dayOfWeek.days(since: weekDay)
-		return self.byAdding(days: delta)
+		return self.byAdding(days: -delta)
 	}
 	
 	var lastDayInWeek: Date {

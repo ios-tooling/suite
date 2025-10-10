@@ -14,6 +14,10 @@ public struct VersionString: Comparable {
 		string.components(separatedBy: ".").compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
 	}
 	
+	public subscript(index: Int) -> Int? {
+		index < components.count ? components[index] : nil
+	}
+	
 	public static func ==(lhs: VersionString, rhs: VersionString) -> Bool {
 		let lhComponents = lhs.components
 		let rhComponents = rhs.components
