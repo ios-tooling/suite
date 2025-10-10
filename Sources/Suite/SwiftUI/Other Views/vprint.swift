@@ -9,7 +9,8 @@
 import SwiftUI
 
 public func vprint<Content>(_ content: Content, file: StaticString = #file, function: StaticString = #function, line: UInt = #line) -> some View {
-	print("\(file) \(function):\(line)")
+	print("⏿\(file) \(function):\(line)")
+	print("  ", terminator: "")
 	print(content)
 	return EmptyView()
 }
