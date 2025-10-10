@@ -23,11 +23,11 @@ public struct AppSettingsGenerator: MemberMacro {
 				//context.diagnose(Diagnostic(node: variable, message: MacroFeedback.message(variable.debugDescription)))
 				if let value = variable.initialValue {
 					results.append("""
-						var \(raw: token)_backing: \(raw: type.declaration) = \(raw: value)
+						@Published var \(raw: token)_backing: \(raw: type.declaration) = \(raw: value)
 					""")
 				} else {
 					results.append("""
-						var \(raw: token)_backing: \(raw: type.declaration) = \(raw: "nil")
+						@Published var \(raw: token)_backing: \(raw: type.declaration) = \(raw: "nil")
 					""")
 				}
 			} else {
