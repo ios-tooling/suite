@@ -192,7 +192,7 @@ public extension Date {
 		}
 		
 		public init(hour: Int, minute: Int, second: TimeInterval = 0) {
-			self.hour = min(hour, 23)
+			self.hour = hour % 24
 			self.minute = min(minute, 59)
 			self.second = min(second, 59)
 		}
