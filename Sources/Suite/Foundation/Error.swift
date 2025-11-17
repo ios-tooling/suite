@@ -22,11 +22,11 @@ public extension Error {
 	}
 	
 	var isCancellation: Bool {
-        if self is CancellationError { return true }
+		if self is CancellationError { return true }
         
 		let error = self as NSError
 		
-		return error.code == 1001
+		return error.code == 1001 || error.code == 999
 	}
 	
 	var decodingDescription: String? {
