@@ -186,10 +186,10 @@ public extension String {
 
 		if hex.count == 8 {
 			return [
-				Double((rgbValue & 0xFF0000) >> 24) / 255,
-				Double((rgbValue & 0xFF0000) >> 16) / 255,
-				Double((rgbValue & 0x00FF00) >> 8) / 255,
-				Double(rgbValue & 0x0000FF) / 255
+				Double((rgbValue & 0xFF000000) >> 24) / 255,
+				Double((rgbValue & 0x00FF0000) >> 16) / 255,
+				Double((rgbValue & 0x0000FF00) >> 8) / 255,
+				Double(rgbValue & 0x000000FF) / 255
 			]
 		}
 		return nil
