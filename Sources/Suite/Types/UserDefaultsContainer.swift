@@ -21,6 +21,18 @@ public extension UserDefaultsContainer {
 	}
 	nonisolated func string(for key: String) -> String? { userDefaults.string(forKey: key) }
 	
+	nonisolated func setUUID(_ uuid: UUID?, for key: String) {
+		userDefaults.setValue(uuid?.uuidString, forKey: key)
+		userDefaults.synchronize()
+	}
+	nonisolated func uuid(for key: String) -> UUID? {
+		if let raw = userDefaults.string(forKey: key) {
+			UUID(uuidString: raw)
+		} else {
+			nil
+		}
+	}
+	
 	nonisolated func setBool(_ bool: Bool, for key: String) {
 		userDefaults.setValue(bool, forKey: key)
 		userDefaults.synchronize()
