@@ -26,9 +26,18 @@ public extension Error {
         
 		let error = self as NSError
 		
-		return abs(error.code) == 1001 || abs(error.code) == 999
+		return abs(error.code) == 999
 	}
 	
+	var isOffline: Bool {
+		return (self as NSError).code == -1009
+	}
+	
+	var isTimeOut: Bool {
+		if let urlError = self as? URLError, urlError.code == .timedOut { return true }
+		return (self as NSError).domain == NSURLErrorDomain && (self as NSError).code == -1001
+	}
+
 	var decodingDescription: String? {
 		guard let error = self as? DecodingError else { return nil }
 		
