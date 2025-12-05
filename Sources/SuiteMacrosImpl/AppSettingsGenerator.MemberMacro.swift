@@ -10,11 +10,10 @@ import SwiftSyntaxMacros
 import SwiftDiagnostics
 
 public struct AppSettingsGenerator: MemberMacro {
-	public static func expansion(of node: AttributeSyntax, providingMembersOf declaration: some DeclGroupSyntax, in context: some MacroExpansionContext) throws -> [DeclSyntax] {
+	public static func expansion(of node: AttributeSyntax, providingMembersOf declaration: some DeclGroupSyntax, conformingTo protocols: [TypeSyntax], in context: some MacroExpansionContext) throws -> [DeclSyntax] {
 		
 		let members = declaration.memberBlock.members
 			.compactMap { $0.decl.as(VariableDeclSyntax.self)?.patternBinding }
-		
 		
 		var results: [DeclSyntax] = []
 		
