@@ -109,6 +109,25 @@ public extension CGRect.Placement {
 	var isTop: Bool { self == .top || self == .topLeft || self == .topRight }
 	var isCenterV: Bool { self == .left || self == .center || self == .right }
 	var isBottom: Bool { self == .bottomLeft || self == .bottom || self == .bottomRight }
+	
+	var opposite: CGRect.Placement {
+		switch self {
+		case .scaleToFill: .scaleAspectFit
+		case .scaleAspectFit: .scaleAspectFill
+		case .scaleAspectFill: .scaleAspectFit
+		case .redraw: .redraw
+		case .center: .center
+		case .top: .bottom
+		case .bottom: .top
+		case .left: .right
+		case .right: .left
+		case .topLeft: .bottomRight
+		case .topRight: .bottomLeft
+		case .bottomLeft: .topRight
+		case .bottomRight: .topLeft
+		@unknown default: self
+		}
+	}
 }
 
 
