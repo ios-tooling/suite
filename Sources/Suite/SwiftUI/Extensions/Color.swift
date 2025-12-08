@@ -52,6 +52,21 @@ public extension Color {
 	
 	@available(iOS 15.0, macOS 12.0, watchOS 8.0, *)
 	static let rainbow: [Color] = [.red, .orange, .yellow, .green, .blue, .indigo, .purple]
+	
+	#if os(iOS)
+	@available(iOS 14.0, watchOS 8.0, visionOS 2.0, *)
+	var withFullOpacity: Color {
+		let uic = UIColor(self)
+		guard let components = uic.cgColor.components, components.count >= 3 else {
+			return self
+		}
+		let r = Float(components[0])
+		let g = Float(components[1])
+		let b = Float(components[2])
+
+		return Color(red: Int(r * 255), green: Int(g * 255), blue: Int(b * 255), alpha: 1)
+	}
+	#endif
 }
 
 @available(OSX 11, iOS 14.0, tvOS 13, watchOS 7, *)
