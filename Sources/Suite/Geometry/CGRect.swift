@@ -152,6 +152,12 @@ public extension CGRect {
 	//		}
 	//	#endif
 	
+	#if os(macOS)
+	func inset(by insets: NSEdgeInsets) -> CGRect {
+		CGRect(x: origin.x + insets.left, y: origin.y + insets.top, width: width - (insets.left + insets.right), height: height - (insets.top + insets.bottom))
+	}
+	#endif
+	
 	var aspectRatio: CGFloat { return self.size.aspectRatio }
 	var aspectRatioType: CGSize.AspectRatioType { return self.size.aspectRatioType }
 	
