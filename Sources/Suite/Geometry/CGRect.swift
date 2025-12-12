@@ -115,7 +115,6 @@ public extension CGRect.Placement {
 		case .scaleToFill: .scaleAspectFit
 		case .scaleAspectFit: .scaleAspectFill
 		case .scaleAspectFill: .scaleAspectFit
-		case .redraw: .redraw
 		case .center: .center
 		case .top: .bottom
 		case .bottom: .top
@@ -125,7 +124,7 @@ public extension CGRect.Placement {
 		case .topRight: .bottomLeft
 		case .bottomLeft: .topRight
 		case .bottomRight: .topLeft
-		@unknown default: self
+		default: self
 		}
 	}
 }

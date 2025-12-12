@@ -26,8 +26,8 @@ public func preferenceReduce<K, V>(value: inout [K:V], nextValue: () -> [K:V]) {
 	value = value.merging(nextValue(), uniquingKeysWith: { a, b in a })
 }
 
-public extension View {
-	@ViewBuilder func onPreferenceChange<K: PreferenceKey, V: Sendable>(_ keyPath: KeyPath<PreferenceValues, K.Type>, _ action: @Sendable @escaping (V) -> Void) -> some View where K.Value == V, V: Equatable {
+@MainActor public extension View {
+	@ViewBuilder func onPreferenceChange<K: PreferenceKey, V: Sendable>(_ keyPath: KeyPath<PreferenceValues, K.Type>, _ action: @MainActor @escaping (V) -> Void) -> some View where K.Value == V, V: Equatable {
 		
 		let key = PreferenceValues.instance[keyPath: keyPath]
 		self.onPreferenceChange(key, perform: action)
@@ -39,26 +39,26 @@ public extension View {
 		return self.preference(key: key, value: value)
 	}
 	
-	func setPreference<K: PreferenceKey>(_ keyPath: KeyPath<PreferenceValues, K.Type>, _ value: @MainActor @Sendable @escaping () async throws -> Void) -> some View where K.Value == BlockWrapper {
+	func setPreference<K: PreferenceKey>(_ keyPath: KeyPath<PreferenceValues, K.Type>, _ value: @MainActor @escaping () async throws -> Void) -> some View where K.Value == BlockWrapper {
 		
 		let key = PreferenceValues.instance[keyPath: keyPath]
 		return self.preference(key: key, value: BlockWrapper(block: value))
 	}
 	
-	func setPreference<K: PreferenceKey>(_ keyPath: KeyPath<PreferenceValues, K.Type>, _ value: @MainActor @Sendable @escaping () async throws -> Void) -> some View where K.Value == BlockWrapper? {
+	func setPreference<K: PreferenceKey>(_ keyPath: KeyPath<PreferenceValues, K.Type>, _ value: @MainActor @escaping () async throws -> Void) -> some View where K.Value == BlockWrapper? {
 		
 		let key = PreferenceValues.instance[keyPath: keyPath]
 		return self.preference(key: key, value: BlockWrapper(block: value))
 	}
 	
-    func getPreference<K: PreferenceKey>(_ keyPath: KeyPath<PreferenceValues, K.Type>, _ perform: @Sendable @escaping (K.Value) -> Void) -> some View where K.Value : Equatable {
+    func getPreference<K: PreferenceKey>(_ keyPath: KeyPath<PreferenceValues, K.Type>, _ perform: @MainActor @escaping (K.Value) -> Void) -> some View where K.Value : Equatable {
 		
 		let key = PreferenceValues.instance[keyPath: keyPath]
 		return self.onPreferenceChange(key, perform: perform)
 		
 	}
 	
-	func getPreferenceClosure<K: PreferenceKey>(_ keyPath: KeyPath<PreferenceValues, K.Type>, _ perform: @Sendable @escaping (() async throws -> Void) -> Void) -> some View where K.Value == BlockWrapper {
+	func getPreferenceClosure<K: PreferenceKey>(_ keyPath: KeyPath<PreferenceValues, K.Type>, _ perform: @MainActor @escaping (() async throws -> Void) -> Void) -> some View where K.Value == BlockWrapper {
 		
 		let key = PreferenceValues.instance[keyPath: keyPath]
 		return self.onPreferenceChange(key) { pref in

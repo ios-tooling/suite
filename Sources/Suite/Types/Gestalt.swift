@@ -69,19 +69,21 @@ public struct Gestalt {
 	}()
 	
 	public static let isInPreview: Bool = { ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" }()
-	@MainActor public static let deviceID: String? = {
-		#if os(watchOS)
-			if #available(watchOS 6.2, *) {
-				return WKInterfaceDevice.current().identifierForVendor?.uuidString
-			} else {
-				return nil
-			}
-		#elseif os(iOS) || os(visionOS)
-			return UIDevice.current.identifierForVendor?.uuidString
-		#elseif  os(macOS)
-			return serialNumber
-		#endif
-	}()
+	nonisolated public static var deviceID: String? {
+		get async {
+			#if os(watchOS)
+						if #available(watchOS 6.2, *) {
+							return WKInterfaceDevice.current().identifierForVendor?.uuidString
+						} else {
+							return nil
+						}
+			#elseif os(iOS) || os(visionOS)
+						return await UIDevice.current.identifierForVendor?.uuidString
+			#elseif  os(macOS)
+						return serialNumber
+			#endif
+		}
+	}
 	
 	#if os(OSX)
 		public static let isOnMac: Bool = true
@@ -193,7 +195,7 @@ public struct Gestalt {
 			get { NSApp.sleepDisabled }
 			set { NSApp.sleepDisabled = newValue }
 		}
-		public static let serialNumber: String? = {
+		nonisolated public static let serialNumber: String? = {
 			let platformExpert = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
 			
 			let string = IORegistryEntryCreateCFProperty(platformExpert, kIOPlatformSerialNumberKey as CFString, kCFAllocatorDefault, 0).takeRetainedValue()
