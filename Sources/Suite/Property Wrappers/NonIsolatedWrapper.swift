@@ -7,8 +7,7 @@
 
 import Foundation
 
-public typealias os_unfair_lock_pointer = UnsafeMutablePointer<os_unfair_lock_s>
-
+@available(iOS 16.0, watchOS 9, macOS 14, *)
 @MainActor @propertyWrapper public struct NonIsolatedValue<Value: Sendable>: DynamicProperty {
     public init(_ wrappedValue: Value) {
         _value = State(wrappedValue: ThreadsafeMutex(wrappedValue))
