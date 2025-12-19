@@ -9,6 +9,7 @@
 import UIKit
 
 public extension UIView {
+	static var isResigningFirstResponderOnAll = false
 	static let screenScale: CGFloat = {
 		#if os(visionOS)
 			return 1
@@ -19,7 +20,9 @@ public extension UIView {
 	
 	@available(iOSApplicationExtension, unavailable)
     static func resignAllFirstResponders() {
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+		 isResigningFirstResponderOnAll = true
+		UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+		 isResigningFirstResponderOnAll = false
     }
 
 	func toImage(opaque: Bool = false, scale: CGFloat = 0) -> UIImage? {
