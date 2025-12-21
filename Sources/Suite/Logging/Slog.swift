@@ -58,7 +58,7 @@ public actor Slog {
 		guard let message else { return }
 		let raw: String = "\(message)"
 		//logger.info("\(raw)")
-		if printLogs { print(raw) }
+		if printLogs { print("Recorded \(message)") }
 		if let echoCallback {
 			await echoCallback(raw)
 		}
