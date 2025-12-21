@@ -8,14 +8,14 @@
 import Foundation
 
 extension EnvironmentValues {
-	@Entry public var environmentValues: EnvironmentValues? = nil
+	@Entry public var echoedValues: EnvironmentValues = .init()
 }
 
 @available(iOS 15, macOS 12, visionOS 1, watchOS 10, *)
 public struct EnviromentEchoingView<Content: View>: View {
 	var content: () -> Content
 	
-	@Environment(\.self) var environmentValues
+	@Environment(\.self) var echoedValues
 
 	public init(content: @escaping () -> Content) {
 		self.content = content
@@ -23,6 +23,6 @@ public struct EnviromentEchoingView<Content: View>: View {
 	
 	public var body: some View {
 		content()
-			.environment(\.environmentValues, environmentValues)
+			.environment(\.echoedValues, echoedValues)
 	}
 }
