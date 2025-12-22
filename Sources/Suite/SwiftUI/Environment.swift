@@ -8,7 +8,7 @@
 import Foundation
 
 extension EnvironmentValues {
-	@Entry public var echoedValues: EnvironmentValues = .init()
+	@Entry public var echoedValues: EnvironmentValues?
 }
 
 @available(iOS 15, macOS 12, visionOS 1, watchOS 10, *)
