@@ -10,6 +10,8 @@ import Foundation
 	private var isMonitoring = false
 	private var isStartingUp = true
 	private var startupContinuation: CheckedContinuation<Bool, Never>?
+	private var cameOnlineCallbacks: [() -> Void] = []
+	private var wasOffline = true
 	
 	init(queue: DispatchQueue = .main) {
 		self.queue = queue
@@ -30,11 +32,20 @@ import Foundation
 		}
 	}
 	
+	public func whenOnline(_ callback: @MainActor @escaping () -> Void) {
+		cameOnlineCallbacks.append(callback)
+	}
+	
 	func start() async {
 		if isMonitoring { return }
 		pathMonitor.pathUpdateHandler = { [weak self] path in
-			self?.objectWillChange.sendOnMain()
-			Notifications.reachabilityChanged.notify()
+			guard let self else { return }
+			
+			self.objectWillChange.sendOnMain()
+			Task { @MainActor in
+				self.callCameOnlineCallbacks()
+				Notifications.reachabilityChanged.notify()
+			}
 		}
 		isMonitoring = true
 		objectWillChange.sendOnMain()
@@ -44,6 +55,18 @@ import Foundation
 		self.startupContinuation = nil
 		objectWillChange.send()
 		pathMonitor.start(queue: queue)
+		callCameOnlineCallbacks()
+	}
+	
+	func callCameOnlineCallbacks() {
+		if isOffline {
+			wasOffline = true
+			return
+		}
+		
+		if !wasOffline { return }
+		wasOffline = false
+		for block in cameOnlineCallbacks { block() }
 	}
 	
 	func stop() {
