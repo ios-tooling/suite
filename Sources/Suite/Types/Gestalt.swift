@@ -21,10 +21,9 @@ import Foundation
 #endif
 
 
-public struct Gestalt {
+public struct Gestalt: Sendable {
 	public enum Distribution: Sendable { case development, testflight, appStore }
-	
-	
+		
 	public static let distribution: Distribution = {
 		#if DEBUG
 			return .development
@@ -133,58 +132,67 @@ public struct Gestalt {
 				false
 			}
 		}()
+		
+		static public var isiOSAppOnMac: Bool {
+			if #available(iOS 14.0, *) {
+				ProcessInfo.processInfo.isiOSAppOnMac
+			} else {
+				false
+			}
+		}
 	
 		@MainActor static public var sleepDisabled: Bool {
 			get { UIApplication.shared.isIdleTimerDisabled }
 			set { UIApplication.shared.isIdleTimerDisabled = newValue }
 		}
-	@MainActor static public let deviceName: String = UIDevice.current.name
-		#if targetEnvironment(macCatalyst)
-			public static let isOnMac = true
-		#else
-			public static let isOnMac = false
-		#endif
-		@MainActor public static let isOnIPad: Bool = { return UIDevice.current.userInterfaceIdiom == .pad }()
-		@MainActor public static let isOnIPhone: Bool = { return UIDevice.current.userInterfaceIdiom == .phone }()
-    
-		@MainActor public static let osMajorVersion: Int = {
-			return Int(UIDevice.current.systemVersion.components(separatedBy: ".").first ?? "") ?? 0
-		}()
 	
-		enum SimulatorHostInfo: Int, CaseIterable, Sendable { case sysname = 0, nodename, release, version, machine }
-		static func getSimulatorHostInfo(which: SimulatorHostInfo) -> String? {
-			let structSize = MemoryLayout<utsname>.size
-			let fieldSize = structSize / SimulatorHostInfo.allCases.count
-			var systemInfo = [UInt8](repeating: 0, count: structSize)
-			
-			let info = systemInfo.withUnsafeMutableBufferPointer { ( body: inout UnsafeMutableBufferPointer<UInt8>) -> String? in
-				var valid = false
-				guard let base = body.baseAddress else { return nil }
-				base.withMemoryRebound(to: utsname.self, capacity: 1) { data in
-					valid = uname(data) == 0
+		@MainActor static public let deviceName: String = UIDevice.current.name
+			#if targetEnvironment(macCatalyst)
+				public static let isOnMac = true
+			#else
+				public static let isOnMac = false
+			#endif
+			@MainActor public static let isOnIPad: Bool = { return UIDevice.current.userInterfaceIdiom == .pad }()
+			@MainActor public static let isOnIPhone: Bool = { return UIDevice.current.userInterfaceIdiom == .phone }()
+		 
+			@MainActor public static let osMajorVersion: Int = {
+				return Int(UIDevice.current.systemVersion.components(separatedBy: ".").first ?? "") ?? 0
+			}()
+		
+			enum SimulatorHostInfo: Int, CaseIterable, Sendable { case sysname = 0, nodename, release, version, machine }
+			static func getSimulatorHostInfo(which: SimulatorHostInfo) -> String? {
+				let structSize = MemoryLayout<utsname>.size
+				let fieldSize = structSize / SimulatorHostInfo.allCases.count
+				var systemInfo = [UInt8](repeating: 0, count: structSize)
+				
+				let info = systemInfo.withUnsafeMutableBufferPointer { ( body: inout UnsafeMutableBufferPointer<UInt8>) -> String? in
+					var valid = false
+					guard let base = body.baseAddress else { return nil }
+					base.withMemoryRebound(to: utsname.self, capacity: 1) { data in
+						valid = uname(data) == 0
+					}
+
+					if !valid { return nil }
+
+					let all = Array(body)
+					let offset = which.rawValue * fieldSize
+					let chunk = Array(all[offset..<(offset + fieldSize)])
+					let count = chunk.firstIndex(where: { $0 == 0 }) ?? fieldSize
+					return String(bytes: chunk[0..<count], encoding: .utf8)
 				}
-
-				if !valid { return nil }
-
-				let all = Array(body)
-				let offset = which.rawValue * fieldSize
-				let chunk = Array(all[offset..<(offset + fieldSize)])
-				let count = chunk.firstIndex(where: { $0 == 0 }) ?? fieldSize
-				return String(bytes: chunk[0..<count], encoding: .utf8)
+				return info
 			}
-			return info
-		}
-		public static let simulatorMachineName: String? = { Gestalt.getSimulatorHostInfo(which: .nodename) }()
-		public static let simulatorSystemName: String? = { Gestalt.getSimulatorHostInfo(which: .sysname) }()
-		public static let simulatorReleaseName: String? = { Gestalt.getSimulatorHostInfo(which: .release) }()
-		public static let simulatorVersionName: String? = { Gestalt.getSimulatorHostInfo(which: .version) }()
-		public static let simulatorCPUName: String? = { Gestalt.getSimulatorHostInfo(which: .machine) }()
+			public static let simulatorMachineName: String? = { Gestalt.getSimulatorHostInfo(which: .nodename) }()
+			public static let simulatorSystemName: String? = { Gestalt.getSimulatorHostInfo(which: .sysname) }()
+			public static let simulatorReleaseName: String? = { Gestalt.getSimulatorHostInfo(which: .release) }()
+			public static let simulatorVersionName: String? = { Gestalt.getSimulatorHostInfo(which: .version) }()
+			public static let simulatorCPUName: String? = { Gestalt.getSimulatorHostInfo(which: .machine) }()
 
-		public static let simulatorInfo: String = {
-			SimulatorHostInfo.allCases.map { getSimulatorHostInfo(which: $0) }.compactMap { $0 }.joined(separator: "- ")
-		}()
+			public static let simulatorInfo: String = {
+				SimulatorHostInfo.allCases.map { getSimulatorHostInfo(which: $0) }.compactMap { $0 }.joined(separator: "- ")
+			}()
 
-	#endif
+		#endif
 	
 	public static let isRunningUITests: Bool = {
 		return ProcessInfo.processInfo.arguments.contains("-ui_testing")
