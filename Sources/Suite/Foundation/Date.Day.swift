@@ -72,6 +72,22 @@ public extension Date {
 		public var previousDay: Date.Day { date.previousDay.day }
 		public var nextDay: Date.Day { date.nextDay.day }
 
+		public var nextWeek: Date.Day {
+			var result = self
+			for _ in 0..<7 {
+				result = result.nextDay
+			}
+			return result
+		}
+
+		public var previousWeek: Date.Day {
+			var result = self
+			for _ in 0..<7 {
+				result = result.previousDay
+			}
+			return result
+		}
+
 		public init?(dmy: String) {
 			guard let components = dmy.dateComponents else { return nil }
 			
