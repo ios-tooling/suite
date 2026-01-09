@@ -38,10 +38,15 @@ Suite is a comprehensive utility framework targeting iOS 13+, macOS 10.15+, and 
 #### 1. Extension-First Design
 The framework extends Apple's core frameworks systematically:
 - `Sources/Suite/Foundation/` - Core Swift and Foundation extensions
-- `Sources/Suite/SwiftUI/` - SwiftUI components and extensions  
+- `Sources/Suite/SwiftUI/` - SwiftUI components and extensions
 - `Sources/Suite/UIKit/` - UIKit utilities for iOS
 - `Sources/Suite/AppKit/` - macOS-specific AppKit extensions
-- `Sources/Suite/Core Graphics/` - Graphics and drawing utilities
+- `Sources/Suite/Cocoa/` - Cocoa framework utilities
+- `Sources/Suite/Geometry/` - Graphics and geometry utilities
+- `Sources/Suite/Combine & Async/` - Combine publishers and async utilities
+- `Sources/Suite/SwiftData/` - SwiftData extensions
+- `Sources/Suite/Logging/` - Logging utilities
+- `Sources/Suite/Widgets/` - Reusable widget components
 
 #### 2. Macro System (`Sources/SuiteMacrosImpl/`)
 Five Swift macros eliminate boilerplate code:
@@ -102,9 +107,14 @@ Unified JSON handling with type-safe APIs:
 
 ### Testing Structure
 
-Tests are minimal but focused:
-- `Tests/SuiteTests/MacroTests.swift` - Macro expansion testing using SwiftSyntaxMacrosTestSupport
-- `Tests/SuiteTests/` - Unit tests for core functionality (JSON, CoreGraphics, Dictionary extensions)
+The test suite covers core functionality across the framework:
+- **MacroTests.swift** - Macro expansion testing using SwiftSyntaxMacrosTestSupport
+- **CoreGraphics/GeometryTests** - Graphics and geometry extension tests
+- **Foundation extensions** - Dictionary, Array, String, Optional, Date tests
+- **State management** - LoadingState and SharedDependencyManager tests
+- **SwiftUI components** - Component and view wrapper tests
+- **JSON system** - Codable integration and hashing tests
+- **Type utilities** - VersionString and AnyEquatable tests
 
 When adding tests, use the existing XCTest structure and follow the pattern of testing public APIs rather than internal implementation details.
 
