@@ -11,7 +11,7 @@ import Foundation
 import Combine
 
 @available(OSX 10.15, iOS 13.0, watchOS 6.0, *)
-public class ObservableObserver<Target: ObservableObject>: ObservableObject {
+@MainActor public class ObservableObserver<Target: ObservableObject>: ObservableObject {
    private var lastValue: Bool
    private var check: () -> Bool
    private var cancellable: AnyCancellable?
