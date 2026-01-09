@@ -39,9 +39,12 @@ public func logg<Failure>(completion: Subscribers.Completion<Failure>, _ msg: @e
 public class OldSuiteLogger: @unchecked Sendable {
 	static public let instance = OldSuiteLogger()
 	
-	private init() { }
+	private init() {
+		_lock = UnsafeMutablePointer<os_unfair_lock_s>.allocate(capacity: 1)
+		_lock.initialize(to: os_unfair_lock_s())
+	}
 	
-	private var serializer = DispatchQueue(label: "logger", qos: .userInitiated)
+	private let _lock: UnsafeMutablePointer<os_unfair_lock_s>
 	public var fileURL: URL?
 	var logFileExists = false
 	public var showTimestamps = true { didSet { self.timestampStart = Date() }}
@@ -140,13 +143,13 @@ public class OldSuiteLogger: @unchecked Sendable {
 	}
 	
 	public func log(_ msg: @Sendable @escaping @autoclosure () -> String, level: Level = .mild) {
-		serializer.async {
-			if level > self.level { return }
-			var message = msg()
-			
-			if self.showTimestamps { message = String(format: "• %.04f - ", Date().timeIntervalSince(self.timestampStart)) + message }
-			self.output(message)
-		}
+		if level > self.level { return }
+		os_unfair_lock_lock(_lock)
+		defer { os_unfair_lock_unlock(_lock) }
+		var message = msg()
+		
+		if self.showTimestamps { message = String(format: "• %.04f - ", Date().timeIntervalSince(self.timestampStart)) + message }
+		self.output(message)
 	}
 	
 	public func log(error: Error?, _ msg: @escaping @autoclosure () -> String, level: Level = .mild) {

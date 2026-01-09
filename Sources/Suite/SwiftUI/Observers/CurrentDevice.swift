@@ -31,7 +31,7 @@ import SwiftUI
 	}
 	
 	@objc func orientationChanged() {
-		DispatchQueue.main.async {
+		MainActor.run {
 			if UIDevice.current.orientation == .unknown { return }
 			self.isLandscape = UIDevice.current.orientation.isLandscape
 			self.screenSize = UIScreen.main.bounds.size

@@ -8,9 +8,16 @@
 import SwiftUI
 
 extension MainActor {
-	public static func run(_ block: @Sendable @escaping () -> Void) {
-		Task { await MainActor.run { block() }}
+	public static func run(after: TimeInterval? = nil, _ block: @Sendable @escaping @MainActor () -> Void) {
+		Task {
+			if let after {
+				try? await Task.sleep(nanoseconds: UInt64(Double(NSEC_PER_SEC) * after))
+			}
+			await MainActor.run { block() }
+		}
 	}
+	
+	
 }
 
 

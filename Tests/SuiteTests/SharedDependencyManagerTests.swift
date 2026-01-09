@@ -12,6 +12,6 @@ class TestDependency { }
 
 struct SharedDependencyManagerTests {
 	@Test func testDefaults() throws {
-		SharedDependencyManager.instance.register(TestDependency(), replace: .default)
+		SharedDependencyManager.instance.register(TestDependency(), .default)
 	}
 }

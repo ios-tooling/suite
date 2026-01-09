@@ -48,7 +48,7 @@ public extension Notification {
 	}
 
 	static func postOnMainThread(name: Notification.Name, object: Sendable? = nil, userInfo: [String: Sendable]? = nil) {
-		DispatchQueue.main.async {
+		MainActor.run {
 			self.post(name: name, object: object, userInfo: userInfo)
 		}
 	}

@@ -13,7 +13,7 @@ import AppKit
 extension NSAlert {
 	public static func showAlert(title: String, message: String, buttonTitles: [String] = [NSLocalizedString("OK", comment: "OK")], style: NSAlert.Style = .informational, in window: NSWindow? = nil, completion: (@MainActor (Int) -> Void)? = nil) {
 		
-		DispatchQueue.main.async {
+		MainActor.run {
 			let alert = NSAlert()
 			
 			for title in buttonTitles {

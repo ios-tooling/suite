@@ -59,7 +59,7 @@ public struct PositionReportingView<Content: View>: View {
 	
 	func clearBackground(using proxy: GeometryProxy) -> some View {
 		let offset = proxy.frame(in: coordinateSpace).origin
-		DispatchQueue.main.async { position = offset }
+		MainActor.run { position = offset }
 		return Color.clear
 	}
 }

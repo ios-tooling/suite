@@ -37,7 +37,7 @@ public struct ScrollCanary: View {
 				
 				if trackIsScrolling {
 					if newFrame.origin.y != initialFrame.origin.y {
-						DispatchQueue.main.async {
+						MainActor.run(after: 0.01) {
 							initialFrame = newFrame
 							isScrolling = true
 							clearScrollingTask?.cancel()

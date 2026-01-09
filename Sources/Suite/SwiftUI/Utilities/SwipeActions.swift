@@ -38,12 +38,12 @@ public extension View {
 
     func buildContent(in geo: GeometryProxy) -> some View {
         let current = geo.frame(in: .global).minY
-        DispatchQueue.main.async {
+		 MainActor.run(after: 0.01) {
             screenWidth = geo.width
         }
     
         if current != yPosition {
-            DispatchQueue.main.async {
+			  MainActor.run(after: 0.01) {
                 yPosition = current
                 hideButtons()
                 activeCellID = nil
@@ -55,7 +55,7 @@ public extension View {
     func hideCurrent() {
         if currentCellID == id { return }
         let block = currentCellCollapseBlock
-        DispatchQueue.main.async { block?() }
+		 MainActor.run(after: 0.01) { block?() }
         currentCellCollapseBlock = hideButtons
         currentCellID = id
     }
@@ -103,7 +103,7 @@ public extension View {
                     }
                 }
                 .onDisappear() {
-                    DispatchQueue.main.async { hideButtons() }
+						 MainActor.run(after: 0.01) { hideButtons() }
                 }
             )
     }

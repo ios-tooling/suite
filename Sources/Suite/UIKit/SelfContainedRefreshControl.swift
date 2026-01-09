@@ -22,7 +22,7 @@ public class SelfContainedRefreshControl: UIRefreshControl {
 	
 	@objc func refreshed() {
 		closure?() { [ weak self] in
-			DispatchQueue.main.async(after: self?.delay ?? 0) { self?.endRefreshing() }
+			MainActor.run(after: self?.delay ?? 0) { self?.endRefreshing() }
 		}
 	}
 }

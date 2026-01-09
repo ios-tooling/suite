@@ -47,7 +47,7 @@ extension View {
 		
 		/// Dispatching is needed to take the next runloop for the completion callback.
 		/// This prevents errors like "Modifying state during view update, this will cause undefined behavior."
-		DispatchQueue.main.async {
+		MainActor.run {
 			self.completion()
 		}
 	}

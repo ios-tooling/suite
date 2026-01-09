@@ -151,7 +151,7 @@ fileprivate let logger = Logger(subsystem: "suite", category: "soundEffects")
 	public func stop(fadingOutOver fadeOut: TimeInterval = 0) {
 		if #available(iOS 10.0, iOSApplicationExtension 10.0, OSX 10.12, OSXApplicationExtension 10.12, *), fadeOut > 0 {
 			actualPlayer?.setVolume(0, fadeDuration: fadeOut)
-			DispatchQueue.main.asyncAfter(deadline: .now() + fadeOut) {
+			MainActor.run(after: fadeOut) {
 				self.stop()
 			}
 			return

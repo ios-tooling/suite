@@ -112,7 +112,7 @@ extension EnvironmentValues {
 			dropScale = 0.001
 		}
 
-		DispatchQueue.main.async(after: duration) {
+		MainActor.run(after: duration) {
 			self.completeDrag()
 		}
 	}
@@ -122,7 +122,7 @@ extension EnvironmentValues {
 			currentPosition = startPosition
 		}
 
-		DispatchQueue.main.async(after: duration) {
+		MainActor.run(after: duration) {
 			self.completeDrag()
 		}
 	}

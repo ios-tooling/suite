@@ -38,7 +38,6 @@ public actor Keychain {
 	public var synchronizable: Bool = false
 	public var keyPrefix: String?
 	
-	private static let queue = DispatchQueue(label: "keychain", qos: .userInteractive)
 	private init() { }
 	
 	/**
@@ -171,32 +170,28 @@ public actor Keychain {
 	
 	*/
 	static public func getData(_ key: String) -> Data? {
-		// The lock prevents the code to be run simlultaneously
-		// from multiple threads which may result in crashing
-		return queue.sync {
-			let prefixedKey = keyWithPrefix(key)
-			
-			var query: [String: Any] = [
-				Constants.keychainClass: kSecClassGenericPassword,
-				Constants.attrAccount: prefixedKey,
-				Constants.returnData: true,
-				Constants.matchLimit: kSecMatchLimitOne
-			]
-			
-			query = self.addAccessGroupWhenPresent(query)
-			query = self.addSynchronizableIfRequired(query, addingItems: false)
-			lastQueryParameters.send(query)
-			
-			var result: AnyObject?
-			
-			lastResultCode = withUnsafeMutablePointer(to: &result) {
-				SecItemCopyMatching(query as CFDictionary, UnsafeMutablePointer($0))
-			}
-			
-			if lastResultCode == noErr { return result as? Data }
-			
-			return nil
+		let prefixedKey = keyWithPrefix(key)
+		
+		var query: [String: Any] = [
+			Constants.keychainClass: kSecClassGenericPassword,
+			Constants.attrAccount: prefixedKey,
+			Constants.returnData: true,
+			Constants.matchLimit: kSecMatchLimitOne
+		]
+		
+		query = self.addAccessGroupWhenPresent(query)
+		query = self.addSynchronizableIfRequired(query, addingItems: false)
+		lastQueryParameters.send(query)
+		
+		var result: AnyObject?
+		
+		lastResultCode = withUnsafeMutablePointer(to: &result) {
+			SecItemCopyMatching(query as CFDictionary, UnsafeMutablePointer($0))
 		}
+		
+		if lastResultCode == noErr { return result as? Data }
+		
+		return nil
 	}
 	
 	/**

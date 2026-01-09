@@ -53,7 +53,7 @@ public extension ObservableObjectPublisher {
 		if Thread.isMainThread {
 			send()
 		} else {
-			DispatchQueue.main.async { self.send() }
+			MainActor.run { self.send() }
 		}
 	}
 	

@@ -31,7 +31,7 @@ import WebKit
 	public func load(_ request: URLRequest) async throws {
 		let _: Void = try await withCheckedThrowingContinuation { continuation in
 			self.continuation = continuation
-			DispatchQueue.main.async { _ = self.webView.load(request) }
+			MainActor.run { _ = self.webView.load(request) }
 		}
 	}
 	
