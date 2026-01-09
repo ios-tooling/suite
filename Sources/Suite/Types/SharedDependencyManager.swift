@@ -5,10 +5,18 @@ public final class SharedDependencyManager: @unchecked Sendable {
 	public static let instance = SharedDependencyManager()
 	
 	private var dependencies: [String: Any] = [:]
-	private var lock = os_unfair_lock_s()
+	private let _lock: UnsafeMutablePointer<os_unfair_lock_s>
+
+	private init() {
+		_lock = UnsafeMutablePointer<os_unfair_lock_s>.allocate(capacity: 1)
+		_lock.initialize(to: os_unfair_lock_s())
+	}
 	
-	private init() {}
-	
+	deinit {
+		_lock.deinitialize(count: 1)
+		_lock.deallocate()
+	}
+
 	struct StoredDependency<T> {
 		let value: T
 		let isDefault: Bool
@@ -18,8 +26,8 @@ public final class SharedDependencyManager: @unchecked Sendable {
 	
 	public func register<T>(_ dependency: T, _ replace: ReplacementRule = .single) {
 		let key = String(describing: T.self)
-		os_unfair_lock_lock(&lock)
-		defer { os_unfair_lock_unlock(&lock) }
+		os_unfair_lock_lock(_lock)
+		defer { os_unfair_lock_unlock(_lock) }
 		if let current = dependencies[key] as? StoredDependency<T> {
 			switch replace {
 			case .default: if replace == .default { fatalError("Trying to re-register a default dependency") }
@@ -33,21 +41,21 @@ public final class SharedDependencyManager: @unchecked Sendable {
 	
 	public func resolve<T>(_ type: T.Type) -> T? {
 		let key = String(describing: type)
-		os_unfair_lock_lock(&lock)
-		defer { os_unfair_lock_unlock(&lock) }
+		os_unfair_lock_lock(_lock)
+		defer { os_unfair_lock_unlock(_lock) }
 		return (dependencies[key] as? StoredDependency<T>)?.value
 	}
 	
 	public func unregister<T>(_ type: T.Type) {
 		let key = String(describing: type)
-		os_unfair_lock_lock(&lock)
-		defer { os_unfair_lock_unlock(&lock) }
+		os_unfair_lock_lock(_lock)
+		defer { os_unfair_lock_unlock(_lock) }
 		dependencies.removeValue(forKey: key)
 	}
 	
 	public func clear() {
-		os_unfair_lock_lock(&lock)
-		defer { os_unfair_lock_unlock(&lock) }
+		os_unfair_lock_lock(_lock)
+		defer { os_unfair_lock_unlock(_lock) }
 		dependencies.removeAll()
 	}
 }
@@ -65,6 +73,7 @@ public struct SharedDependency<T> {
 	}
 	
 	public var wrappedValue: T {
+		//make sure we fail early if the developer forgets to register something.
 		guard let dependency = SharedDependencyManager.instance.resolve(type) else {
 			fatalError("Dependency of type \(type) not registered. Please register it using SharedDependencyManager.instance.register()")
 		}
