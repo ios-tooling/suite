@@ -19,16 +19,20 @@ public struct ButtonIsPerformingActionKey: PreferenceKey {
 @MainActor public struct AsyncButton<Label: View, Busy: View>: View {
 	var action: @MainActor () async throws -> Void
 	@ViewBuilder var label: () -> Label
-	@ViewBuilder var  busy: () -> Busy
+	@ViewBuilder var busy: () -> Busy
 	@State var task: Task<Void, Error>?
+	var title: LocalizedStringKey?
+	var systemImage: String?
 	
 	@State private var isPerformingAction = false
 	var role: Any?
 	let shouldCancelOnDisappear: Bool
 	
-	public init(shouldCancelOnDisappear: Bool = false, action: @MainActor @escaping () async throws -> Void, @ViewBuilder label: @escaping () -> Label, @ViewBuilder busy: @escaping () -> Busy) {
+	public init(shouldCancelOnDisappear: Bool = false, _ title: LocalizedStringKey? = nil, systemImage: String? = nil, action: @MainActor @escaping () async throws -> Void, @ViewBuilder label: @escaping () -> Label, @ViewBuilder busy: @escaping () -> Busy) {
 		self.action = action
 		self.label = label
+		self.title = title
+		self.systemImage = systemImage
 		self.busy = busy
 		self.shouldCancelOnDisappear = shouldCancelOnDisappear
 	}
@@ -44,10 +48,14 @@ public struct ButtonIsPerformingActionKey: PreferenceKey {
 	
 	public var body: some View {
 		if #available(macOS 12.0, iOS 15.0, watchOS 8.0, *) {
-			Button(role: role as? ButtonRole, action: { performAction() }) { buttonLabel }
-				.disabled(isPerformingAction)
-				.preference(key: ButtonIsPerformingActionKey.self, value: isPerformingAction)
-				.onDisappear { cleanUp() }
+			if let title, let systemImage {
+				Button(title, systemImage: systemImage, role: role as? ButtonRole, action: { performAction() })
+			} else {
+				Button(role: role as? ButtonRole, action: { performAction() }) { buttonLabel }
+					.disabled(isPerformingAction)
+					.preference(key: ButtonIsPerformingActionKey.self, value: isPerformingAction)
+					.onDisappear { cleanUp() }
+			}
 		} else {
 			Button(action: { performAction() }) { buttonLabel }
 				.disabled(isPerformingAction)
@@ -96,6 +104,8 @@ public struct ButtonIsPerformingActionKey: PreferenceKey {
 extension AsyncButton where Label == AsyncButtonLabel, Busy == AsyncButtonBusyLabel {
 	public init(_ title: LocalizedStringKey? = nil, systemImage: String? = nil, shouldCancelOnDisappear: Bool = false, action: @MainActor @escaping () async throws -> Void) {
 		self.action = action
+		self.title = title
+		self.systemImage = systemImage
 		self.label = { AsyncButtonLabel(title: title, systemImage: systemImage) }
 		self.busy = { AsyncButtonBusyLabel(title: title) }
 		self.shouldCancelOnDisappear = shouldCancelOnDisappear
