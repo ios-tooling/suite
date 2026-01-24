@@ -24,6 +24,10 @@ public struct DismissParentEnvironmentKey: EnvironmentKey {
 	nonisolated(unsafe) public static var defaultValue = { }
 }
 
+@available(iOS 14, macOS 11, watchOS 7, *)
+extension EnvironmentValues {
+	@Entry public var namespace: Namespace.ID = Namespace().wrappedValue
+}
 
 @available(iOS 16.0, macOS 13, watchOS 9, *)
 public extension EnvironmentValues {

@@ -10,7 +10,8 @@
       "Bash(cloc:*)",
       "Bash(timeout 60 swift test:*)",
       "Bash(pkill:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(afplay:*)"
     ],
     "deny": []
   }
