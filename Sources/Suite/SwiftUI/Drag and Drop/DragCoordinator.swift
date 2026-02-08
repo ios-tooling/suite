@@ -8,7 +8,7 @@
 import SwiftUI
 
 extension EnvironmentValues {
-	@GeneratedEnvironmentKey var dragCoordinatorSnapbackDuration = 0.2
+	@Entry var dragCoordinatorSnapbackDuration = 0.2
 }
 
 @available(OSX 13, iOS 15, tvOS 13, watchOS 8, *)

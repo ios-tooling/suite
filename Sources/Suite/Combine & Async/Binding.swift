@@ -6,34 +6,8 @@
 //
 
 #if canImport(SwiftUI)
-#if canImport(Combine)
 import SwiftUI
 import Combine
-
-//@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
-//public extension Binding {
-//	func onChange(_ completion: @escaping (Value) -> Void) -> Binding<Value> {
-//		Binding<Value>(get: { self.wrappedValue }, set: { newValue in
-//			self.wrappedValue = newValue
-//			completion(newValue)
-//		})
-//	}
-//
-//	func onChange(_ completion: @escaping (Value, Value) -> Void) -> Binding<Value> {
-//		Binding<Value>(get: { self.wrappedValue }, set: { newValue in
-//			let oldValue = self.wrappedValue
-//			self.wrappedValue = newValue
-//			completion(oldValue, newValue)
-//		})
-//	}
-//
-//	func willChange(_ completion: @escaping (Value) -> Void) -> Binding<Value> {
-//		Binding<Value>(get: { self.wrappedValue }, set: { newValue in
-//			completion(newValue)
-//			self.wrappedValue = newValue
-//		})
-//	}
-//}
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
 public func ??<T: Sendable>(lhs: Binding<Optional<T>>, rhs: T) -> Binding<T> {
@@ -116,18 +90,6 @@ public extension Binding where Value == Bool {
 	}
 }
 
-//@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
-//public class Bound<Value: Sendable> {
-//	public init(_ initial: Value) {
-//		value = initial
-//	}
-//	public var value: Value
-//	
-//	public var binding: Binding<Value> {
-//		Binding<Value>(get: { self.value }, set: { self.value = $0 })
-//	}
-//}
-
 public extension Binding where Value: Equatable & Sendable {
 	func equalTo(_ element: Value) -> Binding<Bool> {
 		Binding<Bool>(
@@ -137,5 +99,4 @@ public extension Binding where Value: Equatable & Sendable {
 	}
 }
 
-#endif
 #endif

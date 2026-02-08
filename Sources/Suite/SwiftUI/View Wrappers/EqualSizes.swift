@@ -22,7 +22,7 @@ extension PreferenceValues {
 }
 
 extension EnvironmentValues {
-	@GeneratedEnvironmentKey var enforcedSize: CGSize?
+	@Entry var enforcedSize: CGSize?
 }
 
 extension [CGSize] {
