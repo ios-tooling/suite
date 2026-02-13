@@ -26,7 +26,7 @@ public struct DismissParentEnvironmentKey: EnvironmentKey {
 
 @available(iOS 14, macOS 11, watchOS 7, *)
 extension EnvironmentValues {
-	@Entry public var namespace: Namespace.ID = Namespace().wrappedValue
+	@Entry public var namespace: Namespace.ID!
 }
 
 @available(iOS 16.0, macOS 13, watchOS 9, *)
