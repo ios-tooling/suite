@@ -24,6 +24,11 @@ public struct SeededRandomNumberGenerator: RandomNumberGenerator {
 		self.mersenne = GKMersenneTwisterRandomSource(seed: UInt64(seed))
 	}
 	
+	public init(seed: UInt64) {
+		if seed == 0 { print("Seeding a zero generator") }
+		self.mersenne = GKMersenneTwisterRandomSource(seed: seed)
+	}
+	
 	public var isZeroGenerator: Bool {
 		mersenne.seed == 0
 	}
