@@ -112,7 +112,7 @@ public extension URL {
 	
 	@available(iOS 16.0, macOS 13, *)
 	var addingHomeDirectory: URL {
-		if !isFileURL || !path.contains("~") { return self }
+		if !path.contains("~") { return self }
 		let path = self.path(percentEncoded: false).replacingOccurrences(of: "~", with: "")
 		let home = Self.homeDirectory
 		if path.contains(home.path) { return self }
