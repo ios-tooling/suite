@@ -124,7 +124,6 @@ public extension URL {
 	}
 	
 	var componentDirectoryURLs: [URL]? {
-		guard isFileURL else { return nil }
 		let components = path.components(separatedBy: "/")
 		var builtUp = URL(fileURLWithPath: "/")
 		
