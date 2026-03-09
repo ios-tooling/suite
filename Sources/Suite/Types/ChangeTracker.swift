@@ -48,7 +48,7 @@ public final class ChangeTracker<ID: Hashable> {
 	}
 }
 
-// MARK: - View Modifier
+// MARK: - View Modifiers
 
 @available(iOS 17, macOS 14, watchOS 10, tvOS 17, *)
 private struct ObserveIDModifier<ID: Hashable>: ViewModifier {
@@ -65,7 +65,23 @@ private struct ObserveIDModifier<ID: Hashable>: ViewModifier {
 	}
 }
 
-// MARK: - View Extension
+@available(iOS 17, macOS 14, watchOS 10, tvOS 17, *)
+private struct OnTrackedChangeModifier<ID: Hashable>: ViewModifier {
+	let id: ID
+	let tracker: ChangeTracker<ID>
+	let callback: () -> Void
+	@State private var token: IDToken?
+
+	func body(content: Content) -> some View {
+		content
+			.onAppear { token = tracker.token(for: id) }
+			.onDisappear { token = nil }
+			.onChange(of: id) { _, newID in token = tracker.token(for: newID) }
+			.onChange(of: token?.version) { _, _ in callback() }
+	}
+}
+
+// MARK: - View Extensions
 
 @available(iOS 17, macOS 14, watchOS 10, tvOS 17, *)
 public extension View {
@@ -74,9 +90,18 @@ public extension View {
 	@MainActor func observe<ID: Hashable>(_ id: ID, in tracker: ChangeTracker<ID>) -> some View {
 		modifier(ObserveIDModifier(id: id, tracker: tracker))
 	}
-	
+
 	@MainActor func observe(_ id: String) -> some View {
 		modifier(ObserveIDModifier(id: id, tracker: .instance))
+	}
+
+	/// Calls `callback` whenever `tracker.didChange(id:)` is invoked for the given ID.
+	@MainActor func onTrackedChange<ID: Hashable>(_ id: ID, in tracker: ChangeTracker<ID>, callback: @escaping () -> Void) -> some View {
+		modifier(OnTrackedChangeModifier(id: id, tracker: tracker, callback: callback))
+	}
+
+	@MainActor func onTrackedChange(_ id: String, callback: @escaping () -> Void) -> some View {
+		modifier(OnTrackedChangeModifier(id: id, tracker: .instance, callback: callback))
 	}
 }
 #endif
