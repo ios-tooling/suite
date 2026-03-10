@@ -74,7 +74,7 @@ public struct ButtonIsPerformingActionKey: PreferenceKey {
 		let action = action
 		let isPerformingAction = $isPerformingAction
 		
-		taskWrapper.wrappedValue = Task.detached {
+		taskWrapper.wrappedValue = Task {
 			do {
 				try await action()
 			} catch {
