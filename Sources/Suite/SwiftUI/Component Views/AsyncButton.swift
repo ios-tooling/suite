@@ -21,6 +21,7 @@ public struct ButtonIsPerformingActionKey: PreferenceKey {
 	@ViewBuilder var label: () -> Label
 	@ViewBuilder var busy: () -> Busy
 	@State var task: Task<Void, Error>?
+	var useDetachedTask = false
 	var title: LocalizedStringKey?
 	var systemImage: String?
 	
@@ -28,9 +29,10 @@ public struct ButtonIsPerformingActionKey: PreferenceKey {
 	var role: Any?
 	let shouldCancelOnDisappear: Bool
 	
-	public init(shouldCancelOnDisappear: Bool = false, _ title: LocalizedStringKey? = nil, systemImage: String? = nil, action: @MainActor @escaping () async throws -> Void, @ViewBuilder label: @escaping () -> Label, @ViewBuilder busy: @escaping () -> Busy) {
+	public init(shouldCancelOnDisappear: Bool = false, useDetachedTask: Bool = false, _ title: LocalizedStringKey? = nil, systemImage: String? = nil, action: @MainActor @escaping () async throws -> Void, @ViewBuilder label: @escaping () -> Label, @ViewBuilder busy: @escaping () -> Busy) {
 		self.action = action
 		self.label = label
+		self.useDetachedTask = useDetachedTask
 		self.title = title
 		self.systemImage = systemImage
 		self.busy = busy
@@ -38,8 +40,9 @@ public struct ButtonIsPerformingActionKey: PreferenceKey {
 	}
 	
 	@available(macOS 12.0, iOS 15.0, watchOS 8.0, *)
-	public init(shouldCancelOnDisappear: Bool = false, role: ButtonRole?, action: @MainActor @escaping () async throws -> Void, @ViewBuilder label: @escaping () -> Label, @ViewBuilder busy: @escaping () -> Busy) {
+	public init(shouldCancelOnDisappear: Bool = false, useDetachedTask: Bool = false, role: ButtonRole?, action: @MainActor @escaping () async throws -> Void, @ViewBuilder label: @escaping () -> Label, @ViewBuilder busy: @escaping () -> Busy) {
 		self.action = action
+		self.useDetachedTask = useDetachedTask
 		self.label = label
 		self.role = role
 		self.busy = busy
@@ -74,17 +77,33 @@ public struct ButtonIsPerformingActionKey: PreferenceKey {
 		let action = action
 		let isPerformingAction = $isPerformingAction
 		
-		taskWrapper.wrappedValue = Task {
-			do {
-				try await action()
-			} catch {
-				if #available(iOS 14.0, macOS 12, watchOS 9, *) {
-					SuiteLogger.warning("AsyncButton action failed \(error, privacy: .public)")
+		if useDetachedTask {
+			taskWrapper.wrappedValue = Task.detached {
+				do {
+					try await action()
+				} catch {
+					if #available(iOS 14.0, macOS 12, watchOS 9, *) {
+						SuiteLogger.warning("AsyncButton action failed \(error, privacy: .public)")
+					}
+				}
+				await MainActor.run {
+					isPerformingAction.wrappedValue = false
+					taskWrapper.wrappedValue = nil
 				}
 			}
-			await MainActor.run {
-				isPerformingAction.wrappedValue = false
-				taskWrapper.wrappedValue = nil
+		} else {
+			taskWrapper.wrappedValue = Task {
+				do {
+					try await action()
+				} catch {
+					if #available(iOS 14.0, macOS 12, watchOS 9, *) {
+						SuiteLogger.warning("AsyncButton action failed \(error, privacy: .public)")
+					}
+				}
+				await MainActor.run {
+					isPerformingAction.wrappedValue = false
+					taskWrapper.wrappedValue = nil
+				}
 			}
 		}
 	}
@@ -102,7 +121,7 @@ public struct ButtonIsPerformingActionKey: PreferenceKey {
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 8, *)
 extension AsyncButton where Label == AsyncButtonLabel, Busy == AsyncButtonBusyLabel {
-	public init(_ title: LocalizedStringKey? = nil, systemImage: String? = nil, shouldCancelOnDisappear: Bool = false, action: @MainActor @escaping () async throws -> Void) {
+	public init(_ title: LocalizedStringKey? = nil, systemImage: String? = nil, shouldCancelOnDisappear: Bool = false, useDetachedTask: Bool = false, action: @MainActor @escaping () async throws -> Void) {
 		self.action = action
 		self.title = title
 		self.systemImage = systemImage
@@ -114,7 +133,7 @@ extension AsyncButton where Label == AsyncButtonLabel, Busy == AsyncButtonBusyLa
 
 @available(macOS 12, iOS 15.0, tvOS 13, watchOS 8, *)
 extension AsyncButton where Label == AsyncButtonLabel, Busy == AsyncButtonBusyLabel {
-	public init(_ title: LocalizedStringKey? = nil, systemImage: String? = nil, role: ButtonRole, shouldCancelOnDisappear: Bool = false, action: @MainActor @escaping () async throws -> Void) {
+	public init(_ title: LocalizedStringKey? = nil, systemImage: String? = nil, role: ButtonRole, shouldCancelOnDisappear: Bool = false, useDetachedTask: Bool = false, action: @MainActor @escaping () async throws -> Void) {
 		self.action = action
 		self.role = role
 		self.label = { AsyncButtonLabel(title: title, systemImage: systemImage) }
@@ -125,7 +144,7 @@ extension AsyncButton where Label == AsyncButtonLabel, Busy == AsyncButtonBusyLa
 
 @available(macOS 12, iOS 15.0, tvOS 13, watchOS 8, *)
 extension AsyncButton where Busy == AsyncButtonBusyLabel {
-	public init(role: ButtonRole? = nil, shouldCancelOnDisappear: Bool = false, action: @MainActor @escaping () async throws -> Void, @ViewBuilder label: @MainActor @escaping () -> Label) {
+	public init(role: ButtonRole? = nil, shouldCancelOnDisappear: Bool = false, useDetachedTask: Bool = false, action: @MainActor @escaping () async throws -> Void, @ViewBuilder label: @MainActor @escaping () -> Label) {
 		self.action = action
 		self.role = role
 		self.label = label
