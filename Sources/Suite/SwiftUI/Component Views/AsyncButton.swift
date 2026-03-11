@@ -72,6 +72,7 @@ public struct ButtonIsPerformingActionKey: PreferenceKey {
 	}
 	
 	func performAction() {
+		if isPerformingAction { return }
 		let taskWrapper = $task
 		isPerformingAction = true
 		let action = action
@@ -92,7 +93,7 @@ public struct ButtonIsPerformingActionKey: PreferenceKey {
 				}
 			}
 		} else {
-			taskWrapper.wrappedValue = Task {
+			taskWrapper.wrappedValue = Task { @MainActor in
 				do {
 					try await action()
 				} catch {
@@ -100,10 +101,8 @@ public struct ButtonIsPerformingActionKey: PreferenceKey {
 						SuiteLogger.warning("AsyncButton action failed \(error, privacy: .public)")
 					}
 				}
-				await MainActor.run {
-					isPerformingAction.wrappedValue = false
-					taskWrapper.wrappedValue = nil
-				}
+				isPerformingAction.wrappedValue = false
+				taskWrapper.wrappedValue = nil
 			}
 		}
 	}
@@ -138,6 +137,7 @@ extension AsyncButton where Label == AsyncButtonLabel, Busy == AsyncButtonBusyLa
 		self.role = role
 		self.label = { AsyncButtonLabel(title: title, systemImage: systemImage) }
 		self.busy = { AsyncButtonBusyLabel(title: title) }
+		self.useDetachedTask = useDetachedTask
 		self.shouldCancelOnDisappear = shouldCancelOnDisappear
 	}
 }
@@ -148,6 +148,7 @@ extension AsyncButton where Busy == AsyncButtonBusyLabel {
 		self.action = action
 		self.role = role
 		self.label = label
+		self.useDetachedTask = useDetachedTask
 		self.busy = { AsyncButtonBusyLabel(title: nil) }
 		self.shouldCancelOnDisappear = shouldCancelOnDisappear
 	}
