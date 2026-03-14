@@ -69,7 +69,7 @@ private struct ObserveIDModifier<ID: Hashable>: ViewModifier {
 private struct OnTrackedChangeModifier<ID: Hashable>: ViewModifier {
 	let id: ID
 	let tracker: ChangeTracker<ID>
-	let callback: () -> Void
+	let callback: () async -> Void
 	@State private var token: IDToken?
 
 	func body(content: Content) -> some View {
@@ -77,7 +77,9 @@ private struct OnTrackedChangeModifier<ID: Hashable>: ViewModifier {
 			.onAppear { token = tracker.token(for: id) }
 			.onDisappear { token = nil }
 			.onChange(of: id) { _, newID in token = tracker.token(for: newID) }
-			.onChange(of: token?.version) { _, _ in callback() }
+			.onChange(of: token?.version) { _, _ in
+				Task { await callback() }
+			}
 	}
 }
 
@@ -96,11 +98,11 @@ public extension View {
 	}
 
 	/// Calls `callback` whenever `tracker.didChange(id:)` is invoked for the given ID.
-	@MainActor func onTrackedChange<ID: Hashable>(_ id: ID, in tracker: ChangeTracker<ID>, callback: @escaping () -> Void) -> some View {
+	@MainActor func onTrackedChange<ID: Hashable>(_ id: ID, in tracker: ChangeTracker<ID>, callback: @escaping () async -> Void) -> some View {
 		modifier(OnTrackedChangeModifier(id: id, tracker: tracker, callback: callback))
 	}
 
-	@MainActor func onTrackedChange(_ id: String, callback: @escaping () -> Void) -> some View {
+	@MainActor func onTrackedChange(_ id: String, callback: @escaping () async -> Void) -> some View {
 		modifier(OnTrackedChangeModifier(id: id, tracker: .instance, callback: callback))
 	}
 }
