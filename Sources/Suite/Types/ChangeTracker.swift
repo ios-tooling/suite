@@ -44,11 +44,25 @@ public final class ChangeTracker<ID: Hashable> {
 	}
 
 	public func didChange(id: ID) {
-		tokens[id]?.value?.version += 1
+		guard let token = tokens[id]?.value else {
+			tokens.removeValue(forKey: id)
+			return
+		}
+		token.version += 1
 	}
 }
 
 // MARK: - View Modifiers
+
+@available(iOS 17, macOS 14, watchOS 10, tvOS 17, *)
+private extension View {
+	func trackingLifecycle<ID: Hashable>(id: ID, tracker: ChangeTracker<ID>, token: Binding<IDToken?>) -> some View {
+		self
+			.onAppear { token.wrappedValue = tracker.token(for: id) }
+			.onDisappear { token.wrappedValue = nil }
+			.onChange(of: id) { _, newID in token.wrappedValue = tracker.token(for: newID) }
+	}
+}
 
 @available(iOS 17, macOS 14, watchOS 10, tvOS 17, *)
 private struct ObserveIDModifier<ID: Hashable>: ViewModifier {
@@ -58,10 +72,7 @@ private struct ObserveIDModifier<ID: Hashable>: ViewModifier {
 
 	func body(content: Content) -> some View {
 		let _ = token?.version
-		content
-			.onAppear { token = tracker.token(for: id) }
-			.onDisappear { token = nil }
-			.onChange(of: id) { _, newID in token = tracker.token(for: newID) }
+		content.trackingLifecycle(id: id, tracker: tracker, token: $token)
 	}
 }
 
@@ -71,14 +82,15 @@ private struct OnTrackedChangeModifier<ID: Hashable>: ViewModifier {
 	let tracker: ChangeTracker<ID>
 	let callback: () async -> Void
 	@State private var token: IDToken?
+	@State private var task: Task<Void, Never>?
 
 	func body(content: Content) -> some View {
 		content
-			.onAppear { token = tracker.token(for: id) }
-			.onDisappear { token = nil }
-			.onChange(of: id) { _, newID in token = tracker.token(for: newID) }
+			.trackingLifecycle(id: id, tracker: tracker, token: $token)
+			.onDisappear { task?.cancel(); task = nil }
 			.onChange(of: token?.version) { _, _ in
-				Task { await callback() }
+				task?.cancel()
+				task = Task { await callback() }
 			}
 	}
 }
