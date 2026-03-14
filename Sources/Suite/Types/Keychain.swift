@@ -2,7 +2,7 @@ import Security
 import Foundation
 import Combine
 
-public actor Keychain {
+public enum Keychain {
 	public static let lastResultCodeSubject: CurrentValueSubject<OSStatus, Never> = .init(OSStatus(noErr))
 	public static var lastResultCode: OSStatus {
 		get { lastResultCodeSubject.value }
@@ -35,11 +35,6 @@ public actor Keychain {
 	
 	Specifies whether the items can be synchronized with other devices through iCloud. Setting this property to true will add the item to other devices with the `set` method and obtain synchronizable items with the `get` command. Deleting synchronizable items will remove them from all devices. In order for keychain synchronization to work the user must enable "Keychain" in iCloud settings.
 	*/
-	public var synchronizable: Bool = false
-	public var keyPrefix: String?
-	
-	private init() { }
-	
 	/**
 	
 	Stores the text value in the keychain item under the given key.
