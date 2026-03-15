@@ -19,6 +19,11 @@ public extension JSONEncoder {
 		encoder.outputFormatting = [ .withoutEscapingSlashes, .prettyPrinted, .sortedKeys ]
 		return encoder
 	}()
+	
+	func encode<T: Encodable>(optional: T?) throws -> Data? {
+		guard let optional else { return nil }
+		return try encode(optional)
+	}
 }
 
 @available(iOS 10.0, *)
