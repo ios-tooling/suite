@@ -50,8 +50,9 @@ public extension CommandLine {
 
 	static func line(for key: String) -> String? {
 		let punct = CharacterSet.punctuationCharacters
+		let check = key.trimmingCharacters(in: punct)
 		for arg in threadsafeArguments() {
-			if arg.trimmingCharacters(in: punct).hasPrefix(key) { return arg }
+			if arg.trimmingCharacters(in: punct).hasPrefix(check) { return arg }
 		}
 		return nil
 	}
