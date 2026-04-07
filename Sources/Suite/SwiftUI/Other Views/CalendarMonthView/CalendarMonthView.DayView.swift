@@ -11,8 +11,12 @@ import SwiftUI
 public struct CalendarSingleDayView: View {
 	let day: Date.Day
 	let options: MonthDayOptions
-	let rowSize: CGFloat
-	
+
+	public init(day: Date.Day, options: MonthDayOptions) {
+		self.day = day
+		self.options = options
+	}
+
 	public var body: some View {
 		let text = (options.contains(.isPreviousMonth) || options.contains(.isNextMonth)) ? " " : "\(day.day)"
 		ZStack {
@@ -20,16 +24,19 @@ public struct CalendarSingleDayView: View {
 				Text(text)
 					.foregroundColor(.white)
 					.background {
-						Circle()
-							.fill(.red)
-							.frame(width: rowSize + 3, height: rowSize + 3)
+						GeometryReader { geo in
+							Circle()
+								.fill(.red)
+								.frame(width: geo.size.height + 3, height: geo.size.height + 3)
+								.position(x: geo.size.width / 2, y: geo.size.height / 2)
+						}
 					}
 					.zIndex(-1)
 			} else {
 				Text(text)
 			}
 		}
-		.frame(height: rowSize)
+		.padding(.vertical, 4)
 		.lineLimit(1)
 		.minimumScaleFactor(0.5)
 	}

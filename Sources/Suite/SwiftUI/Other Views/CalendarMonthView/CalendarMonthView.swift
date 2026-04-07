@@ -95,7 +95,7 @@ public struct CalendarMonthView<DayView: View, WeekDayLabel: View>: View {
 extension CalendarMonthView where DayView == CalendarSingleDayView, WeekDayLabel == CalendarWeekDayLabel {
 	public init(date: Binding<Date>, display: Date? = nil, options: CalendarMonthViewOptions = .init()) {
 		self.init(date: date, display: display, options: options, dayBuilder: { day, options in
-			CalendarSingleDayView(day: day, options: options, rowSize: 24.0)
+			CalendarSingleDayView(day: day, options: options)
 		}, weekDayLabelBuilder: { day in CalendarWeekDayLabel(day: day, options: options) })
 	}
 }

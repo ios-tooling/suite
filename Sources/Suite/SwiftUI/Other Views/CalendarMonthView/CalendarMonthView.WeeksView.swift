@@ -27,7 +27,6 @@ extension CalendarMonthView {
 		@ViewBuilder var dayBuilder: (Date.Day, MonthDayOptions) -> DayView
 		@ViewBuilder var weekDayLabelBuilder: (Date.DayOfWeek) -> WeekDayLabel
 
-		let rowSize = 24.0
 		var body: some View {
 			let weeks = weeks
 			VStack {
@@ -45,6 +44,7 @@ extension CalendarMonthView {
 								let options = options(for: dayDate)
 								Button(action: { selected = day.date }) {
 									dayBuilder(day, options)
+										.frame(maxWidth: .infinity)
 										.contentShape(.rect)
 								}
 								.buttonStyle(.plain)
@@ -59,7 +59,7 @@ extension CalendarMonthView {
 				}
 			}
 		}
-		
+
 		@ViewBuilder func weekLabels(maximizeWidth: Bool) -> some View {
 			Grid() {
 				GridRow {
@@ -72,7 +72,7 @@ extension CalendarMonthView {
 		}
 		
 		@ViewBuilder var oldBody: some View {
-			let cells = Array(repeating: GridItem(.fixed(rowSize), alignment: .center), count: 7)
+			let cells = Array(repeating: GridItem(.flexible(), alignment: .center), count: 7)
 
 			VStack(spacing: 0) {
 				if options.weekdayLabels != .none {
