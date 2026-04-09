@@ -10,16 +10,31 @@ import SwiftUI
 
 public struct CalendarMonthViewOptions: Equatable, Sendable {
 	public enum WeekdayLabelFormat: Sendable { case letter, short, veryShort, none }
-	
+
 	public init(showMonthName: Bool = true, showYear: Bool = true, weekdayLabels: WeekdayLabelFormat = .short) {
 		self.showMonthName = showMonthName
 		self.showYear = showYear
 		self.weekdayLabels = weekdayLabels
 	}
-	
+
 	public var showMonthName = true
 	public var showYear = true
 	public var weekdayLabels = WeekdayLabelFormat.short
+}
+
+public extension EnvironmentValues {
+	@Entry var calendarDayFont: Font? = nil
+	@Entry var calendarDayColor: Color? = nil
+}
+
+public extension View {
+	func calendarDayFont(_ font: Font?) -> some View {
+		environment(\.calendarDayFont, font)
+	}
+
+	func calendarDayColor(_ color: Color?) -> some View {
+		environment(\.calendarDayColor, color)
+	}
 }
 
 @available(iOS 16, macOS 14.0, watchOS 10, *)
@@ -94,8 +109,8 @@ public struct CalendarMonthView<DayView: View, WeekDayLabel: View>: View {
 @available(iOS 16, macOS 14.0, watchOS 10, *)
 extension CalendarMonthView where DayView == CalendarSingleDayView, WeekDayLabel == CalendarWeekDayLabel {
 	public init(date: Binding<Date>, display: Date? = nil, options: CalendarMonthViewOptions = .init()) {
-		self.init(date: date, display: display, options: options, dayBuilder: { day, options in
-			CalendarSingleDayView(day: day, options: options)
+		self.init(date: date, display: display, options: options, dayBuilder: { day, dayOptions in
+			CalendarSingleDayView(day: day, options: dayOptions)
 		}, weekDayLabelBuilder: { day in CalendarWeekDayLabel(day: day, options: options) })
 	}
 }

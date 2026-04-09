@@ -11,6 +11,8 @@ import SwiftUI
 public struct CalendarSingleDayView: View {
 	let day: Date.Day
 	let options: MonthDayOptions
+	@Environment(\.calendarDayFont) private var dayFont
+	@Environment(\.calendarDayColor) private var dayColor
 
 	public init(day: Date.Day, options: MonthDayOptions) {
 		self.day = day
@@ -34,8 +36,10 @@ public struct CalendarSingleDayView: View {
 					.zIndex(-1)
 			} else {
 				Text(text)
+					.foregroundStyle(dayColor ?? .primary)
 			}
 		}
+		.font(dayFont)
 		.padding(.vertical, 4)
 		.lineLimit(1)
 		.minimumScaleFactor(0.5)
