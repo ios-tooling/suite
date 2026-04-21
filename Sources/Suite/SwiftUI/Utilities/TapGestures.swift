@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+#if !os(tvOS)
 @available(macOS 10.15, iOS 13.0, watchOS 7.0, *)
 public extension View {
 	func tapGestureWithLocation(_ tap: @escaping (CGPoint) -> Void) -> some View {
@@ -30,3 +31,4 @@ public extension View {
 	}
 
 }
+#endif

@@ -37,7 +37,7 @@ public extension View {
 	}
 }
 
-@available(iOS 16, macOS 14.0, watchOS 10, *)
+@available(iOS 16, macOS 14.0, watchOS 10, tvOS 16, *)
 public struct CalendarMonthView<DayView: View, WeekDayLabel: View>: View {
 	@State var date: Date
 	@Binding var selected: Date
@@ -76,7 +76,11 @@ public struct CalendarMonthView<DayView: View, WeekDayLabel: View>: View {
 			monthYearBar(includeSpacer: true)
 		}
 		.clipped()
-		.onChange(of: overrideDate) { newDate in if let newDate { date = newDate } }
+        #if os(visionOS)
+            .onChange(of: overrideDate) { if let overrideDate { date = overrideDate } }
+        #else
+            .onChange(of: overrideDate) { newDate in if let newDate { date = newDate } }
+        #endif
 	}
 	
 	var monthNames: [String] { Date.Month.allCases.map { $0.name }}
@@ -106,7 +110,7 @@ public struct CalendarMonthView<DayView: View, WeekDayLabel: View>: View {
 	}
 }
 
-@available(iOS 16, macOS 14.0, watchOS 10, *)
+@available(iOS 16, macOS 14.0, watchOS 10, tvOS 16, *)
 extension CalendarMonthView where DayView == CalendarSingleDayView, WeekDayLabel == CalendarWeekDayLabel {
 	public init(date: Binding<Date>, display: Date? = nil, options: CalendarMonthViewOptions = .init()) {
 		self.init(date: date, display: display, options: options, dayBuilder: { day, dayOptions in
@@ -115,14 +119,14 @@ extension CalendarMonthView where DayView == CalendarSingleDayView, WeekDayLabel
 	}
 }
 
-@available(iOS 16, macOS 14.0, watchOS 10, *)
+@available(iOS 16, macOS 14.0, watchOS 10, tvOS 16, *)
 extension CalendarMonthView where WeekDayLabel == CalendarWeekDayLabel {
 	public init(date: Binding<Date>, display: Date? = nil, options: CalendarMonthViewOptions = .init(), @ViewBuilder dayBuilder: @escaping (Date.Day, MonthDayOptions) -> DayView) {
 		self.init(date: date, display: display, options: options, dayBuilder: dayBuilder, weekDayLabelBuilder: { day in CalendarWeekDayLabel(day: day, options: options) })
 	}
 }
 
-@available(iOS 16, macOS 14, *)
+@available(iOS 16, macOS 14, watchOS 10, tvOS 16, *)
 struct CalendarPreview: View {
 	@State var date: Date = .now
 	

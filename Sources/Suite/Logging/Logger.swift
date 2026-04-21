@@ -8,10 +8,10 @@
 import Foundation
 import os.log
 
-@available(iOS 14.0, macOS 12, watchOS 9, *)
+@available(iOS 14.0, macOS 12, watchOS 9, tvOS 14, *)
 let SuiteLogger = Logger(subsystem: .suiteLoggerSubsystem, category: "suite")
 
-@available(iOS 14.0, macOS 12, watchOS 9, *)
+@available(iOS 14.0, macOS 12, watchOS 9, tvOS 14, *)
 public let AppLogger = Logger(subsystem: .appLoggerSubsystem, category: "application")
 
 

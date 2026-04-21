@@ -9,7 +9,7 @@ import Foundation
 @preconcurrency import CoreData
 import OSLog
 
-@available(iOS 14.0, macOS 11.0, watchOS 7, *)
+@available(iOS 14.0, macOS 11.0, watchOS 7, tvOS 14, *)
 fileprivate let logger = Logger(subsystem: .suiteLoggerSubsystem, category: "suite")
 
 public func logg(_ msg: @Sendable @escaping @autoclosure () -> String, _ level: OldSuiteLogger.Level = .mild) { OldSuiteLogger.instance.log(msg(), level: level) }
@@ -80,7 +80,7 @@ public class OldSuiteLogger: @unchecked Sendable {
 			redirect(string)
 			return
 		}
-		if #available(iOS 14.0, macOS 11.0, watchOS 7, *) {
+		if #available(iOS 14.0, macOS 11.0, watchOS 7, tvOS 14, *) {
 			logger.info("\(self.prefix) \(string)")
 		}
 		
@@ -95,7 +95,7 @@ public class OldSuiteLogger: @unchecked Sendable {
 				let linefeed = "\n".data(using: .utf8)!
 				
 				let file = try FileHandle(forUpdating: url)
-				if #available(iOS 13.4, watchOS 6.2, macOS 10.15.4, *) {
+				if #available(iOS 13.4, watchOS 6.2, macOS 10.15.4, tvOS 14, *) {
 					try file.seekToEnd()
 				} else {
 					file.seekToEndOfFile()

@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-@available(iOS 15.0, macOS 12.0, watchOS 8.0, *)
+@available(iOS 15.0, macOS 12.0, watchOS 8.0, tvOS 15, *)
 @MainActor public struct LoadingView<Target: Sendable, Body: View, LoadingBody: View, ErrorBody: View>: View {
 	@State var state: LoadingState<Target> = .idle
 	@ViewBuilder var buildBody: (Target) -> Body
@@ -59,7 +59,7 @@ import SwiftUI
 	}
 }
 
-@available(iOS 15.0, macOS 12.0, watchOS 8.0, *)
+@available(iOS 15.0, macOS 12.0, watchOS 8.0, tvOS 15, *)
 public extension LoadingView where ErrorBody == SimpleErrorMessageView {
 	init(target: @escaping () async throws -> Target?, @ViewBuilder loading: @escaping () -> LoadingBody, @ViewBuilder body: @escaping (Target) -> Body) {
 		self.buildTarget = target
@@ -71,7 +71,7 @@ public extension LoadingView where ErrorBody == SimpleErrorMessageView {
 	}
 }
 
-@available(iOS 15.0, macOS 12.0, watchOS 8.0, *)
+@available(iOS 15.0, macOS 12.0, watchOS 8.0, tvOS 15, *)
 public extension LoadingView where LoadingBody == SimpleProgressView {
 	init(loadingLabel: String? = nil, target: @escaping () async throws -> Target?, @ViewBuilder failed: @escaping (Error?) -> ErrorBody, @ViewBuilder body: @escaping (Target) -> Body) {
 		self.buildTarget = target
@@ -83,7 +83,7 @@ public extension LoadingView where LoadingBody == SimpleProgressView {
 	}
 }
 
-@available(iOS 15.0, macOS 12.0, watchOS 8.0, *)
+@available(iOS 15.0, macOS 12.0, watchOS 8.0, tvOS 15, *)
 public extension LoadingView where LoadingBody == SimpleProgressView, ErrorBody == SimpleErrorMessageView {
 	init(loadingLabel: String? = nil, target: @escaping () async throws -> Target?, @ViewBuilder body: @escaping (Target) -> Body) {
 		self.buildTarget = target

@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-@available(iOS 14.0, macOS 13.0, watchOS 7.0, *)
+@available(iOS 14.0, macOS 13.0, watchOS 7.0, tvOS 14, *)
 public extension ToolbarItemPlacement {
 	#if os(iOS)
 		@MainActor static var `default`: ToolbarItemPlacement = .bottomBar

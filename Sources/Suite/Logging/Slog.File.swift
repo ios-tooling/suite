@@ -10,7 +10,7 @@ import OSLog
 
 fileprivate let delimiter = "/"
 
-@available(iOS 15.0, macOS 14, watchOS 9, *)
+@available(iOS 15.0, macOS 14, watchOS 9, tvOS 15, *)
 extension Slog {
 	actor File: Sendable, Hashable, Equatable, Identifiable, Comparable {
 		nonisolated let url: URL
@@ -102,7 +102,7 @@ extension Slog {
 	}
 }
 
-@available(iOS 15.0, macOS 14, watchOS 9, *)
+@available(iOS 15.0, macOS 14, watchOS 9, tvOS 15, *)
 extension Slog.File {
 	struct Header: RawRepresentable, Sendable {
 		let start: Date

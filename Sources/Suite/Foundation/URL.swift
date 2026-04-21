@@ -98,7 +98,7 @@ public extension URL {
 	
 	var filename: String { deletingPathExtension().lastPathComponent }
 
-	@available(iOS 16.0, macOS 13, *)
+	@available(iOS 16.0, macOS 13, watchOS 9, tvOS 16, *)
 	var containsHomeDirectory: Bool {
 		let path = self.path(percentEncoded: false)
 		let home = Self.homeDirectory
@@ -110,7 +110,7 @@ public extension URL {
 		return URL(string: path.abbreviatingWithTildeInPath) ?? self
 	}
 	
-	@available(iOS 16.0, macOS 13, *)
+	@available(iOS 16.0, macOS 13, watchOS 9, tvOS 16, *)
 	var addingHomeDirectory: URL {
 		if !path.contains("~") { return self }
 		let path = self.path(percentEncoded: false).replacingOccurrences(of: "~", with: "")
@@ -151,7 +151,7 @@ public extension URL {
 		guard isBundleURL else { return nil }
 		
 		var bundle = Bundle.main
-		if #available(iOS 16.0, macOS 13.0, watchOS 9.0, *) {
+		if #available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16, *) {
 			if let host = host(percentEncoded: false), let new = Bundle(identifier: host) { bundle = new }
 		} else {
 			if let host, let new = Bundle(identifier: host) { bundle = new }
@@ -256,7 +256,7 @@ public extension URL {
 		return newAbs.hasPrefix(myAbs)
 	}
 	
-	@available(iOS 14.0, macOS 11.0, watchOS 7.0, *)
+	@available(iOS 14.0, macOS 11.0, watchOS 7.0, tvOS 16, *)
 	var fileType: UTType? {
 		let nsURL = self as NSURL
 		var object: AnyObject?

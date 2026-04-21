@@ -61,6 +61,7 @@ public extension UIViewController {
 	}
 }
 
+#if !os(tvOS)
 @available(iOSApplicationExtension, unavailable)
 public extension UIViewController {
 	func share(something: [Any], fromItem barButtonItem: UIBarButtonItem? = nil, fromView: UIView? = nil, position: CGRect.Placement = .topRight) {
@@ -74,9 +75,10 @@ public extension UIViewController {
 		} else if let root = UIApplication.shared.currentWindow?.rootViewController?.presentedest.view {
 			activityVC.popoverPresentationController?.sourceView = root
 			activityVC.popoverPresentationController?.sourceRect = CGRect.zero.within(limit: root.frame, placed: position)
-			
+
 		}
 		self.present(activityVC, animated: true, completion: nil)
 	}
 }
+#endif
 #endif

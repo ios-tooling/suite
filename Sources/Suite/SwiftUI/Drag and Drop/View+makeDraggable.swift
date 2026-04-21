@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+#if !os(tvOS)
 public enum DragPhase: Equatable {
 	case idle, starting, dropped(String), cancelled
 		
@@ -131,3 +132,4 @@ struct DraggableView<Content: View>: View {
 			}
 	}
 }
+#endif

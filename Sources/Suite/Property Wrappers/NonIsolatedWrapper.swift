@@ -7,7 +7,7 @@
 
 import Foundation
 
-@available(iOS 16.0, watchOS 9, macOS 14, *)
+@available(iOS 16.0, watchOS 9, macOS 14, tvOS 17, *)
 @MainActor @propertyWrapper public struct NonIsolatedValue<Value: Sendable>: DynamicProperty {
     public init(_ wrappedValue: Value) {
         _value = State(wrappedValue: ThreadsafeMutex(wrappedValue))

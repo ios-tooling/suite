@@ -8,12 +8,12 @@
 import Foundation
 import SwiftData
 
-@available(iOS 17, macOS 14, watchOS 10, *)
+@available(iOS 17, macOS 14, watchOS 10, tvOS 17, *)
 public protocol PresavablePersistentModel: PersistentModel {
 	func presave()
 }
 
-@available(iOS 17, macOS 14, watchOS 10, *)
+@available(iOS 17, macOS 14, watchOS 10, tvOS 17, *)
 public extension ModelContext {
 	func presave() {
 		for model in changedModelsArray {

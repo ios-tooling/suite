@@ -50,7 +50,7 @@ public extension Color {
 		Color(white: Double.random(in: 0...100.0))
 	}
 	
-	@available(iOS 15.0, macOS 12.0, watchOS 8.0, *)
+	@available(iOS 15.0, macOS 12.0, watchOS 8.0, tvOS 15, *)
 	static let rainbow: [Color] = [.red, .orange, .yellow, .green, .blue, .indigo, .purple]
 	
 	#if os(iOS)
@@ -85,7 +85,7 @@ public extension Color {
 
 }
 
-@available(OSX 11, iOS 14.0, tvOS 13, watchOS 7, *)
+@available(OSX 11, iOS 14.0, tvOS 15, watchOS 7, *)
 public extension Color {
 	var brightness: Double {
 		#if os(macOS)
@@ -155,8 +155,18 @@ public extension Color {
 	}
 #endif
 
-#if os(iOS) || os(watchOS) || os(visionOS)
-	@available(iOS 14.0, tvOS 13, watchOS 7, *)
+#if os(tvOS)
+	import UIKit
+
+	extension Color {
+		public static var systemBackground: Color { Color(UIColor.black) }
+		public static var systemLabel: Color { Color(UIColor.label) }
+		public static var tertiaryText: Color { Color(UIColor.tertiaryLabel) }
+	}
+#endif
+
+#if os(iOS) || os(watchOS) || os(visionOS) || os(tvOS)
+	@available(iOS 14.0, tvOS 14, watchOS 7, *)
 	public extension Color {
 		var hex: String? {
 			let uic = UIColor(self)

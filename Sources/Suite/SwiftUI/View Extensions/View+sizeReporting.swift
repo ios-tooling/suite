@@ -90,7 +90,7 @@ public extension View {		// Tracks the size available for the view
 				GeometryReader { geo in
 					let myFrame = geo.frame(in: space)
 					
-					if #available(iOS 17.0, macOS 14, *) {
+					if #available(iOS 17.0, macOS 14, watchOS 10, tvOS 17, *) {
 						Color.clear
 							.onChange(of: myFrame, initial: true) {
 								frame?.wrappedValue = myFrame

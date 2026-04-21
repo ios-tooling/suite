@@ -7,10 +7,10 @@
 
 import SwiftUI
 
-@available(OSX 12, iOS 13.0, watchOS 8.0, *)
+@available(OSX 12, iOS 13.0, watchOS 8.0, tvOS 14, *)
 public extension View {
 	@ViewBuilder func monospacedDigit14() -> some View {
-		if #available(iOS 15.0, *) {
+		if #available(iOS 15.0, tvOS 15, *) {
 			monospacedDigit()
 		} else {
 			self
@@ -18,7 +18,7 @@ public extension View {
 	}
 	
 	@ViewBuilder func alignedOverlay<Content: View>(_ alignment: Alignment, content: @escaping () -> Content) -> some View {
-		if #available(iOS 15.0, *) {
+		if #available(iOS 15.0, tvOS 15, *) {
 			overlay(alignment: alignment, content: content)
 		} else {
 			overlay(

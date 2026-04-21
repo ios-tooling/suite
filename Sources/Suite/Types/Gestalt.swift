@@ -76,10 +76,12 @@ public struct Gestalt: Sendable {
 						} else {
 							return nil
 						}
-			#elseif os(iOS) || os(visionOS)
+			#elseif os(iOS) || os(visionOS) || os(tvOS)
 						return await UIDevice.current.identifierForVendor?.uuidString
 			#elseif  os(macOS)
 						return serialNumber
+			#else
+						return nil
 			#endif
 		}
 	}
@@ -119,6 +121,9 @@ public struct Gestalt: Sendable {
 	#if os(tvOS)
 		public static let isOnTV = true
 		public static let isOnVision = false
+		public static let isOnMac = false
+		public static let isOnIPad = false
+		public static let isOnIPhone = false
 	#else
 		public static let isOnTV = false
 	#endif

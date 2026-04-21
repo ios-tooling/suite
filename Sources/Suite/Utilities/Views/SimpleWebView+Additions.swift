@@ -43,14 +43,14 @@ struct SimpleWebViewAccessor<Content: View>: View {
 	var body: some View {
 		content
 			.onPreferenceChange(SimpleWebViewPreferenceKey.self) { [$webView] newView in $webView.wrappedValue = newView }
-			.onChange(of: webView) { newValue in
-				if let newValue {
-					callback(newValue)
-				}
-			}
-			.onAppear {
-				if let webView { callback(webView) }
-			}
+            .onAppear {
+                if let webView { callback(webView) }
+            }
+       #if os(visionOS)
+            .onChange(of: webView) { if let webView { callback(webView) } }
+        #else
+			.onChange(of: webView) { webView in if let webView { callback(webView) } }
+        #endif
 	}
 }
 

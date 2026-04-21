@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-@available(OSX 12, iOS 14.0, tvOS 13, watchOS 8, *)
+@available(OSX 12, iOS 14.0, tvOS 16, watchOS 8, *)
 public struct SideDrawerContainer<Content: View>: View {
 	@Binding var isShown: Bool
 	let side: Side

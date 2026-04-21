@@ -120,6 +120,8 @@ public extension UIColor {
 	static let defaultBackground: UIColor = {
 		#if os(watchOS)
 			return .white
+		#elseif os(tvOS)
+			return .black
 		#else
 			UIColor.systemBackground
 		#endif
@@ -196,7 +198,7 @@ public extension String {
 	}
 }
 
-#if os(iOS) || os(watchOS) || os(visionOS)
+#if os(iOS) || os(watchOS) || os(visionOS) || os(tvOS)
 public extension Array where Element == UIColor {
 	var averageColor: UIColor? {
 		guard !isEmpty else { return nil }

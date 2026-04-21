@@ -7,14 +7,14 @@
 
 import SwiftUI
 
-@available(iOS 15.0, macOS 12.0, watchOS 9.0, *)
+@available(iOS 15.0, macOS 12.0, watchOS 9.0, tvOS 15, *)
 public extension View {
 	func outlined(in color: Color, width: CGFloat = 0.5) -> some View {
 		modifier(OutlinedModifier(size: width, color: color))
 	}
 }
 
-@available(iOS 15.0, macOS 12.0, watchOS 9.0, *)
+@available(iOS 15.0, macOS 12.0, watchOS 9.0, tvOS 15, *)
 struct OutlinedModifier: ViewModifier {
 	private let id = UUID()
 	var size = 1.0

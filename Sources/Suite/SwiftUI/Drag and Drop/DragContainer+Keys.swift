@@ -18,11 +18,11 @@ import SwiftUI
 	}
 #else
 	typealias DragImage = UIImage
-	@available(OSX 13, iOS 16, tvOS 13, watchOS 8, *)
+	@available(OSX 13, iOS 16, watchOS 8, tvOS 16, *)
 	extension Image {
 		init(dragImage: DragImage) { self.init(uiImage: dragImage) }
 	}
-	@available(OSX 13, iOS 16, tvOS 13, watchOS 9, *)
+	@available(OSX 13, iOS 16, tvOS 16, watchOS 9, *)
 	extension ImageRenderer {
 		@MainActor var dragImage: UIImage? { uiImage }
 	}
@@ -30,17 +30,17 @@ import SwiftUI
 
 
 
-@available(OSX 13, iOS 15, tvOS 13, watchOS 8, *)
+@available(OSX 13, iOS 15, watchOS 8, tvOS 15, *)
 struct CurrentDragPositionEnvironmentKey: EnvironmentKey {
 	nonisolated(unsafe) static var defaultValue: CGPoint?
 }
 
-@available(OSX 13, iOS 15, tvOS 13, watchOS 8, *)
+@available(OSX 13, iOS 15, watchOS 8, tvOS 15, *)
 struct DragAndDropEnabledEnvironmentKey: EnvironmentKey {
 	nonisolated(unsafe) static var defaultValue = false
 }
 
-@available(OSX 13, iOS 15, tvOS 13, watchOS 8, *)
+@available(OSX 13, iOS 15, watchOS 8, tvOS 15, *)
 extension EnvironmentValues {
 	public var currentDragPosition: CGPoint? {
 		get { self[CurrentDragPositionEnvironmentKey.self] }
