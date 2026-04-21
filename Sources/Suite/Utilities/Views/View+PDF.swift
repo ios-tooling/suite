@@ -9,7 +9,7 @@ import SwiftUI
 
 enum ViewPDFError: Error, Sendable { case unableToCreateContext }
 
-@available(iOS 16.0, macOS 14, watchOS 10, *)
+@available(iOS 16.0, macOS 14, watchOS 10, tvOS 16, *)
 @MainActor public extension View {
 	func toPDF(size: CGSize, at proposed: URL? = nil) async throws -> URL {
 		let url = proposed ?? URL.caches.appendingPathComponent("\(self).pdf", conformingTo: .pdf)

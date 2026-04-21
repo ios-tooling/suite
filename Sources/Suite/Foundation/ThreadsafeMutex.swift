@@ -8,7 +8,7 @@
 import Foundation
 import os.lock
 
-@available(iOS 16.0, watchOS 9, macOS 14, *)
+@available(iOS 16.0, watchOS 9, macOS 14, tvOS 17, *)
 final public class ThreadsafeMutex<T: Sendable>: @unchecked Sendable {
 	private let lock: OSAllocatedUnfairLock<T>
 	

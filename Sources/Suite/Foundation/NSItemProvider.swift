@@ -16,7 +16,7 @@ import UniformTypeIdentifiers
 	typealias NSItemProviderImage = NSImage
 #endif
 
-@available(iOS 14.0, macOS 12, watchOS 8, *)
+@available(iOS 14.0, macOS 12, watchOS 8, tvOS 14, *)
 extension [NSItemProvider] {
 	public func extractURL() async -> URL? {
 		for itemProvider in self {

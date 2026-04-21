@@ -16,7 +16,7 @@ public extension Date {
 		public var dayOfWeek: Date.DayOfWeek { date.dayOfWeek }
 		
 		public var description: String {
-			if #available(iOS 15.0, macOS 12, watchOS 8, *) {
+			if #available(iOS 15.0, macOS 12, watchOS 8, tvOS 15, *) {
 				return date.formatted(date: .numeric, time: .omitted)
 			} else {
 				return "\(year)-\(month.rawValue)-\(day)"

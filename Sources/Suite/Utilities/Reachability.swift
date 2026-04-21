@@ -1,7 +1,7 @@
 import Network
 import Foundation
 
-@available(macOS 10.14, iOS 12.0, watchOS 5.0, tvOS 12.0, *)
+@available(macOS 10.14, iOS 12.0, watchOS 5.0, tvOS 14.0, *)
 @MainActor public class Reachability: ObservableObject {
 	public static let instance = Reachability()
 
@@ -76,6 +76,7 @@ import Foundation
 	}
 }
 
+@available(macOS 10.14, iOS 12.0, watchOS 5.0, tvOS 14.0, *)
 public extension Reachability {
 	struct Notifications {
 		public static let reachabilityChanged = Notification.Name("Reachability.Notifications.reachabilityChanged")

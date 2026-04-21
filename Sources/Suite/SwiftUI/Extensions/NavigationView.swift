@@ -10,7 +10,7 @@ import Combine
 
 #if !os(visionOS)
 
-@available(OSX 12, iOS 15.0, watchOS 8.0, *)
+@available(OSX 12, iOS 15.0, watchOS 8.0, tvOS 15, *)
 public struct OptionalNavigationLink<Check: Sendable, Content: View, Dest: View>: View {
 	@Binding var check: Check?
 	var destination: (Check) -> Dest
@@ -33,7 +33,7 @@ public struct OptionalNavigationLink<Check: Sendable, Content: View, Dest: View>
 	}
 }
 
-@available(OSX 11, iOS 14.0, watchOS 7.0, *)
+@available(OSX 11, iOS 14.0, watchOS 7.0, tvOS 14, *)
 public extension View {
     func navigationLink<Content: Equatable, Destination: View>(boundTo: Binding<Content?>, destination: @escaping (Content) -> Destination) -> some View {
         ContainedContentNavigationLink(root: self, binding: boundTo, destination: destination)
@@ -63,7 +63,7 @@ struct ContainedOptionalNavigationLink<Root: View, Destination: View>: View {
     }
 }
 
-@available(OSX 11, iOS 14.0, watchOS 7.0, *)
+@available(OSX 11, iOS 14.0, watchOS 7.0, tvOS 14, *)
 struct ContainedContentNavigationLink<Root: View, Content: Equatable, Destination: View>: View {
     let root: Root
     @State var isLinkActive = false

@@ -21,7 +21,7 @@ extension MainActor {
 }
 
 
-@available(iOS 17.0, macOS 14.0, watchOS 10.0, *)
+@available(iOS 17.0, macOS 14.0, watchOS 10.0, tvOS 17, *)
 public func withAnimationOnMain<Result>(_ animation: Animation? = .default, completionCriteria: AnimationCompletionCriteria = .logicallyComplete, _ body: @Sendable @escaping () -> Result, completion: @Sendable @escaping () -> Void) {
 	if Thread.isMainThread {
 		_ = withAnimation(animation, completionCriteria: completionCriteria, body, completion: completion)

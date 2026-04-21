@@ -13,13 +13,13 @@ import SwiftUI
 	static let dragAndDropSpaceCreatedNotification = Notification.Name("dragAndDropSpaceCreatedNotification")
 }
 
-@available(OSX 13, iOS 15, tvOS 13, watchOS 8, *)
+@available(OSX 13, iOS 15, tvOS 14, watchOS 9, *)
 public typealias DragHoverCallback = (String, Any, CGPoint?, CGPoint) -> DragCoordinator.DragAcceptance
 
-@available(OSX 13, iOS 15, tvOS 13, watchOS 8, *)
+@available(OSX 13, iOS 15, tvOS 14, watchOS 9, *)
 public typealias DragDroppedCallback = (String, Any, CGPoint, CGPoint) -> Bool
 
-@available(OSX 13, iOS 15, tvOS 13, watchOS 8, *)
+@available(OSX 13, iOS 15, tvOS 15, watchOS 9, *)
 public extension View {
 	func makeDropTarget(enabled: Bool = true, priority: Int = 0, dropTargetID: String, types: [String], showDropPoint: DeviceFilter = .debug, hover: DragHoverCallback? = nil, dropped: @escaping DragDroppedCallback) -> some View {
 		DropTargetView(enabled: enabled, content: self, types: types, dropTargetID: dropTargetID, priority: priority, showDropPoint: showDropPoint.matches, hover: hover ?? { _, _, _, _ in .accepted(priority) }, dropped: dropped)
@@ -32,7 +32,7 @@ public extension View {
 	}
 }
 
-@available(OSX 13, iOS 15, tvOS 13, watchOS 8, *)
+@available(OSX 13, iOS 15, tvOS 15, watchOS 9, *)
 struct DropTargetView<Content: View>: View {
 	var enabled: Bool = true
 	let content: Content

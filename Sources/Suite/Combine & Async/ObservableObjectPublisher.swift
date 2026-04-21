@@ -12,10 +12,10 @@ import Foundation
 import OSLog
 import Combine
 
-@available(iOS 14.0, macOS 11.0, watchOS 7, *)
+@available(iOS 14.0, macOS 11.0, watchOS 7, tvOS 14, *)
 fileprivate let logger = Logger(subsystem: "suite", category: "observableObject")
 
-@available(OSX 11, iOS 14.0, watchOS 8.0, *)
+@available(OSX 11, iOS 14.0, watchOS 8.0, tvOS 14, *)
 struct ObserverMonitor<Pub: ObservableObjectPublisher, Content: View & Sendable>: View {
 	let target: Pub
 	let content: Content
@@ -36,7 +36,7 @@ struct ObserverMonitor<Pub: ObservableObjectPublisher, Content: View & Sendable>
 	}
 }
 
-@available(OSX 11, iOS 14.0, watchOS 8.0, *)
+@available(OSX 11, iOS 14.0, watchOS 8.0, tvOS 14, *)
 extension View where Self: Sendable {
 	public func monitor(_ target: ObservableObjectPublisher, _ message: String? = nil) -> some View {
 		ObserverMonitor(target, content: self, message: message)
@@ -44,10 +44,10 @@ extension View where Self: Sendable {
 	
 }
 
-@available(OSX 10.15, iOS 13.0, watchOS 6.0, *)
+@available(OSX 10.15, iOS 13.0, watchOS 6.0, tvOS 14, *)
 extension ObservableObjectPublisher: @unchecked @retroactive Sendable { }
 
-@available(OSX 10.15, iOS 13.0, watchOS 6.0, *)
+@available(OSX 10.15, iOS 13.0, watchOS 6.0, tvOS 14, *)
 public extension ObservableObjectPublisher {
 	func sendOnMain() {
 		if Thread.isMainThread {

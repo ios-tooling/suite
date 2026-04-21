@@ -105,7 +105,7 @@ fileprivate struct LineInfo: Comparable, Equatable, Identifiable {
 #Preview {
 	let subSubDict = ["black": 1, "white": 3, "red": 6]
 	let subDict = ["black": true, "white": true, "red": true, "innie": subSubDict]
-	if #available(macOS 12.0, iOS 14, watchOS 9, *) {
+	if #available(macOS 12.0, iOS 14, watchOS 9, tvOS 14, *) {
 		DictionaryView(dictionary: [
 			"1": 45,
 			"graphene": "hello",

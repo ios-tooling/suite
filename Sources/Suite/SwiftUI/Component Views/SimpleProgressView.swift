@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-@available(iOS 15.0, macOS 12.0, watchOS 8.0, *)
+@available(iOS 15.0, macOS 12.0, watchOS 8.0, tvOS 14, *)
 public struct SimpleProgressView: View {
 	var label: String?
 	

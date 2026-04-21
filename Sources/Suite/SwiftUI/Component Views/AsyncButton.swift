@@ -39,7 +39,7 @@ public struct ButtonIsPerformingActionKey: PreferenceKey {
 		self.shouldCancelOnDisappear = shouldCancelOnDisappear
 	}
 	
-	@available(macOS 12.0, iOS 15.0, watchOS 8.0, *)
+	@available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15, *)
 	public init(shouldCancelOnDisappear: Bool = false, useDetachedTask: Bool = false, role: ButtonRole?, action: @MainActor @escaping () async throws -> Void, @ViewBuilder label: @escaping () -> Label, @ViewBuilder busy: @escaping () -> Busy) {
 		self.action = action
 		self.useDetachedTask = useDetachedTask
@@ -50,7 +50,7 @@ public struct ButtonIsPerformingActionKey: PreferenceKey {
 	}
 	
 	public var body: some View {
-		if #available(macOS 12.0, iOS 15.0, watchOS 8.0, *) {
+		if #available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15, *) {
 			if let title, let systemImage {
 				Button(title, systemImage: systemImage, role: role as? ButtonRole, action: { performAction() })
 			} else {
@@ -83,7 +83,7 @@ public struct ButtonIsPerformingActionKey: PreferenceKey {
 				do {
 					try await action()
 				} catch {
-					if #available(iOS 14.0, macOS 12, watchOS 9, *) {
+					if #available(iOS 14.0, macOS 12, watchOS 9, tvOS 15, *) {
 						SuiteLogger.warning("AsyncButton action failed \(error, privacy: .public)")
 					}
 				}
@@ -97,7 +97,7 @@ public struct ButtonIsPerformingActionKey: PreferenceKey {
 				do {
 					try await action()
 				} catch {
-					if #available(iOS 14.0, macOS 12, watchOS 9, *) {
+					if #available(iOS 14.0, macOS 12, watchOS 9, tvOS 15, *) {
 						SuiteLogger.warning("AsyncButton action failed \(error, privacy: .public)")
 					}
 				}
@@ -130,7 +130,7 @@ extension AsyncButton where Label == AsyncButtonLabel, Busy == AsyncButtonBusyLa
 	}
 }
 
-@available(macOS 12, iOS 15.0, tvOS 13, watchOS 8, *)
+@available(macOS 12, iOS 15.0, tvOS 15, watchOS 8, *)
 extension AsyncButton where Label == AsyncButtonLabel, Busy == AsyncButtonBusyLabel {
 	public init(_ title: LocalizedStringKey? = nil, systemImage: String? = nil, role: ButtonRole, shouldCancelOnDisappear: Bool = false, useDetachedTask: Bool = false, action: @MainActor @escaping () async throws -> Void) {
 		self.action = action
@@ -142,7 +142,7 @@ extension AsyncButton where Label == AsyncButtonLabel, Busy == AsyncButtonBusyLa
 	}
 }
 
-@available(macOS 12, iOS 15.0, tvOS 13, watchOS 8, *)
+@available(macOS 12, iOS 15.0, tvOS 15, watchOS 8, *)
 extension AsyncButton where Busy == AsyncButtonBusyLabel {
 	public init(role: ButtonRole? = nil, shouldCancelOnDisappear: Bool = false, useDetachedTask: Bool = false, action: @MainActor @escaping () async throws -> Void, @ViewBuilder label: @MainActor @escaping () -> Label) {
 		self.action = action
@@ -162,7 +162,7 @@ public struct AsyncButtonLabel: View {
 		HStack {
 			if let title { Text(title) }
 			if let systemImage { 
-				if #available(macOS 11.0, iOS 14.0, watchOS 7.0, *) {
+				if #available(macOS 11.0, iOS 14.0, watchOS 7.0, tvOS 15, *) {
 					Image(systemName: systemImage)
 				}
 			}
@@ -179,13 +179,13 @@ public struct AsyncButtonBusyLabel: View {
 	}
 	
 	@ViewBuilder var spinner: some View {
-		if #available(OSX 13, iOS 16, watchOS 9, *) {
+		if #available(OSX 13, iOS 16, watchOS 9, tvOS 16, *) {
 			ViewThatFits {
 				ProgressView().scaleEffect(1.0)
 				ProgressView().scaleEffect(0.5)
 			}
 			.tint(spinnerColor)
-		} else if #available(OSX 11, iOS 14.0, watchOS 7, *) {
+		} else if #available(OSX 11, iOS 14.0, watchOS 7, tvOS 15, *) {
 			ProgressView()
 				.colorInvert()
 		}

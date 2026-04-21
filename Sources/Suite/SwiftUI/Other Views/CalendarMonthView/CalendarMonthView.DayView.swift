@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-@available(iOS 16, macOS 14.0, watchOS 10, *)
+@available(iOS 16, macOS 14.0, watchOS 10, tvOS 16, *)
 public struct CalendarSingleDayView: View {
 	let day: Date.Day
 	let options: MonthDayOptions

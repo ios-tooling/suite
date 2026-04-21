@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-@available(OSX 13, iOS 16, tvOS 13, watchOS 8, *)
+@available(OSX 13, iOS 16, watchOS 9, tvOS 16, *)
 public struct DragContainer<Content: View>: View {
 	@ViewBuilder private var content: () -> Content
 	@StateObject private var coordinator: DragCoordinator
@@ -52,7 +52,7 @@ public struct DragContainer<Content: View>: View {
 	}
 }
 
-@available(OSX 13, iOS 16, tvOS 13, watchOS 8, *)
+@available(OSX 13, iOS 16, tvOS 16, watchOS 9, *)
 struct DragContainer_Previews: PreviewProvider {
 	static var previews: some View {
 		DragContainer() {

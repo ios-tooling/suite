@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+#if !os(tvOS)
 public struct LongPressButton<Label: View>: View {
 	let action: () async throws -> Void
 	let longPress: () async throws -> Void
@@ -103,4 +104,5 @@ public struct LongPressButton<Label: View>: View {
 		)
 	}
 }
+#endif
 

@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-@available(iOS 16, macOS 14.0, watchOS 10, *)
+@available(iOS 16, macOS 14.0, watchOS 10, tvOS 16, *)
 public struct MonthDayOptions: OptionSet, Sendable {
 	public let rawValue: Int
 	public init(rawValue: Int) { self.rawValue = rawValue }
@@ -18,7 +18,7 @@ public struct MonthDayOptions: OptionSet, Sendable {
 	public static let isNextMonth = MonthDayOptions(rawValue: 1 << 3)
 }
 
-@available(iOS 16, macOS 14.0, watchOS 10, *)
+@available(iOS 16, macOS 14.0, watchOS 10, tvOS 16, *)
 extension CalendarMonthView {
 	struct WeeksView: View {
 		let date: Date

@@ -94,7 +94,7 @@ public enum Keychain {
 		lastResultCode = SecItemAdd(query as CFDictionary, nil)
 		
 		if lastResultCode == noErr { return true }
-		if #available(iOS 14.0, macOS 12, watchOS 9, *) {
+		if #available(iOS 14.0, macOS 12, watchOS 9, tvOS 14, *) {
 			SuiteLogger.error("Failed to store keychain data \(lastResultCode, privacy: .public)")
 		}
 		return false

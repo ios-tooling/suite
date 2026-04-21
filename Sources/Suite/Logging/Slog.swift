@@ -9,7 +9,7 @@ import Foundation
 import OSLog
 import SwiftUI
 
-@available(iOS 15.0, macOS 14, watchOS 9, *)
+@available(iOS 15.0, macOS 14, watchOS 9, tvOS 15, *)
 public actor Slog {
 	public static let instance = Slog()
 	var file: File?
@@ -69,7 +69,7 @@ public actor Slog {
 	}
 }
 
-@available(iOS 15.0, macOS 14, watchOS 9, *)
+@available(iOS 15.0, macOS 14, watchOS 9, tvOS 15, *)
 public func slog(_ content: String, color: Slog.LogColor? = nil) {
 	Task {
 		await Slog.instance.record(content, color: color)

@@ -11,7 +11,7 @@ extension EnvironmentValues {
 	@Entry var dragCoordinatorSnapbackDuration = 0.2
 }
 
-@available(OSX 13, iOS 15, tvOS 13, watchOS 8, *)
+@available(OSX 13, iOS 15, tvOS 14, watchOS 9, *)
 @MainActor public class DragCoordinator: ObservableObject {
 	var containerFrame: CGRect?
 	

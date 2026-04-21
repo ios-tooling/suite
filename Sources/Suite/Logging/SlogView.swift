@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-@available(iOS 17.0, macOS 14, watchOS 10, *)
+@available(iOS 17.0, macOS 14, watchOS 10, tvOS 17, *)
 struct SlogView: View {
 	let file: Slog.File
 	@State var lines: [Slog.File.Line] = []
