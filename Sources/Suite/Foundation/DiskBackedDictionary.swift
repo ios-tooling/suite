@@ -13,8 +13,8 @@ public struct DiskBackedDictionary<Key: Hashable & Codable, Value: Codable> {
 	
 	var cache: [Key: Value] = [:]
 	
-	public subscript(_ key: Key, `default` def: Value? = nil) -> Value? {
-		get { cache[key] ?? def }
+	public subscript(_ key: Key) -> Value? {
+		get { cache[key] }
 		set {
 			if let newValue {
 				cache[key] = newValue
@@ -25,7 +25,15 @@ public struct DiskBackedDictionary<Key: Hashable & Codable, Value: Codable> {
 			}
 		}
 	}
-	
+
+	public subscript(_ key: Key, `default` def: Value) -> Value {
+		get { cache[key] ?? def }
+		set {
+			cache[key] = newValue
+			save()
+		}
+	}
+
 	public init(cacheURL: URL, encoder: JSONEncoder = .init(), decoder: JSONDecoder = .init(), cache: [Key: Value] = [:]) {
 		self.cacheURL = cacheURL
 		self.decoder = decoder
@@ -54,8 +62,18 @@ public struct DiskBackedDictionary<Key: Hashable & Codable, Value: Codable> {
 
 
 extension DiskBackedDictionary where Value: Equatable {
-	public subscript(_ key: Key, `default` def: Value? = nil) -> Value? {
+	
+	public subscript(_ key: Key, `default` def: Value) -> Value {
 		get { cache[key] ?? def }
+		set {
+			if cache[key] == newValue { return }
+			cache[key] = newValue
+			save()
+		}
+	}
+
+	public subscript(_ key: Key) -> Value? {
+		get { cache[key] }
 		set {
 			if let newValue {
 				if cache[key] == newValue { return }
