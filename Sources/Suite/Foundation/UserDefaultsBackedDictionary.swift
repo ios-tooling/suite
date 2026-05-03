@@ -49,12 +49,21 @@ public struct UserDefaultsBackedDictionary<Key: StringConvertible, Value: UserDe
 	
 	func string(from key: Key) -> String { return converter(key) }
 	public subscript(key: Key) -> Value? {
-		get { return defaults.value(forKey: string(from: key)) as? Value }
+		get {
+			let storageKey = string(from: key)
+			if Value.self == URL.self { return defaults.url(forKey: storageKey) as? Value }
+			return defaults.value(forKey: storageKey) as? Value
+		}
 		set {
+			let storageKey = string(from: key)
 			if let value = newValue {
-				self.defaults.set(value, forKey: string(from: key))
+				if let url = value as? URL {
+					self.defaults.set(url, forKey: storageKey)
+				} else {
+					self.defaults.set(value, forKey: storageKey)
+				}
 			} else {
-				self.defaults.removeValue(forKey: string(from: key))
+				self.defaults.removeValue(forKey: storageKey)
 			}
 		}
 	}

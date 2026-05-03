@@ -229,7 +229,7 @@ extension SoundEffect {
 	}
 	
 	public func pause() {
-		self.isPlaying = true
+		self.isPlaying = false
 		actualPlayer?.pause()
 		self.pausedAt = Date()
 		self.dequeueTimer?.invalidate()

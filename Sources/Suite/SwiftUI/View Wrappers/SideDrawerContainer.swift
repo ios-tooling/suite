@@ -31,8 +31,9 @@ public struct SideDrawerContainer<Content: View>: View {
 					}
 				
 				HStack {
+					if side == .trailing { Spacer() }
 					content($isShown)
-					Spacer()
+					if side == .leading { Spacer() }
 				}
 				.offset(x: isShown ? 0 : (side == .leading ? -geo.width : geo.width))
 			}

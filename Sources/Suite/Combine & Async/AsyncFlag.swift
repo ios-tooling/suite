@@ -8,30 +8,24 @@
 import Foundation
 
 public actor AsyncFlag {
-	private var continuation: AsyncStream<Void>.Continuation?
 	private var isFlagSet = false
-	private var stream: AsyncStream<Void>?
-	
-	public init() {
-		Task { await self.setupContinuation() }
-	}
-	
-	func setupContinuation() {
-		stream = AsyncStream<Void> { continuation in
-			self.continuation = continuation
-		}
-	}
-	
+	private var waiters: [CheckedContinuation<Void, Never>] = []
+
+	public init() {}
+
 	public func setFlag(to value: Bool = true) {
 		isFlagSet = value
-		continuation?.yield() // Notify waiting tasks
+		if value {
+			let pending = waiters
+			waiters.removeAll()
+			for waiter in pending { waiter.resume() }
+		}
 	}
-	
+
 	public func wait() async {
-		while !isFlagSet {
-			for await _ in AsyncStream<Void>(unfolding: {  }) {
-				break // break once a signal is received
-			}
+		if isFlagSet { return }
+		await withCheckedContinuation { continuation in
+			waiters.append(continuation)
 		}
 	}
 }

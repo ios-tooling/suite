@@ -89,7 +89,7 @@ public struct UnitRect: Hashable, Sendable, Equatable, CustomStringConvertible, 
 		if right < other.x || x > other.right || bottom < other.y || y > other.bottom { return nil }
 		
 		let origin = UnitPoint(x: max(x, other.x), y: max(y, other.y))
-		let bottomRight = UnitPoint(x: min(right, other.right), y: max(bottom, other.bottom))
+		let bottomRight = UnitPoint(x: min(right, other.right), y: min(bottom, other.bottom))
 		
 		return UnitRect(origin: origin, bottomRight: bottomRight)
 	}

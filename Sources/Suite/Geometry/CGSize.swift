@@ -53,7 +53,7 @@ public extension CGSize {
 		}
 		
 		if let maxW = maxWidth, maxW < self.width {
-			heightGood = true
+			widthGood = true
 		}
 		
 		if heightGood && widthGood { return self }

@@ -393,7 +393,7 @@ extension Keychain {
 			case .accessibleAfterFirstUnlockThisDeviceOnly: return self.toString(kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly)
 			//case .accessibleAlways: return self.toString(kSecAttrAccessibleAlways)
 			case .accessibleWhenPasscodeSetThisDeviceOnly: return self.toString(kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly)
-			case .accessibleAlwaysThisDeviceOnly: return self.toString(kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly)
+			case .accessibleAlwaysThisDeviceOnly: return self.toString(kSecAttrAccessibleAlwaysThisDeviceOnly)
 			}
 		}
 		

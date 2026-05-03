@@ -478,7 +478,6 @@ public extension Date {
 	}
 	
 	func upcoming(_ dayOfWeek: Date.DayOfWeek) -> Date {
-		if dayOfWeek < self.dayOfWeek { return self.previous(dayOfWeek) }
 		return self.next(dayOfWeek)
 	}
 }

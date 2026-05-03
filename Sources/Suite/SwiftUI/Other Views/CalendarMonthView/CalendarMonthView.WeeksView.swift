@@ -41,7 +41,7 @@ extension CalendarMonthView {
 							ForEach(week.indices, id: \.self) { dayIndex in
 								let dayDate = week[dayIndex]
 								let day = Date.Day(day: dayDate, month: date.month, year: date.year)
-								let options = options(for: dayDate)
+								let options = options(for: day)
 								Button(action: { selected = day.date }) {
 									dayBuilder(day, options)
 										.frame(maxWidth: .infinity)
@@ -86,7 +86,7 @@ extension CalendarMonthView {
 				LazyVGrid(columns: cells, spacing: 0) {
 					ForEach(dates, id: \.self) { dayDate in
 						let day = Date.Day(day: dayDate, month: date.month, year: date.year)
-						let options = options(for: dayDate)
+						let options = options(for: day)
 						Button(action: { selected = day.date }) {
 							dayBuilder(day, options)
 								.contentShape(.rect)
@@ -97,12 +97,14 @@ extension CalendarMonthView {
 			}
 		}
 		
-		func options(for dateIndex: Int) -> MonthDayOptions {
+		func options(for day: Date.Day) -> MonthDayOptions {
 			var results: MonthDayOptions = []
-			
-			if dateIndex < 0 { results.insert(.isPreviousMonth) }
-			if dateIndex == selected.day.day { results.insert(.isSelected) }
-			
+
+			if day.day < 1 { results.insert(.isPreviousMonth) }
+			if day.day > date.numberOfDaysInMonth { results.insert(.isNextMonth) }
+			if Calendar.current.isDate(day.date, inSameDayAs: selected) { results.insert(.isSelected) }
+			if Calendar.current.isDateInToday(day.date) { results.insert(.isToday) }
+
 			return results
 		}
 		

@@ -15,8 +15,8 @@ public extension Array where Element == DateInterval {
 	
 	var fullRange: DateInterval? {
 		guard
-			let start = self.sorted(by: { $0.start < $1.start }).first?.start,
-			let end = self.sorted(by: { $0.end > $1.end }).last?.start else { return nil }
+			let start = self.map(\.start).min(),
+			let end = self.map(\.end).max() else { return nil }
 		return DateInterval(start: start, end: end)
 	}
 	

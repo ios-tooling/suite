@@ -9,7 +9,6 @@ import Foundation
 	private var queue: DispatchQueue
 	private var isMonitoring = false
 	private var isStartingUp = true
-	private var startupContinuation: CheckedContinuation<Bool, Never>?
 	private var cameOnlineCallbacks: [() -> Void] = []
 	private var wasOffline = true
 	
@@ -25,11 +24,11 @@ import Foundation
 	public func setup() { }
 	
 	@discardableResult public func setupAndCheckForOnline() async -> Bool {
-		if !isStartingUp || startupContinuation != nil { return !isOffline }
-		
-		return await withCheckedContinuation { continuation in
-			self.startupContinuation = continuation
+		if !isStartingUp { return !isOffline }
+		while isStartingUp {
+			try? await Task.sleep(nanoseconds: 50_000_000)
 		}
+		return !isOffline
 	}
 	
 	public func whenOnline(_ callback: @MainActor @escaping () -> Void) {
@@ -51,8 +50,6 @@ import Foundation
 		objectWillChange.sendOnMain()
 		try? await Task.sleep(nanoseconds: 250_000_000)
 		self.isStartingUp = false
-		self.startupContinuation?.resume(returning: !self.isOffline)
-		self.startupContinuation = nil
 		objectWillChange.send()
 		pathMonitor.start(queue: queue)
 		callCameOnlineCallbacks()

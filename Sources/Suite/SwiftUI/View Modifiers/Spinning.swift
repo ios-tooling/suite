@@ -33,7 +33,7 @@ public struct SpinningModifier: ViewModifier {
 	let period: TimeInterval
 	
 	public func body(content: Content) -> some View {
-		Spinning(content)
+		Spinning(content, period: period)
 	}
 }
 

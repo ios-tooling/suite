@@ -9,9 +9,12 @@ import Foundation
 
 public extension Optional where Wrapped: Comparable {
 	static func <(lhs: Wrapped?, rhs: Wrapped?) -> Bool {
-		guard let lh = lhs else { return true }
-		guard let rh = rhs else { return false }
-		return lh < rh
+		switch (lhs, rhs) {
+		case (nil, nil): return false
+		case (nil, _?): return true
+		case (_?, nil): return false
+		case (let l?, let r?): return l < r
+		}
 	}
 }
 

@@ -54,18 +54,14 @@ public extension FileManager {
 	}
 
 	func uniqueURL(in directory: URL, base: String) -> URL {
-		var count = 0
+		var count = 1
 		var name = base
-		
+
 		while true {
 			let url = directory.appendingPathComponent(name)
 			if !fileExists(at: url) { return url }
 			count += 1
-			if count == 1 {
-				name = base
-			} else {
-				name = base + " \(count)"
-			}
+			name = base + " \(count)"
 		}
 	}
 	

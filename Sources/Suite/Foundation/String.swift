@@ -160,12 +160,12 @@ public extension String {
 	
 	func extractSubstring(start: String, end: String) -> String? {
 		 guard let startIndex = self.range(of: start)?.upperBound,
-				 let endIndex = self.range(of: end, range: startIndex..<string.endIndex)?.lowerBound
+				 let endIndex = self.range(of: end, range: startIndex..<self.endIndex)?.lowerBound
 		 else {
 			  return nil
 		 }
-		 
-		 return String(string[startIndex..<endIndex])
+
+		 return String(self[startIndex..<endIndex])
 	}
 
 

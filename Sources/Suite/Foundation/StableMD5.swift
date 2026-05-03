@@ -73,7 +73,7 @@ public extension [any JSONDataType] {
 				} else if let double = value as? Double {
 					try String(describing: double).md5
 				} else if let date = value as? Date {
-					try String(describing: date).md5
+					try String(describing: date.timeIntervalSinceReferenceDate).md5
 				} else if let data = value as? Data {
 					try data.md5
 				} else if let dict = value as? JSONDictionary {

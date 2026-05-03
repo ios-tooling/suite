@@ -97,7 +97,7 @@ public extension Vector2 {
 		let components = rawValue.trimmingCharacters(in: .decimalDigits.inverted).components(separatedBy: ",")
 		if components.count != 2 { return nil }
 		
-		guard let x = Double(components[0].trimmingCharacters(in: .whitespacesAndNewlines)), let y = Double(components[0].trimmingCharacters(in: .whitespacesAndNewlines)) else { return nil }
+		guard let x = Double(components[0].trimmingCharacters(in: .whitespacesAndNewlines)), let y = Double(components[1].trimmingCharacters(in: .whitespacesAndNewlines)) else { return nil }
 		self = Self.init(x: x, y: y)
 	}
 	

@@ -47,7 +47,7 @@ public extension Color {
 	#endif
 	
 	static var randomGray: Color {
-		Color(white: Double.random(in: 0...100.0))
+		Color(white: Double.random(in: 0...1.0))
 	}
 	
 	@available(iOS 15.0, macOS 12.0, watchOS 8.0, tvOS 15, *)

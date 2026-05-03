@@ -28,12 +28,12 @@ public struct VersionString: Comparable {
 		
 		if lPrefix != rPrefix { return false }
 		if lhComponents.count > minCount {
-			let suffix = lhComponents.suffix(from: lhComponents.count - minCount)
+			let suffix = lhComponents.suffix(from: minCount)
 			return suffix.allSatisfy { $0 == 0 }
 		}
 
 		if rhComponents.count > minCount {
-			let suffix = rhComponents.suffix(from: rhComponents.count - minCount)
+			let suffix = rhComponents.suffix(from: minCount)
 			return suffix.allSatisfy { $0 == 0 }
 		}
 		

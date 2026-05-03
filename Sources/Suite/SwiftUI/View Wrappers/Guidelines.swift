@@ -46,7 +46,7 @@ public struct GuideLines: Sendable {
 		let xWidth = 1 / CGFloat(x)
 		let yWidth = 1 / CGFloat(y)
 		xMarks = (0...x).map { CGFloat($0) * xWidth }
-		yMarks = (0...x).map { CGFloat($0) * yWidth }
+		yMarks = (0...y).map { CGFloat($0) * yWidth }
 		self.size = size
 	}
 	

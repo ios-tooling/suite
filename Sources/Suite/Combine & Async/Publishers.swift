@@ -93,7 +93,7 @@ public extension AnyPublisher {
 		scan((previous: Output?.none, new: Output?.none)) { tuple, newValue in
 			(previous: tuple.new, new: newValue)
 		}
-		.map { (previous: $0.previous, new: $0.new!) }
+		.compactMap { tuple in tuple.new.map { (previous: tuple.previous, new: $0) } }
 		.eraseToAnyPublisher()
 	}
 }

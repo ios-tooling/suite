@@ -41,9 +41,9 @@ public extension ModelContext {
 		return (try? fetch(descriptor)) ?? []
 	}
 
-	func countModels<T: PersistentModel>(_ modelType: T) -> Int {
+	func countModels<T: PersistentModel>(_ modelType: T.Type) -> Int {
 		let descriptor = FetchDescriptor<T>()
-		return (try? fetch(descriptor).count) ?? 0
+		return (try? fetchCount(descriptor)) ?? 0
 	}
 
 	func reportedFetch<T>(_ descriptor: FetchDescriptor<T>) -> [T] where T : PersistentModel {

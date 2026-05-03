@@ -8,7 +8,7 @@
 import Foundation
 import OSLog
 
-fileprivate let delimiter = "/"
+fileprivate let delimiter = "\u{1F}"
 
 @available(iOS 15.0, macOS 14, watchOS 9, tvOS 15, *)
 extension Slog {
@@ -86,7 +86,7 @@ extension Slog {
 			guard let data = lines.joined(separator: "\n").data(using: .utf8) else { return }
 			
 			do {
-				try data.write(to: url)
+				try data.write(to: url, options: [.atomic])
 			} catch {
 				print("Failed to write slog: \(error) at \(url.path)")
 			}
@@ -110,9 +110,9 @@ extension Slog.File {
 		let count: Int
 		
 		init?(rawValue: String) {
-			let components = rawValue.components(separatedBy: .init(charactersIn: delimiter))
+			let components = rawValue.components(separatedBy: delimiter)
 			if components.count != 3 { return nil }
-			
+
 			guard let start = DateFormatter.iso8601.date(from: components[0]) else { return nil }
 			guard let end = DateFormatter.iso8601.date(from: components[1]) else { return nil }
 			guard let count = Int(components[2]) else { return nil }
@@ -139,16 +139,18 @@ extension Slog.File {
 		let color: Slog.LogColor?
 
 		init?(rawValue: String) {
-			let components = rawValue.components(separatedBy: .init(charactersIn: delimiter))
+			let components = rawValue.components(separatedBy: delimiter)
 			if components.count < 2 { return nil }
-			
+
 			guard let date = DateFormatter.iso8601.date(from: components[0]) else { return nil }
 			var color: Slog.LogColor?
-			if components.count > 2, components[2].hasPrefix("#") {
-				color = .init(rawValue: components[2])
+			var messageComponents = Array(components.dropFirst())
+			if let last = messageComponents.last, last.hasPrefix("#"), let parsed = Slog.LogColor(rawValue: last) {
+				color = parsed
+				messageComponents.removeLast()
 			}
-			
-			self.init(date: date, message: components.dropFirst().joined(separator: delimiter), color: color)
+
+			self.init(date: date, message: messageComponents.joined(separator: delimiter), color: color)
 		}
 		
 		init (date: Date, message: String, color: Slog.LogColor?) {

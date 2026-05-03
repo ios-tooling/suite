@@ -34,13 +34,13 @@ public extension View {
 	@ViewBuilder func addTextContentType(_ type: TextContentType?) -> some View {
 		if let type {
 			self
-				.addTextContentType(type)
+				.addTextContentType(type: type)
 		} else {
 			self
 		}
 	}
-	
-	func addTextContentType(_ type: TextContentType) -> some View {
+
+	func addTextContentType(type: TextContentType) -> some View {
 		#if os(macOS)
 			self
 				.textContentType(type)

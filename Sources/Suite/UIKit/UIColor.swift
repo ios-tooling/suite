@@ -171,10 +171,10 @@ public extension String {
 		
 		if hex.count == 4 {
 			return [
-				Double((rgbValue & 0x000F00) >> 12) / 15,
-				Double((rgbValue & 0x000F00) >> 8) / 15,
-				Double((rgbValue & 0x0000F0) >> 4) / 15,
-				Double(rgbValue & 0x00000F),
+				Double((rgbValue & 0xF000) >> 12) / 15,
+				Double((rgbValue & 0x0F00) >> 8) / 15,
+				Double((rgbValue & 0x00F0) >> 4) / 15,
+				Double(rgbValue & 0x000F) / 15,
 			]
 		}
 		

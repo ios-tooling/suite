@@ -41,7 +41,7 @@ public struct CodableJSONArray: Codable, Equatable, Hashable, Sendable {
 		}
 	}
 	
-	public init?(_ json: [String: Sendable]?) {
+	public init?(_ json: [Sendable]?) {
 		guard let json else { return nil }
 		self.init(json)
 	}

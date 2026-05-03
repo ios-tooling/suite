@@ -107,11 +107,14 @@ extension JSONDecoder.DateDecodingStrategy {
 	}
 	
 	func date(from double: Double) -> Date? {
-		nil
+		switch self {
+		case .secondsSince1970: Date(timeIntervalSince1970: double)
+		case .millisecondsSince1970: Date(timeIntervalSince1970: double / 1000)
+		default: nil
+		}
 	}
-	
-	
+
 	func date(from int: Int) -> Date? {
-		nil
+		date(from: Double(int))
 	}
 }

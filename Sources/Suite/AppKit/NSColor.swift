@@ -55,7 +55,7 @@ public extension NSColor {
 		let g = Int(255.0 * green)
 		let b = Int(255.0 * blue)
 		
-		return r << 16 + g << 8 + b
+		return (r << 16) + (g << 8) + b
 	}
 	
 	var brightness: Double {

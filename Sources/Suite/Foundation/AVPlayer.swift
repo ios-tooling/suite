@@ -22,17 +22,16 @@ import UIKit
 
 		convenience init?(assetNamed name: String, extension ext: String) {
 			let url = AVPlayer.cachedMoviesDirectory.appendingPathComponent(name + "." + ext)
-			
+
 			if FileManager.default.fileExists(at: url) {
 				self.init(url: url)
 				return
 			}
 
 			guard let video = NSDataAsset(name: name) else {
-				self.init(url: url)
 				return nil
 			}
-			
+
 			FileManager.default.createFile(atPath: url.path, contents: video.data, attributes: nil)
 			self.init(url: url)
 		}

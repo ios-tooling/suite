@@ -34,13 +34,13 @@ public extension CGContext {
 	func writeToURL(_ url: URL) { self.CGImage?.writeToURL(url) }
 	func snapshotToDocuments() { self.CGImage?.snapshotToDocuments() }
 	var bytes: UnsafeMutablePointer<UInt8>? {
-		  if let ptr = self.data?.bindMemory(to: UInt8.self, capacity: self.height * self.bytesPerRow * 4) {
+		  if let ptr = self.data?.bindMemory(to: UInt8.self, capacity: self.height * self.bytesPerRow) {
 				return ptr
 		  }
 		  return nil
 	}
 	var uint32s: UnsafeMutablePointer<UInt32>? {
-		  if let ptr = self.data?.bindMemory(to: UInt32.self, capacity: self.height * self.bytesPerRow) {
+		  if let ptr = self.data?.bindMemory(to: UInt32.self, capacity: self.height * self.bytesPerRow / 4) {
 				return ptr
 		  }
 		  return nil
@@ -62,8 +62,7 @@ public extension CGContext {
 		  let width = self.width
 		  let height = self.height
 		  let pixelsPerRow = self.bytesPerRow / 4
-		  guard let data = self.bytes else { return true }
-		  let uint32s = data.withMemoryRebound(to: UInt32.self, capacity: height * pixelsPerRow) { data in return data }
+		  guard let data = self.bytes, let uint32s = self.uint32s else { return true }
 		  let alphaInfo = self.alphaInfo
 		  let backgroundInt = color?.hex ?? 0
 		  
@@ -82,8 +81,7 @@ public extension CGContext {
 		let height = self.height
 		let pixelsPerRow = self.bytesPerRow / 4
 		var content = CGRect(x: -1, y: -1, width: 0, height: 0)
-		  guard let data = self.bytes else { return nil }
-		  let uint32s = data.withMemoryRebound(to: UInt32.self, capacity: height * pixelsPerRow) { data in return data }
+		  guard let data = self.bytes, let uint32s = self.uint32s else { return nil }
 		let alphaInfo = self.alphaInfo
 		  let backgroundInt = background?.hex ?? 0
 		  
@@ -120,13 +118,12 @@ public extension CGContext {
 	
 	func alphaOfPixelAt(_ x: Int, y: Int, pixelsPerRow: Int, style alphaInfo: CGImageAlphaInfo, inData data: UnsafePointer<UInt8>) -> UInt8 {
 		let offset = y * pixelsPerRow * 4 + x * 4
-		
-		if alphaInfo == .premultipliedFirst {
-			let byte = data[offset]
-			return 255 - byte
-		} else {
-			let byte = data[offset + 3]
-			return byte
+
+		switch alphaInfo {
+		case .premultipliedFirst, .first, .alphaOnly:
+			return data[offset]
+		default:
+			return data[offset + 3]
 		}
 	}
 	

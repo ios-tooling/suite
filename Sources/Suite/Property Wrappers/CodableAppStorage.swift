@@ -30,7 +30,7 @@ import SwiftUI
 		get { value }
 		nonmutating set {
 			if newValue == value { return }
-			if let data = try? JSONEncoder().encode(newValue), let string = String(data: data, encoding: .utf8) {
+			if let data = try? JSONEncoder().encode(newValue), let string = String(data: data, encoding: .utf8), string != "null" {
 				store.set(string, forKey: key)
 				store.synchronize()
 			} else {
