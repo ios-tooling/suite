@@ -46,39 +46,13 @@ public extension CGSize {
 	var point: CGPoint { CGPoint(x: width, y: height )}
 	
 	func scaleDown(toWidth maxWidth: CGFloat?, height maxHeight: CGFloat?) -> CGSize {
-		var heightGood = false, widthGood = false
-		
-		if let maxH = maxHeight, maxH < self.height {
-			heightGood = true
-		}
-		
-		if let maxW = maxWidth, maxW < self.width {
-			widthGood = true
-		}
-		
-		if heightGood && widthGood { return self }
-		
-		let aspect = self.aspectRatio
-		
-		if heightGood && maxWidth != nil {
-			return CGSize(width: maxWidth!, height: maxWidth! / aspect)
-		}
-		
-		if widthGood && maxHeight != nil {
-			return CGSize(width: maxHeight! * aspect, height: maxHeight!)
-		}
-		
-		if let maxHeight = maxHeight, let maxWidth = maxWidth {
-			let calcWidth = min(maxWidth, maxHeight * aspect)
-			let calcHeight = min(maxHeight, maxWidth / aspect)
-			
-			if (calcHeight / maxHeight) > (calcWidth / maxWidth) {        //height is better match
-				return CGSize(width: calcHeight * aspect, height: calcHeight)
-			} else {
-				return CGSize(width: calcWidth, height: calcWidth / aspect)
-			}
-		}
-		return CGSize(width: maxWidth ?? self.width, height: maxHeight ?? self.height)
+		guard width > 0, height > 0 else { return self }
+
+		let widthRatio = maxWidth.map { $0 / width } ?? .infinity
+		let heightRatio = maxHeight.map { $0 / height } ?? .infinity
+		let scale = min(1, widthRatio, heightRatio)
+
+		return CGSize(width: width * scale, height: height * scale)
 	}
 }
 

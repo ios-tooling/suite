@@ -6,81 +6,87 @@
 
 Each finding is tagged: **[Bug]**, **[Concurrency]**, **[API]**, **[Perf]**, **[Platform]**, **[Convention]**, **[Memory]**, **[Deprecated]**, **[Diagnostics]**, **[Coverage]**, **[Flakiness]**, **[Suggestion]**.
 
+> **Update 2026-05-03 — critical-bug fixes landed.** All 40 critical bugs are now closed: 39 fixed across `fab966b` and a follow-up rewrite, plus 1 disputed and closed as no-op (the `Trig.swift` quadrant claim — re-analysis showed the two mappings agree). Public API typos and CLAUDE.md drift (sections below) were addressed earlier in `74ce1eb`. Status tags inline: `[FIXED fab966b]`, `[FIXED 74ce1eb]`, `[DISPUTED]`. Detailed file-by-file findings further down have **not** been re-audited line-by-line; treat them as the original review snapshot.
+
 ---
 
 ## Executive Summary
 
 ### Critical bugs (crash, data corruption, security, won't-compile)
 
-1. **`Types/Keychain.swift`** — `AccessOptions.accessibleAlwaysThisDeviceOnly` returns `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`. Silent security degradation. (line 396)
-2. **`Types/RawCollection.swift`** — Subscript setter is **inverted**: `collection[item] = true` REMOVES the item, `false` INSERTS. Silent data corruption.
-3. **`Foundation/String.swift`** — `extractSubstring(start:end:)` references undefined symbol `string`; **won't compile**. Called by `MobileProvisionFile.swift` (which is itself entirely commented out).
-4. **`Foundation/Date.Month.swift:20`** — `abbrev` indexes `[self.rawValue]` instead of `[rawValue - 1]`. **Crashes on `.dec`** and is off-by-one for every other month.
-5. **`SwiftUI/Extensions/TextField.swift`** — Optional `addTextContentType(_:)` calls itself recursively; **infinite recursion / stack overflow** when called with non-nil.
-6. **`Foundation/Optional.swift`** — Custom `<` returns `true` for `nil < nil`, **violating strict weak ordering**. Breaks any `sort` that uses it.
-7. **`Foundation/StableMD5.swift`** — `Date` hashed differently in dict path (`timeIntervalSinceReferenceDate`) vs array path (`String(describing:)`, locale-formatted). **Same data → different hashes**; defeats "stable" purpose.
-8. **`Combine & Async/AsyncFlag.swift`** — `wait()` is fundamentally broken: spins forever in an `AsyncStream(unfolding:)` that never observes the signal.
-9. **`Types/VersionString.swift`** — `==` uses `suffix(from: count - minCount)` (wrong); `"1.2.5.0.0" == "1.2"` returns true.
-10. **`Types/SoundEffect.swift:232`** — `pause()` sets `isPlaying = true`.
-11. **`Geometry/CGSize.swift`** — `scaleDown(toWidth:height:)` typo: sets `heightGood = true` where it means `widthGood = true`. Function broken in nearly every branch.
-12. **`Geometry/Vector2.swift`** — `init?(rawValue:)` parses `components[0]` for both x and y; round-trip loses y.
-13. **`SwiftUI/Shapes/Trig.swift`** — `Angle.quadrant` and `CGPoint.quadrant` use the same enum for two different quadrant systems with conflicting mappings.
-14. **`SwiftUI/View Modifiers/Spinning.swift`** — `SpinningModifier.period` is stored but dropped at construction; the `period` argument is silently ignored.
-15. **`SwiftUI/View Wrappers/Guidelines.swift:49`** — `yMarks` is built from the `x` parameter range; concrete bug when `x != y`.
-16. **`SwiftUI/Other Views/CalendarMonthView/CalendarMonthView.WeeksView.swift`** — `options(for:)` ignores month/year; selecting a day in any month highlights the same day-number across all displayed months.
-17. **`SwiftUI/Extensions/Color.swift`** — `Color.randomGray` uses `Double.random(in: 0...100.0)` then passes to `Color(white:)` which expects 0...1. Always near-white.
-18. **`SwiftUI/Utilities/UnitRect.swift`** — `overlap(with:)` uses `max` where it should use `min`; result is wrong height.
-19. **`SwiftUI/Extensions/NavigationLink.swift`** — `BoundNavigationLink`'s binding setter is a no-op; programmatic dismissal is impossible.
-20. **`UIKit/UIButton.swift:50`** — `backgroundImage(_:for:)` always passes `.normal`, ignoring the state parameter.
-21. **`UIKit/UIColor.swift:172-179`** — 4-char ARGB hex branch: masks/shifts produce 0 for alpha and wrong components.
-22. **`AppKit/NSColor.swift:58`** — `hex` getter: `r << 16 + g << 8 + b`. Swift `<<` has **lower** precedence than `+`, so this evaluates as `r << (16 + g) << (8 + b)`. Definite bug.
-23. **`Cocoa/NSView+Helpers.swift:116`** — `fullyConstrain(to:)` top constant is `23` instead of `0`.
-24. **`Foundation/DateInterval.swift:19`** — `fullRange` returns `.start` of the latest-ending interval; should be `.end`.
-25. **`Foundation/AVPlayer.swift:23-38`** — failable convenience init flow is malformed (`self.init(url:)` then `return nil`).
-26. **`Foundation/Date.swift:326-336`** — typo `iso8691String` (should be `iso8601String`) on a public API; tests carry the typo through.
-27. **`Foundation/Date.swift:480-487`** — `thisWeek(_:)` and `upcoming(_:)` are byte-identical duplicates.
-28. **`Foundation/FileManager.swift:64-68`** — `uniqueURL` first-collision loop sets the name back to base; never finds a unique name.
-29. **`Foundation/UserDefaultsBackedDictionary.swift`** — URL retrieval via `value(forKey:)` doesn't work; need `defaults.url(forKey:)`.
-30. **`Geometry/CGContext.swift`** — `bytes`/`uint32s` capacity is wrong by a factor of 4; pointer escapes the `withMemoryRebound` closure (UB).
-31. **`Geometry/CGContext.swift`** — `alphaOfPixelAt` inverts alpha for `.premultipliedFirst`.
-32. **`Property Wrappers/ReadyFlag.swift`** — `set(false)` silently no-ops; `waitForReady` race between value check and continuation append; flag can hang waiters forever.
-33. **`Property Wrappers/CodableAppStorage.swift`** — Optional handling stores the literal string `"null"` instead of removing the key.
-34. **`Logging/Slog.File.swift`** — `save()` rewrites the entire file on every log line (O(n²)) without `.atomic`; `Line` parsing splits on `/` so any URL/path in a message corrupts parsing.
-35. **`Combine & Async/Publishers.swift`** — `withPreviousValue()` force-unwraps `$0.new!` while the first scan emits `(nil, nil)`; **crashes on first emission**.
-36. **`Utilities/JSON/CodableJSONArray.swift:44`** — `init?(_:[String:Sendable]?)` is a copy-paste stub from the dictionary variant; takes a dict but constructs an array.
-37. **`Utilities/JSON/JSONDecoder+JSONDictionary.swift`** — `date(from double:)` and `date(from int:)` always return `nil`; `secondsSince1970`/`millisecondsSince1970` strategies never work for keyed numeric dates.
-38. **`Utilities/Reachability.swift`** — `setupAndCheckForOnline()` returns early when a continuation is already installed; second waiter is told the current state but never awaits.
-39. **`SwiftData/ModelContext.swift`** — `countModels` accepts a `T` *instance*, fetches all rows then `.count`s; should accept `T.Type` and use `fetchCount`.
-40. **`SwiftUI/View Wrappers/SideDrawerContainer.swift:37`** — Trailing-side rendering anchors content to leading; trailing drawer behaves wrong.
+Progress: 39 fixed, 1 disputed (closed as no-op). **40 / 40 closed.**
+
+- [x] `[FIXED fab966b]` **`Types/Keychain.swift`** — `AccessOptions.accessibleAlwaysThisDeviceOnly` returns `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`. Silent security degradation. (line 396)
+- [x] `[FIXED fab966b]` **`Types/RawCollection.swift`** — Subscript setter is **inverted**: `collection[item] = true` REMOVES the item, `false` INSERTS. Silent data corruption. *Resolved by deleting `RawCollection` entirely; the `StringInitializable` protocol remains.*
+- [x] `[FIXED fab966b]` **`Foundation/String.swift`** — `extractSubstring(start:end:)` references undefined symbol `string`; **won't compile**. Called by `MobileProvisionFile.swift` (which is itself entirely commented out).
+- [x] `[FIXED fab966b]` **`Foundation/Date.Month.swift:20`** — `abbrev` indexes `[self.rawValue]` instead of `[rawValue - 1]`. **Crashes on `.dec`** and is off-by-one for every other month.
+- [x] `[FIXED fab966b]` **`SwiftUI/Extensions/TextField.swift`** — Optional `addTextContentType(_:)` calls itself recursively; **infinite recursion / stack overflow** when called with non-nil. *Resolved by giving the non-optional overload a distinct argument label (`type:`).*
+- [x] `[FIXED fab966b]` **`Foundation/Optional.swift`** — Custom `<` returns `true` for `nil < nil`, **violating strict weak ordering**. Breaks any `sort` that uses it.
+- [x] `[FIXED fab966b]` **`Foundation/StableMD5.swift`** — `Date` hashed differently in dict path (`timeIntervalSinceReferenceDate`) vs array path (`String(describing:)`, locale-formatted). **Same data → different hashes**; defeats "stable" purpose.
+- [x] `[FIXED fab966b]` **`Combine & Async/AsyncFlag.swift`** — `wait()` is fundamentally broken: spins forever in an `AsyncStream(unfolding:)` that never observes the signal. *Rewritten with a `CheckedContinuation` queue.*
+- [x] `[FIXED fab966b]` **`Types/VersionString.swift`** — `==` uses `suffix(from: count - minCount)` (wrong); `"1.2.5.0.0" == "1.2"` returns true.
+- [x] `[FIXED fab966b]` **`Types/SoundEffect.swift:232`** — `pause()` sets `isPlaying = true`.
+- [x] `[FIXED]` **`Geometry/CGSize.swift`** — `scaleDown(toWidth:height:)` typo: sets `heightGood = true` where it means `widthGood = true`. Function broken in nearly every branch. *Rewritten as a min-of-per-axis-ratios scale (capped at 1 to avoid enlarging); 8 lines vs the prior 30, no boolean flags, no special-case branches. No callers in-repo.*
+- [x] `[FIXED fab966b]` **`Geometry/Vector2.swift`** — `init?(rawValue:)` parses `components[0]` for both x and y; round-trip loses y.
+- [x] `[DISPUTED]` **`SwiftUI/Shapes/Trig.swift`** — `Angle.quadrant` and `CGPoint.quadrant` use the same enum for two different quadrant systems with conflicting mappings. *Re-analysis: both mappings agree (i = top-right, ii = top-left, iii = bottom-left, iv = bottom-right) when interpreted as clockwise-from-12 for `Angle` and screen-coordinates for `CGPoint`. `point(for angle:)` round-trips correctly under that interpretation. Closed as no-op pending a counter-example.*
+- [x] `[FIXED fab966b]` **`SwiftUI/View Modifiers/Spinning.swift`** — `SpinningModifier.period` is stored but dropped at construction; the `period` argument is silently ignored.
+- [x] `[FIXED fab966b]` **`SwiftUI/View Wrappers/Guidelines.swift:49`** — `yMarks` is built from the `x` parameter range; concrete bug when `x != y`.
+- [x] `[FIXED fab966b]` **`SwiftUI/Other Views/CalendarMonthView/CalendarMonthView.WeeksView.swift`** — `options(for:)` ignores month/year; selecting a day in any month highlights the same day-number across all displayed months. *Now takes a `Date.Day` and compares with `Calendar.isDate(_:inSameDayAs:)`; also sets `.isToday` and `.isNextMonth`.*
+- [x] `[FIXED fab966b]` **`SwiftUI/Extensions/Color.swift`** — `Color.randomGray` uses `Double.random(in: 0...100.0)` then passes to `Color(white:)` which expects 0...1. Always near-white.
+- [x] `[FIXED fab966b]` **`SwiftUI/Utilities/UnitRect.swift`** — `overlap(with:)` uses `max` where it should use `min`; result is wrong height.
+- [x] `[FIXED fab966b]` **`SwiftUI/Extensions/NavigationLink.swift`** — `BoundNavigationLink`'s binding setter is a no-op; programmatic dismissal is impossible. *Resolved by deleting the file (the type wrapped the deprecated `NavigationLink(isActive:)` API).*
+- [x] `[FIXED fab966b]` **`UIKit/UIButton.swift:50`** — `backgroundImage(_:for:)` always passes `.normal`, ignoring the state parameter.
+- [x] `[FIXED fab966b]` **`UIKit/UIColor.swift:172-179`** — 4-char ARGB hex branch: masks/shifts produce 0 for alpha and wrong components. *Reworked to RGBA layout (`0xF000` / `0x0F00` / `0x00F0` / `0x000F`), matching the 8-char branch.*
+- [x] `[FIXED fab966b]` **`AppKit/NSColor.swift:58`** — `hex` getter: `r << 16 + g << 8 + b`. Swift `<<` has **lower** precedence than `+`, so this evaluates as `r << (16 + g) << (8 + b)`. Definite bug.
+- [x] `[FIXED fab966b]` **`Cocoa/NSView+Helpers.swift:116`** — `fullyConstrain(to:)` top constant is `23` instead of `0`.
+- [x] `[FIXED fab966b]` **`Foundation/DateInterval.swift:19`** — `fullRange` returns `.start` of the latest-ending interval; should be `.end`.
+- [x] `[FIXED fab966b]` **`Foundation/AVPlayer.swift:23-38`** — failable convenience init flow is malformed (`self.init(url:)` then `return nil`).
+- [x] `[FIXED 74ce1eb]` **`Foundation/Date.swift:326-336`** — typo `iso8691String` (should be `iso8601String`) on a public API; tests carry the typo through. *Fixed in the earlier "fix typos" commit.*
+- [x] `[FIXED fab966b]` **`Foundation/Date.swift:480-487`** — `thisWeek(_:)` and `upcoming(_:)` are byte-identical duplicates. *Resolved by making `upcoming(_:)` always return the next future occurrence (no `previous` branch). This is a name-driven judgment call; deletion of `upcoming` is also a defensible alternative if no callers depend on the new semantics.*
+- [x] `[FIXED fab966b]` **`Foundation/FileManager.swift:64-68`** — `uniqueURL` first-collision loop sets the name back to base; never finds a unique name.
+- [x] `[FIXED fab966b]` **`Foundation/UserDefaultsBackedDictionary.swift`** — URL retrieval via `value(forKey:)` doesn't work; need `defaults.url(forKey:)`.
+- [x] `[FIXED fab966b]` **`Geometry/CGContext.swift`** — `bytes`/`uint32s` capacity is wrong by a factor of 4; pointer escapes the `withMemoryRebound` closure (UB). *Capacity corrected; callers now use `self.uint32s` (which permanently rebinds via `bindMemory`) instead of escaping a `withMemoryRebound` pointer.*
+- [x] `[FIXED fab966b]` **`Geometry/CGContext.swift`** — `alphaOfPixelAt` inverts alpha for `.premultipliedFirst`. *Switched on alpha-info: `.premultipliedFirst`/`.first`/`.alphaOnly` read offset 0; everything else reads offset 3.*
+- [x] `[FIXED fab966b]` **`Property Wrappers/ReadyFlag.swift`** — `set(false)` silently no-ops; `waitForReady` race between value check and continuation append; flag can hang waiters forever. *Append-or-resume happens under the lock; resume runs outside the lock; `set(false)` actually clears the value.*
+- [x] `[FIXED fab966b]` **`Property Wrappers/CodableAppStorage.swift`** — Optional handling stores the literal string `"null"` instead of removing the key. *Setter now removes the key whenever JSON encoding produces `"null"`.*
+- [x] `[FIXED fab966b]` **`Logging/Slog.File.swift`** — `save()` rewrites the entire file on every log line (O(n²)) without `.atomic`; `Line` parsing splits on `/` so any URL/path in a message corrupts parsing. *Delimiter changed to U+001F (Unit Separator); color is now detected at the end of the components rather than at index 2; `save()` writes `.atomic`. The O(n²) full-file rewrite per line remains — flagged for a future change to append/streaming I/O.*
+- [x] `[FIXED fab966b]` **`Combine & Async/Publishers.swift`** — `withPreviousValue()` force-unwraps `$0.new!` while the first scan emits `(nil, nil)`; **crashes on first emission**. *Replaced `map { $0.new! }` with `compactMap` that drops the seed.*
+- [x] `[FIXED fab966b]` **`Utilities/JSON/CodableJSONArray.swift:44`** — `init?(_:[String:Sendable]?)` is a copy-paste stub from the dictionary variant; takes a dict but constructs an array. *Now takes `[Sendable]?`.*
+- [x] `[FIXED fab966b]` **`Utilities/JSON/JSONDecoder+JSONDictionary.swift`** — `date(from double:)` and `date(from int:)` always return `nil`; `secondsSince1970`/`millisecondsSince1970` strategies never work for keyed numeric dates. *Both now honor those strategies (`int` delegates to `double`).*
+- [x] `[FIXED fab966b]` **`Utilities/Reachability.swift`** — `setupAndCheckForOnline()` returns early when a continuation is already installed; second waiter is told the current state but never awaits. *Replaced single-slot continuation with a poll loop on `isStartingUp`; multiple concurrent waiters all resolve. (Polling vs. continuation queue is a deliberate tradeoff — startup is bounded at 250ms, and the simpler shape was preferred.)*
+- [x] `[FIXED fab966b]` **`SwiftData/ModelContext.swift`** — `countModels` accepts a `T` *instance*, fetches all rows then `.count`s; should accept `T.Type` and use `fetchCount`.
+- [x] `[FIXED fab966b]` **`SwiftUI/View Wrappers/SideDrawerContainer.swift:37`** — Trailing-side rendering anchors content to leading; trailing drawer behaves wrong. *Spacer now lives on the opposite side based on `side`.*
 
 ### Documentation drift
 
-- **`CLAUDE.md`** documents five macros (`@GeneratedEnvironmentKey`, `@GeneratedPreferenceKey`, `@AppSettings`, `@AppSettingsProperty`, `@NonisolatedContainer`). Only **two** actually exist (`@GeneratedPreferenceKey`, `@NonisolatedContainer`). Also references runtime file `Types/UserDefaultsContainer.swift`, which doesn't exist. The Tests CLAUDE.md description claims XCTest with SwiftSyntaxMacrosTestSupport — but **all current tests use Swift Testing**.
+- [x] `[FIXED 74ce1eb]` **`CLAUDE.md`** documents five macros (`@GeneratedEnvironmentKey`, `@GeneratedPreferenceKey`, `@AppSettings`, `@AppSettingsProperty`, `@NonisolatedContainer`). Only **two** actually exist (`@GeneratedPreferenceKey`, `@NonisolatedContainer`). Also references runtime file `Types/UserDefaultsContainer.swift`, which doesn't exist. The Tests CLAUDE.md description claims XCTest with SwiftSyntaxMacrosTestSupport — but **all current tests use Swift Testing**. *Macros list, runtime pointer, testing description, and platforms section all updated in the earlier "fix typos / refresh CLAUDE.md" commit.*
 
 ### Public API typos (rename = breaking)
 
-- `Date.iso8691String` → `iso8601String` (Foundation/Date.swift) — typo carried through tests
-- `OverlayModifer` → `OverlayModifier` (SwiftUI/View Wrappers/BottomSheetView.swift)
-- `EmbdeddedWebView` → `EmbeddedWebView` (Utilities/Views/SimpleWebView.swift) — appears 5+ times
-- `EnviromentEchoingView.swift` filename and type name → `Environment…` (SwiftUI/EnviromentEchoingView.swift)
-- `editabled(_:)` → `editable(_:)` (Cocoa/NSTextFieldAndView.swift)
-- `presentedest` → `topPresentedViewController` (UIKit/UIViewController.swift)
+All six were fixed in `74ce1eb`:
+
+- [x] `[FIXED 74ce1eb]` `Date.iso8691String` → `iso8601String` (Foundation/Date.swift) — typo carried through tests
+- [x] `[FIXED 74ce1eb]` `OverlayModifer` → `OverlayModifier` (SwiftUI/View Wrappers/BottomSheetView.swift)
+- [x] `[FIXED 74ce1eb]` `EmbdeddedWebView` → `EmbeddedWebView` (Utilities/Views/SimpleWebView.swift) — appears 5+ times
+- [x] `[FIXED 74ce1eb]` `EnviromentEchoingView.swift` filename and type name → `Environment…` (SwiftUI/EnviromentEchoingView.swift)
+- [x] `[FIXED 74ce1eb]` `editabled(_:)` → `editable(_:)` (Cocoa/NSTextFieldAndView.swift)
+- [x] `[FIXED 74ce1eb]` `presentedest` → `topPresentedViewController` (UIKit/UIViewController.swift)
 
 ### Recurring patterns
 
-1. **Combine usage despite "use async/await" rule.** `Pluralizer`, `Timer`, `Reachability`, `CommunalFetcher`, `DeSync`, `ObservableValue`, `SignificantTimeChangeObserver`, `InterfaceOrientedView`, `PublisherView`, `SceneStateObserver`, `Keychain`, `onTimer`, `NotificationObserver`, `Debouncer`. Several would be a few-line rewrite as `AsyncStream`/`for await`.
-2. **GCD usage despite "no GCD" rule.** `MainActor.run(after:)` (used in SwipeActions, ScrollCanary, AnimationCompletion) appears to be a `DispatchQueue.main.asyncAfter` shim. `SeededRandomNumberGenerator` uses `DispatchSerialQueue.global()` and `.sync`. `Reachability` stores a `DispatchQueue`.
-3. **`nonisolated(unsafe) static var`** for `EnvironmentKey.defaultValue` and similar is widespread. Many should be `let` (constants); a few are genuinely shared mutable state with no synchronization (`CodableJSONDictionary.dataKeyNames`, `EnclosingViewControllerKey.defaultValue`, `OrientationWatcher.instance`).
-4. **Swift convenience-init failure pattern.** Several `init?` overloads call `self.init(...)` then `return nil`. UIColor, UIImage, NSColor, AVPlayer all have this; semantics are dubious in Swift.
-5. **`@MainActor` on pure constants/values.** `DeviceFilter` static lets, `Int64.bytesString`, etc. force callers to MainActor unnecessarily.
-6. **Hard-coded dimensions** despite the project rule, especially in: `TitleBar`, `FullWidthButtonStyle`, `SlideUpSheet`, `MultiColumnPicker`, `BottomSheetView`, `Font.swift`, `MonthYearPopover`.
-7. **View-returning `some View` computed properties** (rule says prefer subview types): `AsyncButton.buttonLabel`, `AsyncButton.spinner`, `CalendarMonthView+Components.*`, `CalendarMonthView.monthNames`, `MonthYearPopover.monthList`, `MonthYearPopover.yearList`, `FlowedHStack.legacyBody`.
-8. **State mutation during view body.** `OffsetReportingScrollView`, `View+sizeReporting`, `ScrollCanary`, `vprint`, `Tooltips`, `AnimationCompletion`, `SwipeActions.buildContent`, `Closure.body`, `LoadingView.task`.
-9. **Files vastly exceeding the ~100 line guideline** (top offenders): `Types/SFSymbol.swift` (1804), `Foundation/Date.swift` (553), `Foundation/Date.Time.swift` (349), `Foundation/URL.swift` (330), `Geometry/CGRect.swift` (320), `Foundation/Codable.swift` (241), `UIKit/UIColor.swift` (250), `Foundation/String.swift` (235), `Combine & Async/AsyncSemaphore.swift` (282).
-10. **Memory leaks**: `NotificationWatcher`, `Subscribers.Sink` in Publishers.swift, `SceneStateObserver` retain cycle, `WebConsole.urlObservation` strong-self capture, IOKit leaks in `Gestalt` (`takeUnretainedValue` on Create-rule + missing `IOObjectRelease`).
-11. **Stale device tables**: `Gestalt+DeviceType.swift`, `UIKit/ScreenSize.swift`, `Widgets/WidgetFamily.swift` — missing iPhone 15/16, recent iPads, Apple Watch Ultra/9/10, Apple TV 4K 3rd gen.
-12. **Deprecated APIs in active use**: `NavigationLink(isActive:)`, `NavigationView`, single-arg `onChange`, `UIScreen.main`, `UIApplication.windows`, `UIGraphicsBeginImageContextWithOptions`, `Process.launchPath`/`launch()`, `kIOMasterPortDefault`, `.autocapitalization`, `AnimatableModifier`.
-13. **Entirely commented-out files** (delete or restore): `Types/MobileProvisionFile.swift`, `Foundation/TimePost.swift`, `SwiftUI/Component Views/KeyboardSpacer.swift`, `SwiftUI/Utilities/PositionedLongPress.swift`.
+- [ ] **Combine usage despite "use async/await" rule.** `Pluralizer`, `Timer`, `Reachability`, `CommunalFetcher`, `DeSync`, `ObservableValue`, `SignificantTimeChangeObserver`, `InterfaceOrientedView`, `PublisherView`, `SceneStateObserver`, `Keychain`, `onTimer`, `NotificationObserver`, `Debouncer`. Several would be a few-line rewrite as `AsyncStream`/`for await`.
+- [ ] **GCD usage despite "no GCD" rule.** `MainActor.run(after:)` (used in SwipeActions, ScrollCanary, AnimationCompletion) appears to be a `DispatchQueue.main.asyncAfter` shim. `SeededRandomNumberGenerator` uses `DispatchSerialQueue.global()` and `.sync`. `Reachability` stores a `DispatchQueue`.
+- [ ] **`nonisolated(unsafe) static var`** for `EnvironmentKey.defaultValue` and similar is widespread. Many should be `let` (constants); a few are genuinely shared mutable state with no synchronization (`CodableJSONDictionary.dataKeyNames`, `EnclosingViewControllerKey.defaultValue`, `OrientationWatcher.instance`).
+- [ ] **Swift convenience-init failure pattern.** Several `init?` overloads call `self.init(...)` then `return nil`. UIColor, UIImage, NSColor, AVPlayer all have this; semantics are dubious in Swift. *(`AVPlayer` instance fixed in fab966b as part of critical-bug #25; UIColor / UIImage / NSColor still apply.)*
+- [ ] **`@MainActor` on pure constants/values.** `DeviceFilter` static lets, `Int64.bytesString`, etc. force callers to MainActor unnecessarily.
+- [ ] **Hard-coded dimensions** despite the project rule, especially in: `TitleBar`, `FullWidthButtonStyle`, `SlideUpSheet`, `MultiColumnPicker`, `BottomSheetView`, `Font.swift`, `MonthYearPopover`.
+- [ ] **View-returning `some View` computed properties** (rule says prefer subview types): `AsyncButton.buttonLabel`, `AsyncButton.spinner`, `CalendarMonthView+Components.*`, `CalendarMonthView.monthNames`, `MonthYearPopover.monthList`, `MonthYearPopover.yearList`, `FlowedHStack.legacyBody`.
+- [ ] **State mutation during view body.** `OffsetReportingScrollView`, `View+sizeReporting`, `ScrollCanary`, `vprint`, `Tooltips`, `AnimationCompletion`, `SwipeActions.buildContent`, `Closure.body`, `LoadingView.task`.
+- [ ] **Files vastly exceeding the ~100 line guideline** (top offenders): `Types/SFSymbol.swift` (1804), `Foundation/Date.swift` (553), `Foundation/Date.Time.swift` (349), `Foundation/URL.swift` (330), `Geometry/CGRect.swift` (320), `Foundation/Codable.swift` (241), `UIKit/UIColor.swift` (250), `Foundation/String.swift` (235), `Combine & Async/AsyncSemaphore.swift` (282).
+- [ ] **Memory leaks**: `NotificationWatcher`, `Subscribers.Sink` in Publishers.swift, `SceneStateObserver` retain cycle, `WebConsole.urlObservation` strong-self capture, IOKit leaks in `Gestalt` (`takeUnretainedValue` on Create-rule + missing `IOObjectRelease`).
+- [ ] **Stale device tables**: `Gestalt+DeviceType.swift`, `UIKit/ScreenSize.swift`, `Widgets/WidgetFamily.swift` — missing iPhone 15/16, recent iPads, Apple Watch Ultra/9/10, Apple TV 4K 3rd gen.
+- [ ] **Deprecated APIs in active use**: `NavigationLink(isActive:)` *[partially: removed from `BoundNavigationLink` via fab966b file delete; other call sites remain]*, `NavigationView`, single-arg `onChange`, `UIScreen.main`, `UIApplication.windows`, `UIGraphicsBeginImageContextWithOptions`, `Process.launchPath`/`launch()`, `kIOMasterPortDefault`, `.autocapitalization`, `AnimatableModifier`.
+- [x] `[FIXED 74ce1eb]` **Entirely commented-out files** (delete or restore): `Types/MobileProvisionFile.swift`, `Foundation/TimePost.swift`, `SwiftUI/Component Views/KeyboardSpacer.swift`, `SwiftUI/Utilities/PositionedLongPress.swift`. *All four removed.*
 
 ---
 
