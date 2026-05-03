@@ -127,11 +127,21 @@ public struct FlowedHStack<Element: FlowedHStackElement, ElementView: View>: Vie
 				}
 			}
 		} else {
-			legacyBody
+			LegacyFlowedHStack(elements: elements, horizontalSpacing: horizontalSpacing, verticalSpacing: verticalSpacing, content: content)
 		}
 	}
+}
 
-	@ViewBuilder private var legacyBody: some View {
+private struct LegacyFlowedHStack<Element: FlowedHStackElement, ElementView: View>: View {
+	let elements: [Element]
+	let horizontalSpacing: Double
+	let verticalSpacing: Double
+	let content: (Element) -> ElementView
+
+	@State private var availableWidth: CGFloat = 0.0
+	@State private var elementSizes: [CGSize] = []
+
+	var body: some View {
 		let offsets = legacyLayout(sizes: elementSizes)
 		VStack(spacing: 0) {
 			GeometryReader { proxy in
@@ -161,9 +171,6 @@ public struct FlowedHStack<Element: FlowedHStackElement, ElementView: View>: Vie
 			.frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
 		}
 	}
-
-	@State private var availableWidth: CGFloat = 0.0
-	@State private var elementSizes: [CGSize] = []
 
 	private func legacyLayout(sizes: [CGSize]) -> [CGPoint] {
 		if availableWidth == 0.0 || sizes.isEmpty { return [] }

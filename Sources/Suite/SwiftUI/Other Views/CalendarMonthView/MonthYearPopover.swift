@@ -10,29 +10,26 @@ import SwiftUI
 @available(iOS 16, macOS 14.0, watchOS 10, tvOS 16, *)
 struct MonthYearPopover: View {
 	@Binding var date: Date
-	
+
 	var body: some View {
 		HStack {
-			monthList
-			yearList
+			MonthList(date: $date)
+			YearList(date: $date)
 		}
 		.frame(height: 150)
 	}
-	
-	func selectMonth(_ month: Date.Month) {
-		date = date.byChanging(month: month.rawValue)
-	}
-	
-	func selectYear(_ year: Int) {
-		date = date.byChanging(year: year)
-	}
-	
-	var monthList: some View {
+}
+
+@available(iOS 16, macOS 14.0, watchOS 10, tvOS 16, *)
+private struct MonthList: View {
+	@Binding var date: Date
+
+	var body: some View {
 		ScrollViewReader { scroller in
 			ScrollView(showsIndicators: false) {
 				VStack(alignment: .leading) {
 					ForEach(Date.Month.allCases, id: \.self) { month in
-						Button(action: { selectMonth(month) }) {
+						Button(action: { date = date.byChanging(month: month.rawValue) }) {
 							HStack(spacing: 1) {
 								Image(systemName: "checkmark")
 									.opacity(month == date.month ? 1 : 0)
@@ -44,18 +41,23 @@ struct MonthYearPopover: View {
 					}
 				}
 			}
-			.onAppear { scroller.scrollTo(date.month, anchor: .center)}
+			.onAppear { scroller.scrollTo(date.month, anchor: .center) }
 		}
 		.padding()
 	}
-	
-	var yearList: some View {
+}
+
+@available(iOS 16, macOS 14.0, watchOS 10, tvOS 16, *)
+private struct YearList: View {
+	@Binding var date: Date
+
+	var body: some View {
 		ScrollViewReader { scroller in
 			ScrollView(showsIndicators: false) {
 				VStack {
 					let years = (Date().year - 50...Date().year)
 					ForEach(years, id: \.self) { year in
-						Button(action: { selectYear(year) }) {
+						Button(action: { date = date.byChanging(year: year) }) {
 							HStack(spacing: 1) {
 								Image(systemName: "checkmark")
 									.opacity(year == date.year ? 1 : 0)
@@ -72,7 +74,3 @@ struct MonthYearPopover: View {
 		.padding()
 	}
 }
-
-//#Preview {
-//	MonthYearPopover(date: .constant(.now))
-//}

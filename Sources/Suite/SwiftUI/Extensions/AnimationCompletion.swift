@@ -20,7 +20,7 @@ extension View {
 }
 
 /// An animatable modifier that is used for observing animations for a given animatable value.
-@MainActor struct AnimationCompletionObserverModifier<Value>: AnimatableModifier where Value: VectorArithmetic & Sendable {
+@MainActor struct AnimationCompletionObserverModifier<Value>: ViewModifier, Animatable where Value: VectorArithmetic & Sendable {
 	
 	/// While animating, SwiftUI changes the old input value to the new target value using this property. This value is set to the old value until the animation completes.
 	var animatableData: Value {
@@ -44,12 +44,12 @@ extension View {
 	/// Verifies whether the current animation is finished and calls the completion callback if true.
 	private func notifyCompletionIfFinished() {
 		guard animatableData == targetValue else { return }
-		
-		/// Dispatching is needed to take the next runloop for the completion callback.
-		/// This prevents errors like "Modifying state during view update, this will cause undefined behavior."
-		MainActor.run {
-			self.completion()
-		}
+
+		// Dispatch to the next runloop to avoid "Modifying state during view update".
+		// MainActor.run from a sync main-actor context is essentially synchronous —
+		// it does NOT defer. A Task hop does.
+		let completion = completion
+		Task { @MainActor in completion() }
 	}
 	
 	func body(content: Content) -> some View {

@@ -50,7 +50,8 @@ public struct ScrollCanary: View {
 						}
 					}
 				} else if trackOffset {
-					scrollOffset = CGSize(width: newFrame.minX - initialFrame.minX, height: newFrame.minY - initialFrame.minY)
+					let newOffset = CGSize(width: newFrame.minX - initialFrame.minX, height: newFrame.minY - initialFrame.minY)
+					Task { @MainActor in scrollOffset = newOffset }
 				}
 				
 				return Color.clear

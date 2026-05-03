@@ -82,6 +82,22 @@ public extension Gestalt {
 		case "iPhone15,2":								return "iPhone 14 Pro"
 		case "iPhone15,3":								return "iPhone 14 Pro Max"
 
+		case "iPhone15,4":								return "iPhone 15"
+		case "iPhone15,5":								return "iPhone 15 Plus"
+		case "iPhone16,1":								return "iPhone 15 Pro"
+		case "iPhone16,2":								return "iPhone 15 Pro Max"
+
+		case "iPhone17,3":								return "iPhone 16"
+		case "iPhone17,4":								return "iPhone 16 Plus"
+		case "iPhone17,1":								return "iPhone 16 Pro"
+		case "iPhone17,2":								return "iPhone 16 Pro Max"
+		case "iPhone17,5":								return "iPhone 16e"
+
+		case "iPhone18,3":								return "iPhone 17"
+		case "iPhone18,4":								return "iPhone Air"
+		case "iPhone18,1":								return "iPhone 17 Pro"
+		case "iPhone18,2":								return "iPhone 17 Pro Max"
+
 		case "iPad2,5", "iPad2,6", "iPad2,7":     return "iPad Mini"
 		case "iPad4,4", "iPad4,5", "iPad4,6":     return "iPad Mini 2"
 		case "iPad4,7", "iPad4,8", "iPad4,9":     return "iPad Mini 3"
@@ -106,6 +122,22 @@ public extension Gestalt {
 		case "iPad11,6", "iPad11,7": 					return "iPad 8th gen"
 		case "iPad13,1", "iPad13,2": 					return "iPad Air 4th gen"
 
+		case "iPad12,1", "iPad12,2":					return "iPad 9th gen"
+		case "iPad13,18", "iPad13,19":				return "iPad 10th gen"
+		case "iPad14,1", "iPad14,2":					return "iPad Mini 6th gen"
+		case "iPad13,16", "iPad13,17":				return "iPad Air 5th gen"
+		case "iPad13,4", "iPad13,5", "iPad13,6", "iPad13,7":
+																return "iPad Pro 11 in. 3rd gen"
+		case "iPad13,8", "iPad13,9", "iPad13,10", "iPad13,11":
+																return "iPad Pro 12.9 in. 5th gen"
+		case "iPad14,3", "iPad14,4":					return "iPad Pro 11 in. 4th gen"
+		case "iPad14,5", "iPad14,6":					return "iPad Pro 12.9 in. 6th gen"
+		case "iPad14,8", "iPad14,9":					return "iPad Air 11 in. M2"
+		case "iPad14,10", "iPad14,11":				return "iPad Air 13 in. M2"
+		case "iPad16,1", "iPad16,2":					return "iPad Mini 7th gen"
+		case "iPad16,3", "iPad16,4":					return "iPad Pro 11 in. M4"
+		case "iPad16,5", "iPad16,6":					return "iPad Pro 13 in. M4"
+
 		case "Watch1,1": 									return "Apple Watch Series 0 38mm"
 		case "Watch1,2": 									return "Apple Watch Series 0 42mm"
 		case "Watch2,6": 									return "Apple Watch Series 1 38mm"
@@ -127,12 +159,26 @@ public extension Gestalt {
 		case "Watch6,6", "Watch6,8": 					return "Apple Watch Series 7 41mm"
 		case "Watch6,7", "Watch6,9": 					return "Apple Watch Series 7 45mm"
 
+		case "Watch6,10", "Watch6,12":				return "Apple Watch SE 2nd gen 40mm"
+		case "Watch6,11", "Watch6,13":				return "Apple Watch SE 2nd gen 44mm"
+		case "Watch6,14", "Watch6,16":				return "Apple Watch Series 8 41mm"
+		case "Watch6,15", "Watch6,17":				return "Apple Watch Series 8 45mm"
+		case "Watch6,18":									return "Apple Watch Ultra"
+
+		case "Watch7,1", "Watch7,3":					return "Apple Watch Series 9 41mm"
+		case "Watch7,2", "Watch7,4":					return "Apple Watch Series 9 45mm"
+		case "Watch7,5":									return "Apple Watch Ultra 2"
+		case "Watch7,8", "Watch7,10":					return "Apple Watch Series 10 42mm"
+		case "Watch7,9", "Watch7,11":					return "Apple Watch Series 10 46mm"
+
 		case "AppleTV1,1": 								return "Apple TV 1st gen"
 		case "AppleTV2,1": 								return "Apple TV 2nd gen"
 		case "AppleTV3,1": 								return "Apple TV 3rd gen"
 		case "AppleTV3,2": 								return "Apple TV 3rd gen"
 		case "AppleTV5,3": 								return "Apple TV HD 4th gen"
 		case "AppleTV6,2": 								return "Apple TV 4K"
+		case "AppleTV11,1":								return "Apple TV 4K 2nd gen"
+		case "AppleTV14,1":								return "Apple TV 4K 3rd gen"
 
 		case "RealityDevice14,1": 						return "Apple Vision Pro"
 		default: return nil

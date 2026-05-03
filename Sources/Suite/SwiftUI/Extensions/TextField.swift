@@ -40,17 +40,25 @@ public extension View {
 		}
 	}
 
-	func addTextContentType(type: TextContentType) -> some View {
+	@ViewBuilder func addTextContentType(type: TextContentType) -> some View {
 		#if os(macOS)
 			self
 				.textContentType(type)
 				.autocorrectionDisabled(type.shouldAutocorrect != true)
 		#else
-			self
-				.textContentType(type)
-				.autocorrectionDisabled(type.shouldAutocorrect != true)
-				.autocapitalization(type.shouldAutocapitalize ? .words : .none )
-				.keyboardType(type.keyboardType)
+			if #available(iOS 15.0, *) {
+				self
+					.textContentType(type)
+					.autocorrectionDisabled(type.shouldAutocorrect != true)
+					.textInputAutocapitalization(type.shouldAutocapitalize ? .words : .never)
+					.keyboardType(type.keyboardType)
+			} else {
+				self
+					.textContentType(type)
+					.autocorrectionDisabled(type.shouldAutocorrect != true)
+					.autocapitalization(type.shouldAutocapitalize ? .words : .none)
+					.keyboardType(type.keyboardType)
+			}
 		#endif
 	}
 }

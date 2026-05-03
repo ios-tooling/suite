@@ -15,6 +15,8 @@ public extension CGSize {
 }
 
 public extension IntSize {
+	static let iPhone16ProMax = IntSize(screenW: 440, 956)
+	static let iPhone16Pro = IntSize(screenW: 402, 874)
 	static let iPhone15ProMax = IntSize(screenW: 430, 932)
 	static let iPhone15Pro = IntSize(screenW: 393, 852)
 	static let iPhone14ProMax = IntSize(screenW: 430, 932)
@@ -27,7 +29,13 @@ public extension IntSize {
 	static let iPhoneSix = IntSize(screenW: 375, 667)
 	static let iPhone5 = IntSize(screenW: 320, 568)
 	static let iPhone = IntSize(screenW: 320, 480)
-	
+
+	static let iPadPro11_M4 = IntSize(screenW: 834, 1210)
+	static let iPadPro13_M4 = IntSize(screenW: 1032, 1376)
+	static let iPadAir11_M2 = IntSize(screenW: 820, 1180)
+	static let iPadAir13_M2 = IntSize(screenW: 1024, 1366)
+	static let iPadMini_7thGen = IntSize(screenW: 744, 1133)
+	static let iPad_10thGen = IntSize(screenW: 820, 1180)
 	static let iPadPro11 = IntSize(screenW: 834, 1194)
 	static let iPadPro10_5 = IntSize(screenW: 834, 1112)
 	static let iPadPro12_9 = IntSize(screenW: 1024, 1366)
@@ -38,8 +46,8 @@ public extension IntSize {
 	static let iPadMini_6thGen = IntSize(screenW: 744, 1133)
 	static let iPadPro10_5_MoreSpace = IntSize(screenW: 954, 1373)		// also IntSize(screenW: 970, 1389)
 
-	static let phones: [IntSize] = [.iPhone, .iPhone5, .iPhoneSix, .iPhoneSixPlus, .iPhoneX, .iPhone11Pro, .iPhone12, .iPhone12ProMax, .iPhone14Pro, .iPhone14ProMax, iPhone15Pro, iPhone15ProMax]
-	static let pads: [IntSize] = [.iPadPro11, .iPadPro10_5, .iPadPro12_9, .iPadAir_4thGen, .iPad_7thGen, .iPad, .iPadPro12_9_MoreSpace, .iPadMini_6thGen, .iPadPro10_5_MoreSpace]
+	static let phones: [IntSize] = [.iPhone, .iPhone5, .iPhoneSix, .iPhoneSixPlus, .iPhoneX, .iPhone11Pro, .iPhone12, .iPhone12ProMax, .iPhone14Pro, .iPhone14ProMax, .iPhone15Pro, .iPhone15ProMax, .iPhone16Pro, .iPhone16ProMax]
+	static let pads: [IntSize] = [.iPadPro11, .iPadPro10_5, .iPadPro12_9, .iPadAir_4thGen, .iPad_7thGen, .iPad, .iPadPro12_9_MoreSpace, .iPadMini_6thGen, .iPadPro10_5_MoreSpace, .iPadPro11_M4, .iPadPro13_M4, .iPadAir11_M2, .iPadAir13_M2, .iPadMini_7thGen, .iPad_10thGen]
 
 	static func nearest(to size: CGSize) -> IntSize {
 		var diff = 1000000

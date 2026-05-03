@@ -60,11 +60,11 @@ public struct CalendarMonthView<DayView: View, WeekDayLabel: View>: View {
 	public var body: some View {
 		VStack {
 			if options.showYear || options.showMonthName {
-				monthYearBar(includeSpacer: false).opacity(0)
+				MonthYearBar(date: $date, showingMonthsAndYears: $showingMonthsAndYears, options: options, includeSpacer: false).opacity(0)
 			}
-			
+
 			if showingMonthsAndYears {
-				monthYearList
+				MonthYearList(date: $date, monthYearBinding: monthYearBinding, monthNames: monthNames)
 				#if os(macOS)
 					WeeksView(date: date, selected: $selected, options: options, dayBuilder: dayBuilder, weekDayLabelBuilder: weekDayLabelBuilder)
 				#endif
@@ -73,7 +73,7 @@ public struct CalendarMonthView<DayView: View, WeekDayLabel: View>: View {
 			}
 		}
 		.overlay(alignment: .top) {
-			monthYearBar(includeSpacer: true)
+			MonthYearBar(date: $date, showingMonthsAndYears: $showingMonthsAndYears, options: options, includeSpacer: true)
 		}
 		.clipped()
         #if os(visionOS)
@@ -82,8 +82,8 @@ public struct CalendarMonthView<DayView: View, WeekDayLabel: View>: View {
             .onChange(of: overrideDate) { newDate in if let newDate { date = newDate } }
         #endif
 	}
-	
-	var monthNames: [String] { Date.Month.allCases.map { $0.name }}
+
+	var monthNames: [String] { Date.Month.allCases.map { $0.name } }
 	var monthYearBinding: Binding<[String]> {
 		.init(get: {
 			[date.month.name, "\(date.year)"]
@@ -91,19 +91,27 @@ public struct CalendarMonthView<DayView: View, WeekDayLabel: View>: View {
 			var components = Calendar.current.dateComponents([.month, .year, .day, .hour, .minute, .second], from: date)
 			components.month = (monthNames.firstIndex(of: newValue[0]) ?? 0) + 1
 			components.year = Int(newValue[1])
-			
+
 			date = Calendar.current.date(from: components) ?? date
 		})
 	}
-	
-	@ViewBuilder func monthYearBar(includeSpacer: Bool) -> some View {
+}
+
+@available(iOS 16, macOS 14.0, watchOS 10, tvOS 16, *)
+struct MonthYearBar: View {
+	@Binding var date: Date
+	@Binding var showingMonthsAndYears: Bool
+	let options: CalendarMonthViewOptions
+	let includeSpacer: Bool
+
+	var body: some View {
 		if options.showYear || options.showMonthName {
 			HStack {
-				showYearMonthListButton
+				ShowYearMonthListButton(date: $date, showingMonthsAndYears: $showingMonthsAndYears, options: options)
 				if includeSpacer { Spacer() }
 				if options.showMonthName {
-					previousMonthButton
-					nextMonthButton
+					MonthStepButton(date: $date, direction: -1, systemImage: "chevron.left")
+					MonthStepButton(date: $date, direction: 1, systemImage: "chevron.right")
 				}
 			}
 		}

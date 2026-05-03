@@ -54,16 +54,20 @@ public struct ButtonIsPerformingActionKey: PreferenceKey {
 			if let title, let systemImage {
 				Button(title, systemImage: systemImage, role: role as? ButtonRole, action: { performAction() })
 			} else {
-				Button(role: role as? ButtonRole, action: { performAction() }) { buttonLabel }
-					.disabled(isPerformingAction)
-					.preference(key: ButtonIsPerformingActionKey.self, value: isPerformingAction)
-					.onDisappear { cleanUp() }
-			}
-		} else {
-			Button(action: { performAction() }) { buttonLabel }
+				Button(role: role as? ButtonRole, action: { performAction() }) {
+					AsyncButtonContent(label: label, busy: busy, isPerformingAction: isPerformingAction)
+				}
 				.disabled(isPerformingAction)
 				.preference(key: ButtonIsPerformingActionKey.self, value: isPerformingAction)
 				.onDisappear { cleanUp() }
+			}
+		} else {
+			Button(action: { performAction() }) {
+				AsyncButtonContent(label: label, busy: busy, isPerformingAction: isPerformingAction)
+			}
+			.disabled(isPerformingAction)
+			.preference(key: ButtonIsPerformingActionKey.self, value: isPerformingAction)
+			.onDisappear { cleanUp() }
 		}
 	}
 	
@@ -107,7 +111,15 @@ public struct ButtonIsPerformingActionKey: PreferenceKey {
 		}
 	}
 	
-	var buttonLabel: some View {
+}
+
+@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
+private struct AsyncButtonContent<Label: View, Busy: View>: View {
+	let label: () -> Label
+	let busy: () -> Busy
+	let isPerformingAction: Bool
+
+	var body: some View {
 		ZStack {
 			label()
 				.opacity(isPerformingAction ? 0.2 : 1)
@@ -174,11 +186,7 @@ public struct AsyncButtonBusyLabel: View {
 	let title: LocalizedStringKey?
 	var spinnerColor = Color.white
 
-	public var body: some View {
-		spinner
-	}
-	
-	@ViewBuilder var spinner: some View {
+	@ViewBuilder public var body: some View {
 		if #available(OSX 13, iOS 16, watchOS 9, tvOS 16, *) {
 			ViewThatFits {
 				ProgressView().scaleEffect(1.0)
@@ -190,6 +198,5 @@ public struct AsyncButtonBusyLabel: View {
 				.colorInvert()
 		}
 	}
-
 }
 #endif
