@@ -36,11 +36,8 @@ public extension UIImage {
 	}
 
 	convenience init?(contentsOf url: URL) {
-		guard let data = try? Data(contentsOf: url), data.count != 0 else {
-			self.init()
-			return nil
-		}
-		
+		guard let data = try? Data(contentsOf: url), data.count != 0 else { return nil }
+
 		self.init(data: data)
 	}
 	

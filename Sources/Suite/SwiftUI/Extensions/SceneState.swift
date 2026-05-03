@@ -90,7 +90,8 @@ extension Array where Element == Notification.Name {
 
 	public init(which: StateChange = .appEnterForeground) {
 		let names = StateChange.allOptions.filter { which.contains($0) }.compactMap { $0.notificationName }
-		cancellables = names.observe { name in
+		cancellables = names.observe { [weak self] name in
+			guard let self else { return }
 			self.trigger = StateChange(name) ?? self.trigger
 			Task { @MainActor in self.objectWillChange.send() }
 		}

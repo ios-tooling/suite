@@ -91,11 +91,11 @@ public struct Gestalt: Sendable {
 		
 		public static let rawDeviceType: String = {
 			let service: io_service_t = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
+			defer { IOObjectRelease(service) }
 			let cfstr = "model" as CFString
-			if let model = IORegistryEntryCreateCFProperty(service, cfstr, kCFAllocatorDefault, 0).takeUnretainedValue() as? Data {
-			  if let nsstr =  String(data: model, encoding: .utf8) {
-					  return nsstr
-				 }
+			if let model = IORegistryEntryCreateCFProperty(service, cfstr, kCFAllocatorDefault, 0)?.takeRetainedValue() as? Data,
+				let nsstr = String(data: model, encoding: .utf8) {
+				return nsstr
 			}
 			return ""
 	}()
@@ -210,8 +210,9 @@ public struct Gestalt: Sendable {
 		}
 		nonisolated public static let serialNumber: String? = {
 			let platformExpert = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
-			
-			let string = IORegistryEntryCreateCFProperty(platformExpert, kIOPlatformSerialNumberKey as CFString, kCFAllocatorDefault, 0).takeRetainedValue()
+			defer { IOObjectRelease(platformExpert) }
+
+			let string = IORegistryEntryCreateCFProperty(platformExpert, kIOPlatformSerialNumberKey as CFString, kCFAllocatorDefault, 0)?.takeRetainedValue()
 			return string as? String
 		}()
 	#endif

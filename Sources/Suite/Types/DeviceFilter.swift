@@ -15,9 +15,9 @@ public struct DeviceFilter: RawRepresentable, OptionSet, Sendable {
 	}
 }
 
-@MainActor public extension DeviceFilter {
+public extension DeviceFilter {
 	static let never = DeviceFilter([])
-	
+
 	static let sim = DeviceFilter(rawValue: 1 << 1)
 	static let device = DeviceFilter(rawValue: 1 << 2)
 
@@ -31,7 +31,9 @@ public struct DeviceFilter: RawRepresentable, OptionSet, Sendable {
 	static let debug = DeviceFilter(rawValue: 1 << 9)
 	static let testFlight = DeviceFilter(rawValue: 1 << 10)
 	static let prod = DeviceFilter(rawValue: 1 << 11)
+}
 
+@MainActor public extension DeviceFilter {
 	var matches: Bool {
 		if contains(.sim) {
 			if !Gestalt.isOnMac, !Gestalt.isOnSimulator { return false }

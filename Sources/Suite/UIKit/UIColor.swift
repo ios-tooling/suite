@@ -44,10 +44,7 @@ public extension UIColor {
 	}
 		
 	convenience init?(hex hexString: String?) {
-		guard let values = hexString?.extractedHexValues else {
-			self.init(white: 0, alpha: 0)
-			return nil
-		}
+		guard let values = hexString?.extractedHexValues else { return nil }
 		self.init(red: CGFloat(values[0]), green: CGFloat(values[1]), blue: CGFloat(values[2]), alpha: CGFloat(values.count > 3 ? values[3] : 1.0))
 	}
 	

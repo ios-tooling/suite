@@ -74,19 +74,35 @@ All six were fixed in `74ce1eb`:
 
 ### Recurring patterns
 
-- [ ] **Combine usage despite "use async/await" rule.** `Pluralizer`, `Timer`, `Reachability`, `CommunalFetcher`, `DeSync`, `ObservableValue`, `SignificantTimeChangeObserver`, `InterfaceOrientedView`, `PublisherView`, `SceneStateObserver`, `Keychain`, `onTimer`, `NotificationObserver`, `Debouncer`. Several would be a few-line rewrite as `AsyncStream`/`for await`.
-- [ ] **GCD usage despite "no GCD" rule.** `MainActor.run(after:)` (used in SwipeActions, ScrollCanary, AnimationCompletion) appears to be a `DispatchQueue.main.asyncAfter` shim. `SeededRandomNumberGenerator` uses `DispatchSerialQueue.global()` and `.sync`. `Reachability` stores a `DispatchQueue`.
-- [ ] **`nonisolated(unsafe) static var`** for `EnvironmentKey.defaultValue` and similar is widespread. Many should be `let` (constants); a few are genuinely shared mutable state with no synchronization (`CodableJSONDictionary.dataKeyNames`, `EnclosingViewControllerKey.defaultValue`, `OrientationWatcher.instance`).
-- [ ] **Swift convenience-init failure pattern.** Several `init?` overloads call `self.init(...)` then `return nil`. UIColor, UIImage, NSColor, AVPlayer all have this; semantics are dubious in Swift. *(`AVPlayer` instance fixed in fab966b as part of critical-bug #25; UIColor / UIImage / NSColor still apply.)*
-- [ ] **`@MainActor` on pure constants/values.** `DeviceFilter` static lets, `Int64.bytesString`, etc. force callers to MainActor unnecessarily.
-- [ ] **Hard-coded dimensions** despite the project rule, especially in: `TitleBar`, `FullWidthButtonStyle`, `SlideUpSheet`, `MultiColumnPicker`, `BottomSheetView`, `Font.swift`, `MonthYearPopover`.
-- [ ] **View-returning `some View` computed properties** (rule says prefer subview types): `AsyncButton.buttonLabel`, `AsyncButton.spinner`, `CalendarMonthView+Components.*`, `CalendarMonthView.monthNames`, `MonthYearPopover.monthList`, `MonthYearPopover.yearList`, `FlowedHStack.legacyBody`.
-- [ ] **State mutation during view body.** `OffsetReportingScrollView`, `View+sizeReporting`, `ScrollCanary`, `vprint`, `Tooltips`, `AnimationCompletion`, `SwipeActions.buildContent`, `Closure.body`, `LoadingView.task`.
-- [ ] **Files vastly exceeding the ~100 line guideline** (top offenders): `Types/SFSymbol.swift` (1804), `Foundation/Date.swift` (553), `Foundation/Date.Time.swift` (349), `Foundation/URL.swift` (330), `Geometry/CGRect.swift` (320), `Foundation/Codable.swift` (241), `UIKit/UIColor.swift` (250), `Foundation/String.swift` (235), `Combine & Async/AsyncSemaphore.swift` (282).
-- [ ] **Memory leaks**: `NotificationWatcher`, `Subscribers.Sink` in Publishers.swift, `SceneStateObserver` retain cycle, `WebConsole.urlObservation` strong-self capture, IOKit leaks in `Gestalt` (`takeUnretainedValue` on Create-rule + missing `IOObjectRelease`).
-- [ ] **Stale device tables**: `Gestalt+DeviceType.swift`, `UIKit/ScreenSize.swift`, `Widgets/WidgetFamily.swift` — missing iPhone 15/16, recent iPads, Apple Watch Ultra/9/10, Apple TV 4K 3rd gen.
-- [ ] **Deprecated APIs in active use**: `NavigationLink(isActive:)` *[partially: removed from `BoundNavigationLink` via fab966b file delete; other call sites remain]*, `NavigationView`, single-arg `onChange`, `UIScreen.main`, `UIApplication.windows`, `UIGraphicsBeginImageContextWithOptions`, `Process.launchPath`/`launch()`, `kIOMasterPortDefault`, `.autocapitalization`, `AnimatableModifier`.
+Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tier B** = moderate, scope-per-file. **Tier C** = large refactor, separate effort.
+
+#### Tier A (closed)
+
+- [x] `[FIXED]` **Swift convenience-init failure pattern.** Several `init?` overloads call `self.init(...)` then `return nil`. UIColor, UIImage, NSColor, AVPlayer, SwiftUI Color all had this; semantics are dubious in Swift. *AVPlayer fixed in fab966b; UIColor / NSColor / UIImage / `Color.init?(hex:)` fixed in this pass — all now use a bare `return nil` before any `self.init` call.*
+- [x] `[FIXED]` **`@MainActor` on pure constants/values.** `DeviceFilter` static lets, `Int64.bytesString`, etc. force callers to MainActor unnecessarily. *DeviceFilter split into a non-isolated extension for the static lets and a `@MainActor` extension for `matches` (which actually needs it for `Gestalt.isOnIPad`/`isOnIPhone`). `Int64.bytesString` no longer requires MainActor — formatter is built per-call.*
+- [x] `[FIXED]` (4 of 5) **Memory leaks**: `NotificationWatcher`, `Subscribers.Sink` in Publishers.swift, `SceneStateObserver` retain cycle, `WebConsole.urlObservation` strong-self capture, IOKit leaks in `Gestalt` (`takeUnretainedValue` on Create-rule + missing `IOObjectRelease`).
+    - `NotificationWatcher` — switched to selector-based observer with `removeObserver(self)` in `deinit`.
+    - `SceneStateObserver` — `[weak self]` in the per-name closure (was a retain cycle through `cancellables`).
+    - `WebConsole.urlObservation` — `[weak self]` in the KVO observer block (the observation is held by `self`).
+    - `Gestalt.rawDeviceType` (macOS) — `IOObjectRelease(service)` via `defer`; switched `takeUnretainedValue` → `takeRetainedValue` (Create-rule property was being leaked AND under-retained).
+    - `Gestalt.serialNumber` (macOS) — `IOObjectRelease(platformExpert)` via `defer`. Retain-rule was already correct here.
+    - **Open**: `Subscribers.Sink` in `Publishers.swift` (`onCompletion` / `onSuccess` / `onFailure`). Direct `subscribe(Subscribers.Sink(...))` keeps the sink alive until the publisher completes — fine for one-shot publishers, leaks for never-ending ones. Fixing requires returning `AnyCancellable` to the caller, which is an API-shape change. Left as-is pending a broader Combine cleanup (Tier C).
 - [x] `[FIXED 74ce1eb]` **Entirely commented-out files** (delete or restore): `Types/MobileProvisionFile.swift`, `Foundation/TimePost.swift`, `SwiftUI/Component Views/KeyboardSpacer.swift`, `SwiftUI/Utilities/PositionedLongPress.swift`. *All four removed.*
+
+#### Tier B (open — scope per file)
+
+- [ ] **Hard-coded dimensions** despite the project rule, especially in: `TitleBar`, `FullWidthButtonStyle`, `SlideUpSheet`, `MultiColumnPicker`, `BottomSheetView`, `Font.swift`, `MonthYearPopover`. *Each needs a per-file judgment about the right replacement (`@ScaledMetric`, dynamic type, `GeometryReader`).*
+- [ ] **View-returning `some View` computed properties** (rule says prefer subview types): `AsyncButton.buttonLabel`, `AsyncButton.spinner`, `CalendarMonthView+Components.*`, `CalendarMonthView.monthNames`, `MonthYearPopover.monthList`, `MonthYearPopover.yearList`, `FlowedHStack.legacyBody`. *Mechanical per-file conversion to subview types.*
+- [ ] **State mutation during view body.** `OffsetReportingScrollView`, `View+sizeReporting`, `ScrollCanary`, `vprint`, `Tooltips`, `AnimationCompletion`, `SwipeActions.buildContent`, `Closure.body`, `LoadingView.task`. *Some are real bugs ("modifying state during view update" warnings), some are just stylistic; needs case-by-case diagnosis.*
+- [ ] **Stale device tables**: `Gestalt+DeviceType.swift`, `UIKit/ScreenSize.swift`, `Widgets/WidgetFamily.swift` — missing iPhone 15/16, recent iPads, Apple Watch Ultra/9/10, Apple TV 4K 3rd gen. *Mechanical data update; sanity-check additions against the canonical Apple model identifiers.*
+- [ ] **Deprecated APIs in active use**: `NavigationLink(isActive:)` *[partially: removed from `BoundNavigationLink` via fab966b file delete; other call sites remain]*, `NavigationView`, single-arg `onChange`, `UIScreen.main`, `UIApplication.windows`, `UIGraphicsBeginImageContextWithOptions`, `Process.launchPath`/`launch()`, `kIOMasterPortDefault`, `.autocapitalization`, `AnimatableModifier`. *`NavigationView`/`NavigationStack` is a behavior change; others are mechanical.*
+
+#### Tier C (open — large refactor, separate effort)
+
+- [ ] **Combine usage despite "use async/await" rule.** `Pluralizer`, `Timer`, `Reachability`, `CommunalFetcher`, `DeSync`, `ObservableValue`, `SignificantTimeChangeObserver`, `InterfaceOrientedView`, `PublisherView`, `SceneStateObserver`, `Keychain`, `onTimer`, `NotificationObserver`, `Debouncer`. *Several would be a few-line rewrite as `AsyncStream`/`for await`; others (e.g., `CommunalFetcher`) need real design.*
+- [ ] **GCD usage despite "no GCD" rule.** `MainActor.run(after:)` (used in SwipeActions, ScrollCanary, AnimationCompletion) appears to be a `DispatchQueue.main.asyncAfter` shim. `SeededRandomNumberGenerator` uses `DispatchSerialQueue.global()` and `.sync`. `Reachability` stores a `DispatchQueue`.
+- [ ] **`nonisolated(unsafe) static var`** for `EnvironmentKey.defaultValue` and similar is widespread. Many should be `let` (constants); a few are genuinely shared mutable state with no synchronization (`CodableJSONDictionary.dataKeyNames`, `EnclosingViewControllerKey.defaultValue`, `OrientationWatcher.instance`). *Audit case-by-case.*
+- [ ] **Files vastly exceeding the ~100 line guideline** (top offenders): `Types/SFSymbol.swift` (1804), `Foundation/Date.swift` (553), `Foundation/Date.Time.swift` (349), `Foundation/URL.swift` (330), `Geometry/CGRect.swift` (320), `Foundation/Codable.swift` (241), `UIKit/UIColor.swift` (250), `Foundation/String.swift` (235), `Combine & Async/AsyncSemaphore.swift` (282).
 
 ---
 

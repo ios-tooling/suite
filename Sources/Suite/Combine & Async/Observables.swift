@@ -10,9 +10,15 @@ import Foundation
 @MainActor public class NotificationWatcher: NSObject, ObservableObject {
 	public init(_ name: Notification.Name, object: Any? = nil) {
 		super.init()
-		NotificationCenter.default.addObserver(forName: name, object: object, queue: .main) { note in
-			Task { @MainActor in self.objectWillChange.send() }
-		}
+		NotificationCenter.default.addObserver(self, selector: #selector(notify), name: name, object: object)
+	}
+
+	@objc private func notify() {
+		objectWillChange.send()
+	}
+
+	deinit {
+		NotificationCenter.default.removeObserver(self)
 	}
 }
 

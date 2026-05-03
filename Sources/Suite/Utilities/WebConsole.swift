@@ -38,8 +38,8 @@ fileprivate let logger = Logger(subsystem: "suite", category: "webconsole")
 		self.originalNavigationDelegate = self.webView?.navigationDelegate
 		self.webView?.navigationDelegate = self
 		
-		urlObservation = webView?.observe(\.url) { webView, change in
-			Task { @MainActor in self.loadedURL = webView.url }
+		urlObservation = webView?.observe(\.url) { [weak self] webView, _ in
+			Task { @MainActor in self?.loadedURL = webView.url }
 		}
 	}
 	

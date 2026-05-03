@@ -19,10 +19,7 @@ public extension View {
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
 public extension Color {
 	init?(hex: String?) {
-		guard let values = hex?.extractedHexValues else {
-			self.init(white: 0, opacity: 0)
-			return nil
-		}
+		guard let values = hex?.extractedHexValues else { return nil }
 
 		self.init(red: values[0], green: values[1], blue: values[2], opacity: values.count > 3 ? values[3] : 1.0)
 	}
