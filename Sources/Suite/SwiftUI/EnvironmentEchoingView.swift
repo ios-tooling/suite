@@ -1,5 +1,5 @@
 //
-//  EnviromentEchoingView.swift
+//  EnvironmentEchoingView.swift
 //  Suite
 //
 //  Created by Ben Gottlieb on 12/20/25.
@@ -12,7 +12,7 @@ extension EnvironmentValues {
 }
 
 @available(iOS 15, macOS 12, visionOS 1, watchOS 10, *)
-public struct EnviromentEchoingView<Content: View>: View {
+public struct EnvironmentEchoingView<Content: View>: View {
 	var content: () -> Content
 	
 	@Environment(\.self) var echoedValues

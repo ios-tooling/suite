@@ -52,8 +52,8 @@ public extension UIViewController {
 		return self
 	}
 	
-	var presentedest: UIViewController {
-		return self.presentedViewController?.presentedest ?? self
+	var topPresentedViewController: UIViewController {
+		return self.presentedViewController?.topPresentedViewController ?? self
 	}
 	
 	var container: UIViewController {
@@ -72,7 +72,7 @@ public extension UIViewController {
 		} else if let view = fromView {
 			activityVC.popoverPresentationController?.sourceView = view
 			activityVC.popoverPresentationController?.sourceRect = view.bounds
-		} else if let root = UIApplication.shared.currentWindow?.rootViewController?.presentedest.view {
+		} else if let root = UIApplication.shared.currentWindow?.rootViewController?.topPresentedViewController.view {
 			activityVC.popoverPresentationController?.sourceView = root
 			activityVC.popoverPresentationController?.sourceRect = CGRect.zero.within(limit: root.frame, placed: position)
 

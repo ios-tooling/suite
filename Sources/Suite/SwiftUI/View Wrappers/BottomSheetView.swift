@@ -1,5 +1,5 @@
 //
-//  OverlayModifer.swift
+//  BottomSheetView.swift
 //  
 //
 //  Created by Ben Gottlieb on 6/30/21.
@@ -11,7 +11,7 @@ import SwiftUI
 
 #if os(iOS) || os(macOS)
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 99, *)
-public struct SimpleOverlayModifer<Overlay: View>: ViewModifier {
+public struct SimpleOverlayModifier<Overlay: View>: ViewModifier {
 	@Binding var isPresented: Bool
 	
 	#if swift(>=5.4)
@@ -31,7 +31,7 @@ public struct SimpleOverlayModifer<Overlay: View>: ViewModifier {
 }
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 99, *)
-public  struct OverlayModifer<Overlay: View, Item>: ViewModifier {
+public  struct OverlayModifier<Overlay: View, Item>: ViewModifier {
 	@Binding var item: Item?
 	#if swift(>=5.4)
 		@ViewBuilder var overlayBuilder: (Item) -> Overlay
@@ -50,7 +50,7 @@ public  struct OverlayModifer<Overlay: View, Item>: ViewModifier {
 }
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 99, *)
-extension OverlayModifer where Item == Int {
+extension OverlayModifier where Item == Int {
 	init(isPresented: Binding<Bool>, @ViewBuilder overlay: @escaping () -> Overlay) {
 		self._item = Binding<Int?>(get: { isPresented.wrappedValue ? 1 : nil }) { new in
 			isPresented.wrappedValue = (new != nil)
@@ -77,7 +77,7 @@ public extension View {
 				}
 				.animation(animation)
 			)
-			.modifier(OverlayModifer(item: item, overlay: overlayBuilder))
+			.modifier(OverlayModifier(item: item, overlay: overlayBuilder))
 	}
 	
 	func presentDimmedOverlay<Content: View>(isPresented: Binding<Bool>, tapToDismiss: Bool = true, animation: Animation = .linear, @ViewBuilder overlayBuilder: @escaping () -> Content) -> some View {
@@ -96,7 +96,7 @@ public extension View {
 				}
 				.animation(animation)
 			)
-			.modifier(OverlayModifer(isPresented: isPresented, overlay: overlayBuilder))
+			.modifier(OverlayModifier(isPresented: isPresented, overlay: overlayBuilder))
 	}
 	
 	func presentBottomSheet<Content: View, Item>(item: Binding<Item?>, background: Color = .systemBackground, tapToDismiss: Bool = true, animation: Animation = .easeOut, @ViewBuilder content: @escaping (Item) -> Content) -> some View {

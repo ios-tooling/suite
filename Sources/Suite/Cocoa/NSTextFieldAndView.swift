@@ -39,7 +39,7 @@ public extension NSTextField {
 		return self
 	}
 	
-	@discardableResult func editabled(_ editable: Bool) -> Self {
+	@discardableResult func editable(_ editable: Bool) -> Self {
 		self.isEditable = editable
 		return self
 	}

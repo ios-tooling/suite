@@ -1,5 +1,5 @@
 //
-//  MobileProvisionFile.swift
+//  Bundle.swift
 //  Suite
 //
 //  Created by Ben Gottlieb on 9/9/19.

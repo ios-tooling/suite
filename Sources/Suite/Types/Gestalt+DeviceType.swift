@@ -60,17 +60,17 @@ public extension Gestalt {
 		case "iPhone10,3", "iPhone10,6":				return "iPhone X"
 		case "iPhone11,8":								return "iPhone Xr"
 		case "iPhone11,2":								return "iPhone Xs"
-		case "iPhone11,4", "iPhone11,6":				return "iPhone Xs max"
+		case "iPhone11,4", "iPhone11,6":				return "iPhone Xs Max"
 
 		case "iPhone12,1":								return "iPhone 11"
 		case "iPhone12,3":								return "iPhone 11 Pro"
-		case "iPhone12,5":								return "iPhone 11 Pro max"
+		case "iPhone12,5":								return "iPhone 11 Pro Max"
 		case "iPhone12,8":								return "iPhone SE 2nd gen"
 
 		case "iPhone13,1":								return "iPhone 12 mini"
 		case "iPhone13,2":								return "iPhone 12"
 		case "iPhone13,3":								return "iPhone 12 Pro"
-		case "iPhone13,4":								return "iPhone 12 Pro max"
+		case "iPhone13,4":								return "iPhone 12 Pro Max"
 
 		case "iPhone14,2":								return "iPhone 13 Pro"
 		case "iPhone14,3":								return "iPhone 13 Pro Max"
@@ -80,7 +80,7 @@ public extension Gestalt {
 		case "iPhone14,7":								return "iPhone 14"
 		case "iPhone14,8":								return "iPhone 14 Plus"
 		case "iPhone15,2":								return "iPhone 14 Pro"
-		case "iPhone15,3":								return "iPhone 14 Pro max"
+		case "iPhone15,3":								return "iPhone 14 Pro Max"
 
 		case "iPad2,5", "iPad2,6", "iPad2,7":     return "iPad Mini"
 		case "iPad4,4", "iPad4,5", "iPad4,6":     return "iPad Mini 2"
@@ -102,9 +102,9 @@ public extension Gestalt {
 		case "iPad8,10":									return "iPad Pro 11 in. 4th gen"
 		case "iPad8,11", "iPad8,12":					return "iPad Pro 12.9 in. 4th gen"
 		case "iPad11,3", "iPad11,4": 					return "iPad Air 3"
-		case "iPad11,1", "iPad11,2": 					return "iPad mini 5"
+		case "iPad11,1", "iPad11,2": 					return "iPad Mini 5"
 		case "iPad11,6", "iPad11,7": 					return "iPad 8th gen"
-		case "iPad13,1", "iPad13,2": 					return "iPad air 4th gen"
+		case "iPad13,1", "iPad13,2": 					return "iPad Air 4th gen"
 
 		case "Watch1,1": 									return "Apple Watch Series 0 38mm"
 		case "Watch1,2": 									return "Apple Watch Series 0 42mm"

@@ -128,7 +128,7 @@ public extension String {
 	
 	static func entropicString(length: Int = 32) -> String {
 		precondition(length > 0)
-		let charset: Array<Character> = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._")
+		let charset: Array<Character> = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._")
 		var result = ""
 		var remainingLength = length
 		

@@ -31,7 +31,7 @@ The package has minimal external dependencies (only swift-syntax for macros). Li
 ## Architecture Overview
 
 ### Multi-Platform Framework Structure
-Suite is a comprehensive utility framework targeting iOS 13+, macOS 10.15+, and watchOS 6+. The codebase uses extensive conditional compilation for platform-specific implementations while providing unified APIs.
+Suite is a comprehensive utility framework targeting iOS 13+, macOS 10.15+, watchOS 6+, tvOS 13+, and visionOS 1+ (see `Package.swift` for canonical minimums). The codebase uses extensive conditional compilation for platform-specific implementations while providing unified APIs.
 
 ### Core Architectural Patterns
 
@@ -49,14 +49,11 @@ The framework extends Apple's core frameworks systematically:
 - `Sources/Suite/Widgets/` - Reusable widget components
 
 #### 2. Macro System (`Sources/SuiteMacrosImpl/`)
-Five Swift macros eliminate boilerplate code:
-- `@GeneratedEnvironmentKey` - Auto-generates SwiftUI EnvironmentKey types
+Two Swift macros eliminate boilerplate code:
 - `@GeneratedPreferenceKey` - Creates SwiftUI PreferenceKey with reduce functions
-- `@AppSettings` - UserDefaults-backed settings with ObservableObject support
-- `@AppSettingsProperty` - Individual UserDefaults properties with change notifications
 - `@NonisolatedContainer` - Thread-safe property access using locks
 
-The macro implementations depend on the runtime infrastructure in `Sources/Suite/Types/UserDefaultsContainer.swift` and `Sources/Suite/Property Wrappers/NonIsolatedWrapper.swift`.
+The `@NonisolatedContainer` macro depends on runtime infrastructure in `Sources/Suite/Foundation/ThreadsafeMutex.swift` and `Sources/Suite/Property Wrappers/NonIsolatedWrapper.swift`.
 
 #### 3. State Management Patterns
 - **LoadingState<Value>** - Type-safe async operation states (idle, loading, empty, failed, loaded)
@@ -96,7 +93,9 @@ Extensive use of `#if os()`, `#if canImport()`, and `@available()` to:
 
 #### Property Wrappers (`Sources/Suite/Property Wrappers/`)
 - **CodableAppStorage**: UserDefaults storage with JSON encoding for complex types
-- **CodableFileStorage**: File-based storage with JSON encoding  
+- **CodableFileStorage**: File-based storage with JSON encoding
+- **NonIsolatedWrapper**: `@State`-friendly wrapper backed by `ThreadsafeMutex`
+- **ObservedValue**: Bridges an `ObservableObject` keypath into a SwiftUI binding
 - **ReadyFlag**: Async coordination primitives
 
 #### JSON System (`Sources/Suite/Utilities/JSON/`)
@@ -107,16 +106,16 @@ Unified JSON handling with type-safe APIs:
 
 ### Testing Structure
 
-The test suite covers core functionality across the framework:
-- **MacroTests.swift** - Macro expansion testing using SwiftSyntaxMacrosTestSupport
-- **CoreGraphics/GeometryTests** - Graphics and geometry extension tests
+The test suite uses **Swift Testing** (`import Testing`, `@Test`, `#expect`, `#require`) and covers core functionality across the framework:
+- **MacroTests.swift** / **EnhancedMacroTests.swift** - currently placeholders; macro-expansion tests via `SwiftSyntaxMacrosTestSupport` were disabled and need restoring
+- **CoreGraphicsExtensionTests / CoreGraphicsTests** - Graphics and geometry extension tests
 - **Foundation extensions** - Dictionary, Array, String, Optional, Date tests
 - **State management** - LoadingState and SharedDependencyManager tests
 - **SwiftUI components** - Component and view wrapper tests
 - **JSON system** - Codable integration and hashing tests
 - **Type utilities** - VersionString and AnyEquatable tests
 
-When adding tests, use the existing XCTest structure and follow the pattern of testing public APIs rather than internal implementation details.
+When adding tests, use Swift Testing and test public APIs rather than internal implementation details.
 
 ### Working with Macros
 

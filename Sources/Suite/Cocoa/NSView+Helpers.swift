@@ -1,5 +1,5 @@
 //
-//  NSView.swift
+//  NSView+Helpers.swift
 //  
 //
 //  Created by Ben Gottlieb on 2/22/23.

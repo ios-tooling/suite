@@ -28,7 +28,7 @@ public struct SimpleWebView: View {
 	}
 	
 	public var body: some View {
-		EmbdeddedWebView(request: request, webView: webView, webViewDidFinishLoading: webViewDidFinishLoading)
+		EmbeddedWebView(request: request, webView: webView, webViewDidFinishLoading: webViewDidFinishLoading)
 			.preference(key: SimpleWebViewPreferenceKey.self, value: webView)
 	}
 }
@@ -36,7 +36,7 @@ public struct SimpleWebView: View {
 #if os(macOS)
 @available(macOS 11.0, *)
 extension SimpleWebView {
-	struct EmbdeddedWebView: NSViewRepresentable {
+	struct EmbeddedWebView: NSViewRepresentable {
 		let request: URLRequest
 		let webView: WKWebView
 		let webViewDidFinishLoading: WebViewErrorCallback?
@@ -67,7 +67,7 @@ extension SimpleWebView {
 #if os(iOS) || os(visionOS)
 @available(iOS 14, *)
 extension SimpleWebView {
-	struct EmbdeddedWebView: UIViewRepresentable {
+	struct EmbeddedWebView: UIViewRepresentable {
 		let request: URLRequest
 		let webView: WKWebView
 		let webViewDidFinishLoading: WebViewErrorCallback?
@@ -98,7 +98,7 @@ extension SimpleWebView {
 
 #if os(iOS) || os(visionOS) || os(macOS)
 @available(macOS 11.0, iOS 14, *)
-extension SimpleWebView.EmbdeddedWebView {
+extension SimpleWebView.EmbeddedWebView {
 	class Coordinator: NSObject, WKNavigationDelegate {
 		let webView: WKWebView
 		let webViewDidFinishLoading: WebViewErrorCallback?

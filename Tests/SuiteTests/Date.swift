@@ -131,7 +131,7 @@ struct DateTests {
 		let iso = date.iso8601String
 
 		#expect(!iso.isEmpty)
-		#expect(Date(iso8691String: iso) != nil)
+		#expect(Date(iso8601String: iso) != nil)
 	}
 
 	@Test func testNoon() {

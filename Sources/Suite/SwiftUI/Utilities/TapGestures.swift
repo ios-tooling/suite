@@ -1,5 +1,5 @@
 //
-//  tapGestures.swift
+//  TapGestures.swift
 //  
 //
 //  Created by Ben Gottlieb on 5/8/23.

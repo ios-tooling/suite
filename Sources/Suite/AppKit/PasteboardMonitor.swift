@@ -39,7 +39,7 @@ import Observation
 	}
 
 	private func observeAppActivation() {
-		NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] timer in
+		NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in
 			Task { @MainActor in self?.checkForChanges() }
 		}
 	}

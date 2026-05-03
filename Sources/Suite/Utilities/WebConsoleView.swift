@@ -31,11 +31,11 @@ public struct WebConsoleView: View {
 						Text(error.localizedDescription)
 						
 					case .loaded(let request):
-						Text("loaded").font(.caption)
-						Text(request?.url?.absoluteString ?? "--")
-						
-					case .loading(let request):
 						Text("Loaded").font(.caption)
+						Text(request?.url?.absoluteString ?? "--")
+
+					case .loading(let request):
+						Text("Loading").font(.caption)
 						Text(request?.url?.absoluteString ?? console.loadedURL?.absoluteString ?? "")
 						
 					case .idle:
