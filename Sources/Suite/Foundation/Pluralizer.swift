@@ -1,6 +1,6 @@
 //
 //  Pluralizer.swift
-//  
+//
 //
 //  Created by Ben Gottlieb on 12/18/20.
 //
@@ -8,30 +8,32 @@
 import Foundation
 
 
-public final class Pluralizer: Sendable {
+public final class Pluralizer: @unchecked Sendable {
 	public static let instance = Pluralizer()
-	
-	init() {
-		
-	}
-	
-	nonisolated let plurals: CurrentValueSubject<[String: String], Never> = .init([:])
-	
-	public nonisolated func pluralize(_ count: Int, _ singular: String, spelledOut: Bool = false) -> String {
+
+	private let lock = NSLock()
+	private var plurals: [String: String] = [:]
+
+	private init() {}
+
+	public func pluralize(_ count: Int, _ singular: String, spelledOut: Bool = false) -> String {
 		if count == 1 { return "1 " + singular }
 		return "\(count) \(self[singular])"
 	}
-	
-	public nonisolated subscript(singular: String) -> String {
+
+	public subscript(singular: String) -> String {
 		get {
-			if let plural = plurals.value[singular.lowercased()] { return plural }
-			
-			if singular.hasSuffix("s") { return singular }
-			return singular + "s"
+			let key = singular.lowercased()
+			lock.lock()
+			defer { lock.unlock() }
+			if let plural = plurals[key] { return plural }
+			return singular.hasSuffix("s") ? singular : singular + "s"
 		}
-		
 		set {
-			plurals.value[singular.lowercased()] = newValue
+			let key = singular.lowercased()
+			lock.lock()
+			defer { lock.unlock() }
+			plurals[key] = newValue
 		}
 	}
 }

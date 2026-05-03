@@ -7,28 +7,37 @@
 
 import SwiftUI
 
-// from https://medium.com/parable-engineering/stop-using-timer-publish-in-your-swiftui-views-498ff270860f
-
 struct TimerModifier: ViewModifier {
-	@State private var timer: Publishers.Autoconnect<Timer.TimerPublisher>
-	private let perform: (Date) -> Void
-	
-	init(every interval: TimeInterval, tolerance: TimeInterval?, perform: @escaping (Date) -> Void) {
-		timer = Timer.publish(every: interval, tolerance: tolerance, on: .main, in: .common)
-			.autoconnect()
-		self.perform = perform
-	}
-	
+	let interval: TimeInterval
+	let tolerance: TimeInterval?
+	let perform: (Date) -> Void
+
+	@State private var task: Task<Void, Never>?
+
 	func body(content: Content) -> some View {
 		content
-			.onReceive(timer) { date in
-				perform(date)
+			.onAppear {
+				task?.cancel()
+				let interval = interval
+				let perform = perform
+				task = Task { @MainActor in
+					let nanos = UInt64(interval * 1_000_000_000)
+					while !Task.isCancelled {
+						try? await Task.sleep(nanoseconds: nanos)
+						if Task.isCancelled { return }
+						perform(Date())
+					}
+				}
+			}
+			.onDisappear {
+				task?.cancel()
+				task = nil
 			}
 	}
 }
 
 extension View {
 	func onTimer(every interval: TimeInterval, tolerance: TimeInterval? = nil, perform: @escaping (Date) -> Void) -> some View {
-		modifier(TimerModifier(every: interval, tolerance: tolerance, perform: perform))
+		modifier(TimerModifier(interval: interval, tolerance: tolerance, perform: perform))
 	}
 }

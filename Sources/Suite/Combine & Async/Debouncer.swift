@@ -6,29 +6,42 @@
 //
 
 import Foundation
-import Combine
 
 @MainActor public class Debouncer<Value: Sendable>: ObservableObject {
-	@Published public var input: Value
-	@Published public var output: Value
-	
-	private var debounce: AnyCancellable?
-	
-	public func setInput(_ newInput: Value, withoutDebounce: Bool) {
-		input = newInput
-		if withoutDebounce {
-			output = newInput
-		}
+	@Published public var input: Value {
+		didSet { scheduleDebounce() }
 	}
-	
+	@Published public var output: Value
+
+	private let delay: Double
+	private var debounceTask: Task<Void, Never>?
+
 	public init(initialValue: Value, delay: Double = 1) {
 		self.input = initialValue
 		self.output = initialValue
-		debounce = $input
-			.debounce (for: . seconds (delay), scheduler: RunLoop.main)
-			.sink { [weak self] result in
-				guard let self else { return }
-				Task { @MainActor in self.output = result }
-			}
+		self.delay = delay
+	}
+
+	public func setInput(_ newInput: Value, withoutDebounce: Bool) {
+		if withoutDebounce {
+			debounceTask?.cancel()
+			debounceTask = nil
+			output = newInput
+		}
+		input = newInput
+	}
+
+	private func scheduleDebounce() {
+		debounceTask?.cancel()
+		let nanos = UInt64(delay * 1_000_000_000)
+		debounceTask = Task { @MainActor [weak self] in
+			try? await Task.sleep(nanoseconds: nanos)
+			guard let self, !Task.isCancelled else { return }
+			self.output = self.input
+		}
+	}
+
+	deinit {
+		debounceTask?.cancel()
 	}
 }
