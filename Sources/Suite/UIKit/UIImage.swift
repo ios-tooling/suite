@@ -52,66 +52,45 @@ public extension UIImage {
 		
 	}
 	
-	@available(iOS 10.0, watchOS 6.0, *)
 	func clipped(to clip: CGRect) -> UIImage? {
-		UIGraphicsBeginImageContextWithOptions(clip.size, false, self.scale)
-		self.draw(at: CGPoint(x: -clip.minX, y: -clip.minY))
-		let image = UIGraphicsGetImageFromCurrentImageContext()
-		UIGraphicsEndImageContext()
-		return image
+		let format = UIGraphicsImageRendererFormat()
+		format.scale = self.scale
+		format.opaque = false
+		return UIGraphicsImageRenderer(size: clip.size, format: format).image { _ in
+			self.draw(at: CGPoint(x: -clip.minX, y: -clip.minY))
+		}
 	}
-	
 
-	
 	class func create(size: CGSize, closure: (CGContext) -> Void) -> UIImage? {
-		if #available(iOS 10.0, iOSApplicationExtension 10.0, *) {
-			return UIGraphicsImageRenderer(size: size).image { renderer in
-				guard let ctx = UIGraphicsGetCurrentContext() else {
-					dlogg("UIGraphicsGetCurrentContext() Failed")
-					return
-				}
-				
-				closure(ctx)
-			}
-		} else {
-			UIGraphicsBeginImageContextWithOptions(size, false, 0)
-			guard let ctx = UIGraphicsGetCurrentContext() else {
-				dlogg("UIGraphicsGetCurrentContext() Failed")
-				return nil
-			}
-
-			closure(ctx)
-			let image = UIGraphicsGetImageFromCurrentImageContext()
-			UIGraphicsEndImageContext()
-			return image
+		UIGraphicsImageRenderer(size: size).image { context in
+			closure(context.cgContext)
 		}
 	}
 	#endif
-	
+
 	func tintedImage(tint: UIColor) -> UIImage? {
 		let frame = self.size.rect
-		
-		UIGraphicsBeginImageContextWithOptions(self.size, false, self.scale)
-		self.draw(in: frame)
-		tint.setFill()
-		UIRectFillUsingBlendMode(frame, CGBlendMode.sourceIn)
-		let result = UIGraphicsGetImageFromCurrentImageContext()
-		UIGraphicsEndImageContext()
-
-		return result
+		let format = UIGraphicsImageRendererFormat()
+		format.scale = self.scale
+		format.opaque = false
+		return UIGraphicsImageRenderer(size: self.size, format: format).image { _ in
+			self.draw(in: frame)
+			tint.setFill()
+			UIRectFillUsingBlendMode(frame, CGBlendMode.sourceIn)
+		}
 	}
-	
-    func overlaying(_ overlay: UIImage) async -> UIImage {
-        let frame = self.size.rect
-        
-        UIGraphicsBeginImageContextWithOptions(self.size, false, self.scale)
-        self.draw(in: frame)
-        await overlay.resized(to: self.size, trimmed: true)?.draw(in: frame)
-        let result = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
 
-        return result ?? self
-    }
+	func overlaying(_ overlay: UIImage) async -> UIImage {
+		let frame = self.size.rect
+		let resizedOverlay = await overlay.resized(to: self.size, trimmed: true)
+		let format = UIGraphicsImageRendererFormat()
+		format.scale = self.scale
+		format.opaque = false
+		return UIGraphicsImageRenderer(size: self.size, format: format).image { _ in
+			self.draw(in: frame)
+			resizedOverlay?.draw(in: frame)
+		}
+	}
 
 	func scaledImage(scale: CGFloat) -> UIImage {
 		if scale == 1.0 { return self }
@@ -140,15 +119,13 @@ public extension UIImage {
 			frame.origin.y = 0;
 			if trimmed { frame.size.height = limit.height; }
 		}
-		
-		UIGraphicsBeginImageContextWithOptions(frame.size, false, scale)
-		
-		self.draw(in: frame)
-		
-		let result = UIGraphicsGetImageFromCurrentImageContext()
-		UIGraphicsEndImageContext()
-		
-		return result
+
+		let format = UIGraphicsImageRendererFormat()
+		format.scale = scale
+		format.opaque = false
+		return UIGraphicsImageRenderer(size: frame.size, format: format).image { _ in
+			self.draw(in: frame)
+		}
 	}
 	
 	func draw(in frame: CGRect, blendMode: CGBlendMode = .normal, alpha: CGFloat = 1.0, mode: CGRect.Placement) {

@@ -13,7 +13,7 @@ import Foundation
 	public extension Process {
 		convenience init (path: String, arguments args: [String]) {
 			self.init()
-			launchPath = path
+			executableURL = URL(fileURLWithPath: path)
 			arguments = args
 		}
 
@@ -53,16 +53,16 @@ import Foundation
 		func run(timeout: TimeInterval = 0) -> Int32 {
 			self.standardOutput = Pipe()
 			self.standardError = Pipe()
-			
+
 			if timeout > 0 {
 				self.terminationHandler = { task in
 					CFRunLoopWakeUp(RunLoop.current.getCFRunLoop())
 					return
 				}
-				self.launch()
-				
+				do { try self.run() } catch { return -1 }
+
 				let cutoff = Date(timeIntervalSinceNow: timeout)
-				
+
 				while (self.isRunning) {
 					RunLoop.current.run(mode: RunLoop.Mode.default, before: Date(timeIntervalSinceNow: 0.01))
 					if cutoff < Date() {
@@ -71,7 +71,7 @@ import Foundation
 					}
 				}
 			} else {
-				self.launch()
+				do { try self.run() } catch { return -1 }
 				self.waitUntilExit()
 			}
 
