@@ -148,7 +148,17 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
     - `CodableJSONDictionary.dataKeyNames` — was `nonisolated(unsafe) public static var dataKeyNames: [String] = []`, public mutable, no synchronization. Wrapped in an `NSLock`-guarded accessor pair backed by a private `_dataKeyNames` storage; public read/write API unchanged.
     - `SeededRandomNumberGenerator.sharedGenerator` — already protected by the `NSLock` introduced in the GCD pass.
     - `OrientationWatcher.instance` — `static var` (not `nonisolated(unsafe)`), reassignable via `OrientationWatcher.setup(windowScene:)`. The class is `@MainActor`, so reads/writes are isolated to the main actor; the only race is whether `setup` ever runs off-main. Left as-is.
-- [ ] **Files vastly exceeding the ~100 line guideline** (top offenders): `Types/SFSymbol.swift` (1804), `Foundation/Date.swift` (553), `Foundation/Date.Time.swift` (349), `Foundation/URL.swift` (330), `Geometry/CGRect.swift` (320), `Foundation/Codable.swift` (241), `UIKit/UIColor.swift` (250), `Foundation/String.swift` (235), `Combine & Async/AsyncSemaphore.swift` (282).
+- [x] `[FIXED]` **Files vastly exceeding the ~100 line guideline** (top offenders): `Types/SFSymbol.swift` (1804), `Foundation/Date.swift` (553), `Foundation/Date.Time.swift` (349), `Foundation/URL.swift` (330), `Geometry/CGRect.swift` (320), `Foundation/Codable.swift` (241), `UIKit/UIColor.swift` (250), `Foundation/String.swift` (235), `Combine & Async/AsyncSemaphore.swift` (282).
+    - `Date.swift` → 5 files in `Foundation/Date/` (`Date.swift` 68, `Date+Components` 102, `Date+Math` 152, `Date+Comparison` 55, `Date+Formatting` 169). `Date+Formatting` is the largest at 169 lines, dominated by the unsplittable `ageString` switch tower.
+    - `Date.Time.swift` → 4 files in `Foundation/Date/` (`Date.Time` 190, `Date.Time+Formatting` 49, `Date.TimeRange` 75, `Date+Time` 59).
+    - `URL.swift` → 5 files in `Foundation/URL/` (URL/Path/File/Query/Bookmark, none over 110).
+    - `CGRect.swift` → 4 files in `Geometry/CGRect/` (core / math / placement / slicing, none over 96).
+    - `UIColor.swift` → 3 files in `UIKit/UIColor/` (core / hex / packing).
+    - `Codable.swift` → 4 files in `Foundation/Codable/` (core / encoding / decoding / dictionary).
+    - `String.swift` → 5 files in `Foundation/String/` (core / subscript / validation / random / array).
+    - `AsyncSemaphore.swift` (242 lines): **not split** — single thread-safety-critical class with private value/suspensions/lock state shared across every method; splitting would force those to `internal` and fragment lock-discipline reasoning.
+    - `SFSymbol.swift` (1804 lines): **not split** — Swift doesn't allow splitting an enum's cases across files; converting to a struct would break `: CaseIterable` and `switch` exhaustiveness. (Per user direction.)
+    - All splits also reorganized so each type's files live in a per-type subdirectory.
 
 ---
 
