@@ -1688,3 +1688,35 @@ All findings — **[KEPT-AS-IS]** real test-quality issues; flagged for a follow
 - **[Convention]** Some files >100 lines — KEPT-AS-IS; per-test-suite groupings.
 - **[Coverage]** Macros placeholder — partially addressed in macros pass.
 - **[Flakiness]** Sleep-based coordination across multiple suites — flagged as a tests-improvement opportunity (shared barrier helper).
+
+## Package & Exports & remaining placeholders
+
+### `Package.swift` — **[CLOSED]** _re-audit; no changes_
+- **[Platform]** tvOS pinned `.v13` — **[KEPT-AS-IS]** matches the rest of the platform list (iOS 13, macOS 10.15, watchOS 6, visionOS 1).
+- **[Convention]** Mixed indentation — **[KEPT-AS-IS]** cosmetic.
+- **[Suggestion]** swift-syntax `from: "603.0.0"` — **[KEPT-AS-IS]** standard pinning.
+- **[API]** Test target on `SuiteMacrosImpl` — **[KEPT-AS-IS]** required for macro-expansion tests.
+- **[Suggestion]** `Suite -> SuiteMacrosImpl` dependency — **[KEPT-AS-IS]** correct shape.
+- **[Convention]** Trailing blank/indentation — **[KEPT-AS-IS]** cosmetic.
+
+### `Suite/ExportedModules.swift` — **[CLOSED]** _re-audit; no changes_
+- **[Suggestion]** `@_exported` informal attribute — **[KEPT-AS-IS]** stable across iOS-tooling.
+
+### Files with no actionable findings (re-audit confirmed)
+- `Foundation/Box.swift` — No issues.
+- `Foundation/Condensable.swift` — KEPT-AS-IS dispositions confirmed (intentional design + documented contract).
+- `Foundation/Date+String.swift` — KEPT-AS-IS dispositions confirmed (allocation cost, locale dependence by name, locale-fragile substring matching).
+- `Foundation/DateTag.swift` — No issues.
+- `Foundation/OptionSet.swift` — No issues.
+- `Foundation/Range.swift` — No issues.
+- `Foundation/Result.swift` — No issues.
+- `Foundation/Throwable.swift` — No issues.
+- `Foundation/URLResponse.swift` — No issues.
+- `Utilities/JSON/JSONEncoder.swift` — No issues.
+- `Utilities/WKWebView.swift` — No issues.
+- `SwiftUI/View Extensions/GeometryReader.swift` — No issues.
+- `SwiftUI/View Extensions/View+Debug.swift` — KEPT-AS-IS confirmed (debug helper logs by design).
+- `SwiftUI/View Modifiers/NotYetImplemented.swift` — No issues.
+- `SwiftUI/View Wrappers/AsyncContainerView.swift` — KEPT-AS-IS confirmed (`@Sendable` on `function` would be a breaking signature change).
+- `SwiftUI/Other Views/CalendarMonthView/CalendarWeekDayLabel.swift` — No issues.
+- `Foundation/TimePost.swift` — File deleted in commit `74ce1eb`.
