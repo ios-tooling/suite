@@ -593,7 +593,7 @@ Entries are grouped by directory and tagged at finding-level: `[FIXED]`, `[FIXED
 ### `SwiftUI/Component Views/LabeledView.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
 - **[Concurrency]** Line 11: `nonisolated(unsafe) public static var defaultValue = false` — `var` (mutable) static is racy. Should be `let`.
 - **[Style]** Line 42: hard-coded font size `9` and padding `2` — violates "avoid hard-coded dimensions" (though for a debug overlay this is borderline acceptable).
-- **[API]** `DebugLabeledView` is `internal`; `debugLabel` modifier on `View` is public — fine. `ShowViewLabelsEnvironmentKey` is exposed as `public` but the macro `@GeneratedEnvironmentKey` would do this cleanly per CLAUDE.md.
+- **[API]** `DebugLabeledView` is `internal`; `debugLabel` modifier on `View` is public — fine. `ShowViewLabelsEnvironmentKey` is exposed as `public`; the manual EnvironmentKey shape is the chosen pattern.
 
 ### `SwiftUI/Component Views/OffsetReportingScrollView.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
 - **[Bug]** Line 62: `MainActor.run { position = offset }` inside `clearBackground(using:)` — calling `MainActor.run` synchronously from an unknown context: if already on MainActor it crashes (or produces a warning). Should be `Task { @MainActor in position = offset }` or use `.preference`/`onChange`. Also, mutating a `@Binding` from inside `body` evaluation during `GeometryReader`'s view-builder phase causes "Modifying state during view update" purple warnings — classic SwiftUI bug.
@@ -1540,10 +1540,10 @@ All findings deferred — `CGLine` has accumulated subtle bugs (Equatable/Hashab
 - **[Concurrency]** `Task.sleep(nanoseconds:)` — **[KEPT-AS-IS]** required for iOS 13/14 floor.
 
 ### `Types/DefaultsBasedPreferences.swift` — **[CLOSED]** _re-audit; no changes_
-- **[Concurrency]** KVO + Mirror — **[KEPT-AS-IS]** documented pattern; replaced by `@AppSettings` macro for new code.
-- **[Bug]** Repeated `addObserver` on `load()` — **[KEPT-AS-IS]** real but the entire class is in the deprecation queue; the `@AppSettings` macro is the modern replacement.
+- **[Concurrency]** KVO + Mirror — **[KEPT-AS-IS]** documented pattern; this class is the only implementation (no replacement on the roadmap).
+- **[Bug]** Repeated `addObserver` on `load()` — **[KEPT-AS-IS]** real bug but low-impact in typical lifecycle (init + foreground); a future fix would track observer registration explicitly.
 - **[Convention]** 121 lines — **[KEPT-AS-IS]** logical unit.
-- **[API]** Mirror-based KVO — **[KEPT-AS-IS]** see above.
+- **[API]** Mirror-based KVO — **[KEPT-AS-IS]** chosen pattern.
 - **[Suggestion]** Unused `saveTimer` — **[KEPT-AS-IS]** kept for future use.
 
 ### `Types/Gestalt+Background.swift` — **[CLOSED]** _re-audit; no changes_
