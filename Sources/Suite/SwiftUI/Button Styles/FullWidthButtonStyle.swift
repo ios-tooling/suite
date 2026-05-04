@@ -62,7 +62,7 @@ public struct FullWidthButtonStyle: ButtonStyle {
 			.foregroundColor(resolvedForeground)
 			.opacity(isEnabled ? 1 : 0.4)
 			.frame(maxWidth: .infinity)
-			.frame(height: 50)
+			.scaledFrame(height: 50)
 			.scaleEffect(configuration.isPressed ? 0.98 : 1)
 			.animation(.linear(duration: 0.1), value: configuration.isPressed)
 	}

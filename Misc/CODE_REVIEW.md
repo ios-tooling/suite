@@ -90,7 +90,12 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 
 #### Tier B
 
-- [ ] **Hard-coded dimensions** despite the project rule, especially in: `TitleBar`, `FullWidthButtonStyle`, `SlideUpSheet`, `MultiColumnPicker`, `BottomSheetView`, `Font.swift`, `MonthYearPopover`. *Blocked: the natural fix (`@ScaledMetric`) requires iOS 14 / macOS 11, but the package targets macOS 10.15. Either bump the deployment target, add per-type `@available` annotations (breaking for older callers), or accept the hardcoded values. Tried `@ScaledMetric` on `TitleBar.barHeight` and reverted on the availability error. `Font.buttonImage` (`.system(size: 32)`) is a deliberate constant for icon-button glyphs; arguably the least-bad form of hardcoded dimension.*
+- [x] `[FIXED]` **Hard-coded dimensions** despite the project rule.
+    - Added `View.scaledFrame(width:height:)` helper (`Sources/Suite/SwiftUI/Extensions/ScaledFrame.swift`) that uses `@ScaledMetric` on iOS 14+/macOS 11+/watchOS 7+/tvOS 14+ and falls back to a fixed `.frame(...)` on older OS, so the public API stays iOS 13-compatible.
+    - `TitleBar` (50pt) and `FullWidthButtonStyle` (50pt) now use `.scaledFrame(height:)`.
+    - `MultiColumnPicker` (150pt) and `MonthYearPopover` (150pt) are already gated `@available(iOS 16, *)`, so they use `@ScaledMetric` directly.
+    - `SlideUpSheet`'s 40×5 drag handle, 1pt divider, and `BottomSheetView`'s 16pt corner radius are fixed visual specs (not text-relative); intentionally left unscaled.
+    - `Font.buttonImage` (`.system(size: 32)`) — left as-is. There is no public `Font.system(size:relativeTo:)` API for system fonts (only `Font.custom(_:size:relativeTo:)`); making this scale with Dynamic Type requires moving the size into a containing `View` with `@ScaledMetric`, which is a structural refactor of every call site.
 - [x] `[FIXED]` **View-returning `some View` computed properties** (rule says prefer subview types).
     - `AsyncButton.buttonLabel` → `AsyncButtonContent` (generic subview).
     - `AsyncButtonBusyLabel.spinner` → inlined into `body` (it was a single-use indirection).

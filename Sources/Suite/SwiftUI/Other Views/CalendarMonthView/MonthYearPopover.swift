@@ -10,13 +10,14 @@ import SwiftUI
 @available(iOS 16, macOS 14.0, watchOS 10, tvOS 16, *)
 struct MonthYearPopover: View {
 	@Binding var date: Date
+	@ScaledMetric private var listHeight: CGFloat = 150
 
 	var body: some View {
 		HStack {
 			MonthList(date: $date)
 			YearList(date: $date)
 		}
-		.frame(height: 150)
+		.frame(height: listHeight)
 	}
 }
 

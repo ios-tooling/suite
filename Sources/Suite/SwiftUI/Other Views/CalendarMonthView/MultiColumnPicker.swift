@@ -14,7 +14,8 @@ struct MultiColumnPicker<Data>: View where Data: Hashable {
 	let data: [[Data]]
 	@Binding var selection: [Data]
 	var minimumColumnWidth = 140.0
-	
+	@ScaledMetric private var pickerHeight: CGFloat = 150
+
 	var body: some View {
 		GeometryReader { geometry in
 			HStack(spacing: 0) {
@@ -23,7 +24,7 @@ struct MultiColumnPicker<Data>: View where Data: Hashable {
 				}
 			}
 		}
-		.frame(height: 150)
+		.frame(height: pickerHeight)
 		.frame(minWidth: minimumColumnWidth * Double(labels.count))
 	}
 	

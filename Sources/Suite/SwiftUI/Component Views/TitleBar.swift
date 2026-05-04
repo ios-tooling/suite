@@ -54,7 +54,7 @@ public struct TitleBar<Leading: View, Trailing: View, Title: View>: View {
 				.padding(.trailing, trailingFrame?.width)
 		}
 		.padding(.horizontal)
-		.frame(height: 50)
+		.scaledFrame(height: 50)
 		.navigationBarHidden(true)
 	}
 }
