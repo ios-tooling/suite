@@ -45,6 +45,18 @@ public struct DiskBackedArray<Value: Codable> {
 			}
 		}
 	}
+	
+	public var values: [Value] { cache }
+	public var snapshot: [Value] { cache }
+	public var isEmpty: Bool { cache.isEmpty }
+	public var count: Int { cache.count }
+
+	public mutating func removeAll() {
+		guard !cache.isEmpty else { return }
+		cache.removeAll()
+		save()
+	}
+
 }
 
 extension DiskBackedArray where Value: Equatable {

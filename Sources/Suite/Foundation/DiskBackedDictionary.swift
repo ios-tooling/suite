@@ -34,6 +34,22 @@ public struct DiskBackedDictionary<Key: Hashable & Codable, Value: Codable> {
 		}
 	}
 
+	public var keys: Dictionary<Key, Value>.Keys { cache.keys }
+	public var values: Dictionary<Key, Value>.Values { cache.values }
+	public var snapshot: [Key: Value] { cache }
+	public var isEmpty: Bool { cache.isEmpty }
+	public var count: Int { cache.count }
+
+	public mutating func remove(_ key: Key) {
+		if cache.removeValue(forKey: key) != nil { save() }
+	}
+
+	public mutating func removeAll() {
+		guard !cache.isEmpty else { return }
+		cache.removeAll()
+		save()
+	}
+
 	public init(cacheURL: URL, encoder: JSONEncoder = .init(), decoder: JSONDecoder = .init(), cache: [Key: Value] = [:]) {
 		self.cacheURL = cacheURL
 		self.decoder = decoder
