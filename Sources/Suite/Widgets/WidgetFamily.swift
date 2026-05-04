@@ -24,18 +24,30 @@ import WidgetKit
 	
 	#if os(iOS)
 		var size: CGSize {
+			if #available(iOS 16.0, *) {
+				switch self {
+				case .accessoryCircular: return CGSize(width: 76, height: 76)
+				case .accessoryRectangular: return CGSize(width: 172, height: 76)
+				case .accessoryInline: return CGSize(width: 257, height: 26)
+				default: break
+				}
+			}
+
 			switch self {
 			case .systemSmall:
 				switch UIScreen.main.bounds.size.screenSize {
+				case .iPhone16ProMax: return CGSize(width: 174, height: 174)
+				case .iPhone16Pro: return CGSize(width: 162, height: 162)
 				case .iPhone14ProMax, .iPhone12ProMax, .iPhone15ProMax: return CGSize(width: 170, height: 170)
-				case .iPhone14Pro, .iPhone12, .iPhone15Pro: return CGSize(width: 158, height: 158)
+				case .iPhone14Pro, .iPhone15Pro: return CGSize(width: 158, height: 158)
+				case .iPhone12: return CGSize(width: 158, height: 158)
 				case .iPhone11Pro: return CGSize(width: 169, height: 169)
 				case .iPhoneX: return CGSize(width: 155, height: 155)
 				case .iPhoneSixPlus: return CGSize(width: 159, height: 159)
 				case .iPhoneSix: return CGSize(width: 148, height: 148)
 				case .iPhone5: return CGSize(width: 141, height: 141)
 				case .iPhone: return CGSize(width: 141, height: 141)
-				
+
 				case .iPadPro11: return CGSize(width: 170, height: 170)
 				case .iPadPro10_5: return CGSize(width: 150, height: 150)
 				case .iPadPro12_9: return CGSize(width: 170, height: 170)
@@ -45,11 +57,14 @@ import WidgetKit
 
 				default: return CGSize(width: 169, height: 169)
 				}
-			
+
 			case .systemMedium:
 				switch UIScreen.main.bounds.size.screenSize {
-				case .iPhone12ProMax, .iPhone15ProMax: return CGSize(width: 364, height: 170)
-				case .iPhone12, .iPhone15Pro: return CGSize(width: 338, height: 158)
+				case .iPhone16ProMax: return CGSize(width: 364, height: 174)
+				case .iPhone16Pro: return CGSize(width: 338, height: 162)
+				case .iPhone14ProMax, .iPhone12ProMax, .iPhone15ProMax: return CGSize(width: 364, height: 170)
+				case .iPhone14Pro, .iPhone15Pro: return CGSize(width: 338, height: 158)
+				case .iPhone12: return CGSize(width: 338, height: 158)
 				case .iPhone11Pro: return CGSize(width: 360, height: 169)
 				case .iPhoneX: return CGSize(width: 329, height: 155)
 				case .iPhoneSixPlus: return CGSize(width: 348, height: 159)
@@ -84,8 +99,11 @@ import WidgetKit
 			case .systemLarge: fallthrough
 			default:
 				switch UIScreen.main.bounds.size.screenSize {
+				case .iPhone16ProMax: return CGSize(width: 364, height: 382)
+				case .iPhone16Pro: return CGSize(width: 338, height: 354)
 				case .iPhone12ProMax, .iPhone15ProMax, .iPhone14ProMax: return CGSize(width: 364, height: 382)
-				case .iPhone12, .iPhone15Pro, .iPhone14Pro: return CGSize(width: 338, height: 354)
+				case .iPhone14Pro, .iPhone15Pro: return CGSize(width: 338, height: 354)
+				case .iPhone12: return CGSize(width: 338, height: 354)
 				case .iPhone11Pro: return CGSize(width: 360, height: 379)
 				case .iPhoneX: return CGSize(width: 329, height: 345)
 				case .iPhoneSixPlus: return CGSize(width: 348, height: 357)
