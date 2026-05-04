@@ -1,5 +1,5 @@
 //
-//  SimpleWebViewAdditions.swift
+//  SimpleWebView+Additions.swift
 //  
 //
 //  Created by Ben Gottlieb on 2/4/24.

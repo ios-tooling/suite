@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// A `Sendable` wrapper around an async-throwing block. Equality is based on the source location at which the wrapper was created (`#file`/`#line`/`#column`), so two `BlockWrapper`s constructed at the same call site compare equal regardless of their captured closure contents — useful for de-duplicating subscriptions registered from the same site.
 public struct BlockWrapper: Sendable, Equatable {
 	let file: String
 	let line: Int

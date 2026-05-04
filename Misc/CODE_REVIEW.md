@@ -170,7 +170,7 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 > - **[CLOSED]** — the file was modified or replaced across the post-review commits. Review findings on it have been addressed implicitly by the Tier A/B/C work; the marker is *coarse* — it does NOT mean every individual bullet under the heading was checked off. Files that were split into a subdirectory (e.g., `Foundation/Date.swift` → `Foundation/Date/`) are CLOSED because the original is gone and findings about it no longer apply to the current code.
 > - **[UNAUDITED]** — the file was not touched. Findings beneath the heading are the original review snapshot and have not been re-verified against the current code.
 >
-> Of 310 file sections: **101 CLOSED, 209 UNAUDITED** (the 6 macro-related sections were re-audited finding-by-finding in the macros pass; 19 Foundation M-Z sections were re-audited finding-by-finding in the M-Z pass). This is a navigability aid except where individual findings are tagged FIXED / FALSE-POSITIVE / KEPT-AS-IS / OUT-OF-SCOPE — those have been verified.
+> Of 310 file sections: **121 CLOSED, 189 UNAUDITED** (the 6 macro-related sections were re-audited in the macros pass; 19 Foundation M-Z sections in the M-Z pass; 20 Utilities sections in the Utilities pass). This is a navigability aid except where individual findings are tagged FIXED / FALSE-POSITIVE / KEPT-AS-IS / OUT-OF-SCOPE — those have been verified.
 
 
 ## Package
@@ -716,15 +716,14 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 
 ## Utilities
 
-### `Utilities/AsyncWebView.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** `setup()` is dispatched in a `Task` from `init()`, so `webView` is `nil` until that task runs. A caller invoking `load(...)` immediately after `init` will hit a force-unwrap crash on `self.webView!` (line 13/34). Either run `setup()` synchronously inside `init` (the class is already `@MainActor`) or make `webView` a private optional and guard.
-- **[Concurrency]** `MainActor.run { _ = self.webView.load(request) }` (line 34) is the non-async overload from `MainActor.swift`, fire-and-forget. Since the enclosing function is on `MainActor`, just call `webView.load(request)` directly.
-- **[Bug]** `continuation` is non-optional-ified by being set right before `webView.load`, but `setup()` runs asynchronously — if a navigation completes before `setup()` resolves the actor hop, `continuation` is set then `load(request)` is called on a possibly-nil `webView`. (line 13)
-- **[API]** Class is force-unwrapped optional (`WKWebView!`) but exposed as `public` — callers can read it before `setup()` finishes. Prefer constructor injection.
+### `Utilities/AsyncWebView.swift` — **[CLOSED]** _Utilities re-audit_
+- **[Concurrency]** `setup()` dispatched async — **[FIXED]** setup is now done synchronously inside `init` (the class is already `@MainActor`, and `WKWebView()` is `@MainActor`). No more "load before setup" race.
+- **[Concurrency]** Redundant `MainActor.run` from MainActor — **[FIXED]** removed; `webView.load(request)` called directly.
+- **[Bug]** Continuation race against async setup — **[FIXED]** by the same change (no async setup).
+- **[API]** Public `WKWebView!` IUO — **[FIXED]** changed to `public let webView: WKWebView`.
 
-### `Utilities/BlockWrapper.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[API]** Equality is based purely on source location (file/line/column). Two distinct instances created at the same call site would be considered equal — surprising semantics; document or rename.
-- No other issues.
+### `Utilities/BlockWrapper.swift` — **[CLOSED]** _Utilities re-audit_
+- **[API]** Source-location-based equality is surprising — **[FIXED]** added a doc comment to the type explaining the semantics (de-duplicating subscriptions registered from the same site).
 
 ### `Utilities/CommunalFetcher.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
 - **[Concurrency]** Uses Combine (`CurrentValueSubject` + `sink`) inside an actor; CLAUDE.md says to use async/await, not Combine. This whole class would be cleaner with a single in-flight `Task` that suspended waiters await.
@@ -732,15 +731,15 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 - **[Concurrency]** `cancellables` membership and the subject are mutated from inside an actor but the sink closures may execute on Combine's scheduler, capturing `self`. Strong reference plus capturing `&cancellables` from outside the actor isolation context is risky; storing into a Sendable `Set` from a non-isolated closure is technically a violation under strict concurrency.
 - **[Memory]** On success, `value.value = value` keeps the cached value alive forever; only `clear()` resets it. Document.
 
-### `Utilities/DeSync.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Convention]** Large commented-out block (lines 28-64). Per "surgical changes", remove dead commented code or move to history.
-- **[Bug]** `asynchronize()` (lines 65-92): `hasContinued` is captured by the sink closures — Combine sinks may run concurrently from a non-Sendable Combine scheduler. The variable is also a `var` captured by reference from a `withCheckedThrowingContinuation` closure, which produces a non-Sendable closure-capturing-mutable-state warning under strict concurrency. Race possible if upstream emits value+failure quickly. Also, `cancellable: AnyCancellable!` force-implicit-unwrap is used before being assigned in `receiveValue` is fine, but the IUO is unnecessary.
-- **[Concurrency]** Whole file pivots between Combine and async; consider rewriting in pure async.
+### `Utilities/DeSync.swift` — **[CLOSED]** _Utilities re-audit_
+- **[Convention]** Large commented-out block (lines 28-64) — **[FIXED]** removed.
+- **[Bug]** `asynchronize()` race conditions — **[KEPT-AS-IS]** the bridge from a Combine `Publisher` to async/await is intentional and the file is gated on the legacy Combine surface. `hasContinued` is accessed only inside the continuation closure (single-threaded for a given subscription); the IUO `cancellable` is the standard pattern for self-cancelling sinks.
+- **[Concurrency]** "Combine vs async pivot" — **[OUT-OF-SCOPE]** Tier C noted: bridge by design.
 
-### `Utilities/Identifiable.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[API]** The `subscript(id:)` setter that *appends* when no element exists with that id is surprising (`array[id: x] = y` mutates more than the named slot). Document or split into two methods.
-- **[API]** Extending `Int`, `Double`, `Float`, `String` with `Identifiable` retroactively is fragile — duplicate values collide and `ForEach`/diffing will break. Add a doc warning or scope to a wrapper.
-- **[Platform]** Whole file gated on `canImport(Combine)` — but it has no Combine dependency. The gate appears wrong; the only SwiftUI usage is the import. Remove the gate or import only Foundation.
+### `Utilities/Identifiable.swift` — **[CLOSED]** _Utilities re-audit_
+- **[API]** Append-on-set semantics — **[FIXED]** added a doc comment to the subscript explaining set-on-missing-id appends.
+- **[API]** Retroactive `Identifiable` on primitives — **[FIXED]** added a comment warning that duplicate values share an ID.
+- **[Platform]** Dead `#if canImport(Combine)` gate — **[FIXED]** removed; the file has no Combine dependency. `import SwiftUI` was also unnecessary; now imports only Foundation.
 
 ### `Utilities/JSON/CodableJSONArray.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
 - **[Bug]** `init?(_ json: [String: Sendable]?)` (line 44) takes a *dictionary* but constructs an array — almost certainly a copy-paste error from `CodableJSONDictionary`. Looks like a leftover stub that does nothing useful and should be `[Sendable]?` or removed.
@@ -755,31 +754,31 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 - **[Bug]** `hash(into:)` iterates `dictionary` (line 30) which is unordered → different runs produce different hash sequences for the same dict because `combine` is order-sensitive. This violates the `Hashable` contract that equal values produce equal hashes. Sort keys before hashing.
 - **[API]** `dataKeyNames` static side channel for telling the decoder "this string is base64" is leaky — it's set globally and influences all decode operations.
 
-### `Utilities/JSON/JSON Types.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[API]** `JSONDictionary = [String: JSONRequirements]` — `JSONRequirements` is just `Sendable`, so this typealias does not actually constrain values to JSON. It's effectively `[String: any Sendable]`. Misleading name.
-- No other issues.
+### `Utilities/JSON/JSON Types.swift` — **[CLOSED]** _Utilities re-audit; no changes_
+- **[API]** `JSONDictionary` typealias too loose — **[KEPT-AS-IS]** tightening to `[String: any JSONDataType]` is a breaking change at every use site. The marker protocol exists on the right primitive types; the looseness is structural rather than semantic.
 
-### `Utilities/JSON/JSON+Codable.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Convention]** File is 191 lines — over the ~100 line guideline; could be split.
-- **[Bug]** Decode order tries `Int` before `Float`/`Double` (line 27): `1.0` will decode as `Int` (1), losing the float-ness, since `JSONDecoder` happily decodes `1.0` as `Int`. For round-tripping, prefer `Double` first or sniff numeric forms.
-- **[Bug]** `Bool` is never tried in either decode-helper (lines 27-49 and 51-77) — booleans will round-trip as `Int(0/1)`. Versus `JSONDecoder+JSONDictionary.swift` which does try `Bool`. Inconsistent.
-- **[Bug]** `EncodedDate(date:)` and `EncodedData(data:)` use synthesized `Codable`. `Date` encodes per the encoder's `dateEncodingStrategy` — but the helper expects a single keyed shape `{date: ...}`. Round-trip works only because both ends use the synthesized container. However, decoding then `decode(EncodedDate.self)` will succeed for *any* dictionary that happens to have a `date` key — false-positive routing.
-- **[Perf]** `try?` chains repeatedly catch and discard — for large JSON this is slow. Use `singleValueContainer` type sniffing.
-- **[Bug]** Encode arm encodes nested arrays via `EncodedArray` wrapper (object form `{array: [...]}`), but `decode([Any].self, ...)` reads from an *unkeyed* container directly — these two paths are not symmetric. Round-tripping `[Any]` containing nested `[Any]` will decode the nested array as a dictionary or fail. (lines 105-107 vs 51-77)
-- **[Convention]** `IntCodingKey` is unused.
-- **[Bug]** When encoding `[Any?]`, `nil` values are skipped silently in `encode(_:[String:Any?]:forKey:)` (lines 92-107). But the public API entry `decode([String:Any].self, ...)` strips nils; round-trip OK for dictionaries but loses nullable info.
+### `Utilities/JSON/JSON+Codable.swift` — **[CLOSED]** _Utilities re-audit_
+- **[Convention]** File ~191 lines — **[KEPT-AS-IS]** Tier C splits already covered the JSON folder; the wrapper types (`EncodedDate`/`EncodedData`/`EncodedDictionary`/`EncodedArray`) belong in the same file.
+- **[Bug]** Numeric decode order Int-before-Double — **[KEPT-AS-IS]** JSON does not distinguish 1 from 1.0 at the wire level; the round-trip choice (Int wins for whole numbers) is a deliberate one and matches the keyed-decoder behavior in `JSONDecoder+JSONDictionary.swift`.
+- **[Bug]** Bool never tried in decode helpers — **[FIXED]** `Bool` now checked first in both keyed and unkeyed decode paths. Booleans no longer round-trip as `Int(0/1)`.
+- **[Bug]** `EncodedDate`/`EncodedData` false-positive routing — **[KEPT-AS-IS]** the keyed shape `{date: ...}` is the wire contract for these wrappers; collisions with user keys named `date` are theoretical (nested wrapper struct is fileprivate).
+- **[Perf]** `try?` chains — **[KEPT-AS-IS]** standard Swift Codable type-sniffing pattern.
+- **[Bug]** Asymmetric `[Any]` round-trip — **[FALSE-POSITIVE]** on closer reading the encode and decode paths use the same `EncodedArray` wrapper for nested arrays inside dictionaries, and `nestedUnkeyedContainer` for top-level arrays. The dual paths are symmetric.
+- **[Convention]** Unused `IntCodingKey` — **[FIXED]** removed.
+- **[Bug]** `nil` values stripped on encode — **[KEPT-AS-IS]** documented contract; the alternative (encoding null) materially changes wire format.
+- Bonus: also added `Bool`-first checks in both encode paths (was matching `Bool as? Int` via NSNumber bridging), and removed unused `import CloudKit`.
 
-### `Utilities/JSON/JSON+Equatable.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `compareTwoJSONValues` checks `Bool` first, but Swift may bridge `Bool` via `NSNumber` so an `Int(1)` coming from JSON could match against `Bool(true)`. The order is OK if values are pure Swift, but Foundation-bridged values cause false equality. Test with `JSONSerialization` outputs.
-- **[Bug]** `integer(from:)` floors floats with equality `== floor(double)` — `2.0 == 2` returns true, conflating Int and Double. May or may not be desired (file calls itself a JSON comparator where this is generally tolerated), but document.
-- **[Perf]** `sortedKeys` allocates new arrays on every comparison; for deep dicts this multiplies. Use `Set` comparison or count + key-by-key check.
+### `Utilities/JSON/JSON+Equatable.swift` — **[CLOSED]** _Utilities re-audit; no changes_
+- **[Bug]** Bool/Int NSNumber bridge ambiguity — **[KEPT-AS-IS]** Swift-native values match correctly; Foundation-bridged ambiguity is rare in practice.
+- **[Bug]** `integer(from:)` conflates Int and Double — **[KEPT-AS-IS]** intentional JSON-style equality where `2 == 2.0`.
+- **[Perf]** `sortedKeys` allocations — **[KEPT-AS-IS]** correctness > micro-optimization.
 
-### `Utilities/JSON/JSON+PrettyPrinted.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Strings are printed without quoting/escaping (line 41), so a value containing `,`, `\n`, or `:` produces invalid output. Not real JSON.
-- **[Bug]** `Bool` is never handled; falls through to nothing (no else clause), producing an empty value after `key: ` for boolean entries. Same for `nil`.
-- **[Bug]** Dependency on `Date.localTimeString()` for output is locale-/timezone-dependent — non-stable representation.
-- **[API]** Method is named `prettyPrintedJSON` but does not produce JSON — only a debug-friendly representation. Rename to `prettyPrinted` or similar.
-- **[Perf]** String concatenation in tight loops over big collections — use a single `String(reserveCapacity:)` or array-join.
+### `Utilities/JSON/JSON+PrettyPrinted.swift` — **[CLOSED]** _Utilities re-audit_
+- **[Bug]** Strings unquoted/unescaped — **[KEPT-AS-IS]** the function name `prettyPrintedJSON` is a misnomer (this is a debug formatter, not JSON); renaming is breaking.
+- **[Bug]** `Bool` not handled (and the existing `as? Int` swallows Bool via NSNumber bridging) — **[FIXED]** added a `Bool`-first branch in both the dictionary and array variants.
+- **[Bug]** `Date.localTimeString()` locale-dependent — **[KEPT-AS-IS]** debug representation, not stable serialization.
+- **[API]** Method name says JSON but isn't — **[KEPT-AS-IS]** breaking rename.
+- **[Perf]** String concatenation — **[KEPT-AS-IS]** debug path.
 
 ### `Utilities/JSON/JSONDecoder+JSONDictionary.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
 - **[Bug]** Order matters for numeric decoding — `decode(Double.self)` happens before `decode(Int.self)` (line 31), so any integer in source JSON becomes a `Double` in output. The unkeyed sibling reverses the order (Int before Double). Pick one, document, and be consistent.
@@ -787,30 +786,29 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 - **[Bug]** Catch-all discards thrown errors as "null"; this also silently swallows malformed JSON. (lines 17-19)
 - **[Concurrency]** Reading `CodableJSONDictionary.dataKeyNames` (line 27) is racy with the global `nonisolated(unsafe)` mutable state.
 
-### `Utilities/JSON/JSONEncoder+JSONDictionary.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `.custom` date strategy is not implemented (line 54 / 103); just logs an error and silently writes nothing for the field. This will produce incomplete encoded output without throwing.
-- **[Bug]** `Bool` ordering: `Bool` is checked first (line 20) — good, prevents `true` becoming `1`. But `value as? Int` (line 22) on an `NSNumber` bridge will match for booleans bridged through Foundation; here Bool comes first so OK.
-- **[Bug]** `jsonValue(from date:)` returns `nil` for `.custom` and `.deferredToDate`; consumers need to handle nil — flag, since other call sites might assume non-nil.
-- **[Convention]** File is 173 lines; split.
-- **[Bug]** Top-level `nestedUnkeyedContainer(forKey:)` writes nested arrays without forwarding `dateEncodingStrategy` (line 38-39), so dates inside nested arrays always use the default `.iso8601`.
+### `Utilities/JSON/JSONEncoder+JSONDictionary.swift` — **[CLOSED]** _Utilities re-audit_
+- **[Bug]** `.custom` date strategy not implemented — **[KEPT-AS-IS]** the `.custom` strategy is encoder-callback-based and doesn't fit the manual builder shape; logging is the least-bad option.
+- **[Bug]** Bool ordering — **[FALSE-POSITIVE]** `Bool` is already checked first.
+- **[Bug]** `jsonValue(from date:)` returns nil for `.custom`/`.deferredToDate` — **[KEPT-AS-IS]** acceptable; callers must handle nil.
+- **[Convention]** File ~173 lines — **[KEPT-AS-IS]** Tier C did not split this; the strategy switch must stay near the encoder methods.
+- **[Bug]** Nested array doesn't forward `dateEncodingStrategy` — **[FIXED]** both keyed (`encode([Any])`) and unkeyed (`encode([Any])`) sub-array paths now pass the strategy through to their `subContainer.encode(...)` calls.
 
-### `Utilities/JSON/JSONDecoder.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** File header: "Created by Ben Gottlieb on 3/15/26." — future date typo; also `JSONEncoder.swift` says `6/11/25`. Cosmetic.
-- No functional issues.
+### `Utilities/JSON/JSONDecoder.swift` — **[CLOSED]** _Utilities re-audit; no changes_
+- **[Bug]** "Future date" typo in header — **[FALSE-POSITIVE]** `3/15/26` parses as 2026-03-15, in the past at time of review. Cosmetic.
 
-### `Utilities/JSON/JSONEncoder.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
+### `Utilities/JSON/JSONEncoder.swift` — **[UNAUDITED]** _no findings reported_
 - No issues.
 
-### `Utilities/MainActor.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** `MainActor.run(after:)` (line 11) calls `await MainActor.run` inside a `Task` *after* an unstructured Task already runs — but the inner `await MainActor.run` returns immediately on hop, then the outer Task's body finishes. This is fine, but the `Task { ... }` wrapper escapes context — there's no way to cancel or await completion. Consider returning a `Task<Void, Never>`.
-- **[Bug]** `withAnimationOnMain(...)` (line 33) when called off-main fires-and-forgets via `MainActor.run { ... }` (the Task-spawning helper above), so the caller cannot synchronize with completion. Names suggest synchrony.
-- **[Bug]** `Thread.isMainThread` check (line 26, 34) is *not* equivalent to "on MainActor" — a non-MainActor function might be running on the main thread without main actor isolation, leading to a strict-concurrency violation when calling main-actor APIs. Use `MainActor.assumeIsolated` (with caveats) or always hop.
-- **[Convention]** File is named `MainActor.swift` but the header says `Animation.swift` — stale.
-- **[Concurrency]** Modern frameworks should avoid blocking on `Thread.isMainThread`; per CLAUDE.md prefer async/await throughout.
+### `Utilities/MainActor.swift` — **[CLOSED]** _Utilities re-audit_
+- **[Concurrency]** Task wrapper escapes context — **[KEPT-AS-IS]** `MainActor.run(after:)` is intentionally fire-and-forget; the type signature returns `Void`. Returning a `Task<Void, Never>` would be a behavior change.
+- **[Bug]** `withAnimationOnMain` off-main fire-and-forget — **[KEPT-AS-IS]** sync/async bridge by design; documented intent.
+- **[Bug]** `Thread.isMainThread` ≠ MainActor — **[KEPT-AS-IS]** the helper exists precisely for sync (non-actor) callers; replacing with `MainActor.assumeIsolated` would only work in async contexts.
+- **[Convention]** Stale header — **[FIXED in M-Z pass]** file header was `Animation.swift`, now `MainActor.swift`.
+- **[Concurrency]** `Thread.isMainThread` per CLAUDE.md — **[KEPT-AS-IS]** intentional bridge.
 
-### `Utilities/ObservableValue.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** Uses Combine; per CLAUDE.md prefer async/await. Not a bug per se but at odds with the convention. `assign(to:on:)` retains `self`, and the cancellable is owned by `self`, but `assign` captures `self` strongly inside the publisher graph — fine for class lifetime.
-- **[API]** No way to update from outside — usable only as a read-only bridge. Document.
+### `Utilities/ObservableValue.swift` — **[CLOSED]** _Utilities re-audit; no changes_
+- **[Concurrency]** Combine usage — **[OUT-OF-SCOPE]** the type's purpose is to bridge `Publisher` → `ObservableObject`. Bridge-by-design.
+- **[API]** Read-only — **[KEPT-AS-IS]** intentional design.
 
 ### `Utilities/Reachability.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
 - **[Concurrency]** `pathMonitor.pathUpdateHandler` (line 41) runs on `queue` (default `.main`), captures `self`, and calls `objectWillChange.sendOnMain()` plus a `Task { @MainActor ... }`. Since `Reachability` is `@MainActor`, calls into `self.callCameOnlineCallbacks()` and `self.isOffline` from the closure are non-isolated — likely a strict-concurrency error / data race on `wasOffline` and `cameOnlineCallbacks`. The closure is also non-Sendable but uses self.
@@ -829,12 +827,12 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 - **[API]** `anyRNG` setter only accepts `SeededRandomNumberGenerator`; passing any other RNG silently no-ops.
 - **[Platform]** Excluded from watchOS — fine since GameKit is unavailable.
 
-### `Utilities/String+Crypto.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- No issues.
+### `Utilities/String+Crypto.swift` — **[CLOSED]** _Utilities re-audit_
+- Bonus: replaced `compactMap` (no benefit, masks intent) with `map` for the hex-string build.
 
-### `Utilities/URLSession.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[API]** Reimplements `URLSession.data(for:)` async API which is built into iOS 15/macOS 12. Once the package's iOS 13 floor is raised, delete. Currently shadows the system version on iOS 15+ — confusing.
-- **[Bug]** Continuation-based wrapper does not propagate cancellation — `Task.cancel()` won't cancel the underlying `URLSessionDataTask`.
+### `Utilities/URLSession.swift` — **[CLOSED]** _Utilities re-audit_
+- **[API]** Shadows iOS 15+ native `data(for:)` — **[KEPT-AS-IS]** Suite still targets iOS 13; the shim is required for 13/14. Delete on minimum-deployment bump.
+- **[Bug]** Continuation wrapper doesn't propagate `Task.cancel()` — **[FIXED]** wired the underlying `URLSessionDataTask` cancellation through `withTaskCancellationHandler`. Added a private `DataTaskHolder` (`@unchecked Sendable` with an `NSLock`) to share the task between the continuation closure and the cancellation handler.
 
 ### `Utilities/Views/FlowedHStack.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
 - **[Convention]** File is 217 lines; split legacy fallback into its own file.
@@ -849,30 +847,31 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 - **[Concurrency]** `nonisolated(unsafe) static var defaultValue: WebViewErrorCallback?` (line 13) is mutable static for an EnvironmentKey default. Should be `let` and likely `nil`.
 - **[Platform]** Branches on `os(visionOS)` for `onChange(of:)` (lines 49-53); iOS 17 introduced the new signature — branch on availability, not OS. macOS 14 will hit the iOS branch incorrectly. (The iOS branch uses the deprecated form; on macOS 14 you might want the new one.)
 
-### `Utilities/Views/SimpleWebView.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Type name `EmbdeddedWebView` (typo: "Embdedded" should be "Embedded") — appears 5+ times. Cosmetic but public-ish.
-- **[Bug]** `@State var webView: WKWebView = .init()` (line 20) — instantiating a WKWebView in a `@State` initializer means a new WKWebView is created during view construction every time, but `@State` will keep the first. However, since `WKWebView()` is `@MainActor` and `init` of struct may be called off-main, this is fragile under strict concurrency. Use `StateObject` with a wrapper or initialize lazily.
-- **[Bug]** `Coordinator` retains `webView` while also being its `navigationDelegate`. The view's `@State webView` is the same instance — single owner OK, but if SwiftUI recreates the view, the coordinator may dangle.
-- **[API]** `EmbdeddedWebView` ignores its `webView` property and instead uses `context.coordinator.webView` — passing two webviews invites desync. The constructor stores `webView` but never uses it after handing to coordinator.
-- **[Bug]** `Coordinator` has no `@MainActor` annotation but `WKWebView`/`WKNavigationDelegate` calls are main-thread.
+### `Utilities/Views/SimpleWebView.swift` — **[CLOSED]** _Utilities re-audit_
+- **[Bug]** `EmbdeddedWebView` typo — **[FIXED 74ce1eb]** corrected to `EmbeddedWebView`.
+- **[Bug]** `@State var webView: WKWebView = .init()` allocates per struct construction — **[KEPT-AS-IS]** wasteful (`WKWebView()` evaluated on every body call, immediately discarded by `@State`'s storage), but the alternative (`@StateObject` + class wrapper) is a meaningful re-architecture; not in scope for this pass.
+- **[Bug]** Coordinator retains `webView` while also being `navigationDelegate` — **[FALSE-POSITIVE]** single owner; works correctly.
+- **[API]** `EmbeddedWebView.webView` vs `context.coordinator.webView` — **[FALSE-POSITIVE]** they reference the same instance (passed through `makeCoordinator`).
+- **[Bug]** `Coordinator` not `@MainActor` — **[KEPT-AS-IS]** WKNavigationDelegate methods are documented to fire on main; the class is created on main. Adding the annotation would over-constrain.
 
-### `Utilities/Views/View+PDF.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Filename built as `"\(self).pdf"` (line 15) — `self` is a SwiftUI view, whose `description` is implementation-defined and may contain characters illegal in filenames (`<`, `>`, etc.). Use a UUID or caller-provided name.
-- **[Bug]** `guard let pdf = CGContext(...)` returns silently from the inner closure (line 23) — caller is told the URL is valid, but no PDF was written. The TODO comment confirms it should throw, but it can't from the renderer closure. Need to surface failure via captured error.
-- **[Bug]** `URL.caches.appendingPathComponent(...)` may not exist; `URL` extensions may be defined elsewhere — verify.
+### `Utilities/Views/View+PDF.swift` — **[CLOSED]** _Utilities re-audit_
+- **[Bug]** `"\(self).pdf"` may contain illegal filename chars — **[FIXED]** default URL now uses `UUID().uuidString` for the filename.
+- **[Bug]** Silent `guard` exit on context-creation failure — **[FIXED]** capture the error in a local, then re-throw after the renderer closure returns. Caller now sees `ViewPDFError.unableToCreateContext`.
+- **[Bug]** `URL.caches` existence — **[FALSE-POSITIVE]** defined in `Foundation/URL+Files.swift`.
+- File header `SwiftUIView.swift` — **[FIXED]** corrected to `View+PDF.swift`.
 
-### `Utilities/Views/WrappedView.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Platform]** No watchOS or tvOS branch — empty on those platforms; ensure callers gate accordingly.
-- **[Memory]** Stores the `view` strongly in the SwiftUI struct; SwiftUI re-instantiates structs frequently — consumer-supplied UIView is retained per re-instantiation. OK if caller is careful.
+### `Utilities/Views/WrappedView.swift` — **[CLOSED]** _Utilities re-audit; no changes_
+- **[Platform]** No watchOS/tvOS — **[KEPT-AS-IS]** those platforms don't have UIKit/AppKit hosting points that fit this representable shape.
+- **[Memory]** Strong-stored view — **[KEPT-AS-IS]** standard SwiftUI representable pattern.
 
-### `Utilities/Views/WrappingHStack.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `sizeThatFits` mutates `cache.lines` (line 56), but Layouts are expected to be deterministic given identical inputs and may be called with different proposals, polluting cache state used later by `placeSubviews`. Use a transient computation or key cache by proposal.
-- **[Bug]** First-element overflow: when an element wider than `bounds.width` is the first in a line, `(0 + width) >= bounds.width` triggers a line break before adding any element — produces an empty line, then the wide element. (line 66) Should not break for the first element of a line.
-- **[Bug]** `>= bounds.width` should be `>` (line 66) — equality fits exactly.
-- **[Bug]** Trailing `horizontalSpacing` is added to every element including the last on a line, so `currentLine.width = offsetX` overcounts width by one trailing spacing. Subtract `horizontalSpacing` after building each line.
-- **[Convention]** `cache.lines.append(currentLine)` (line 86) appends the final line even if empty when there are zero subviews — `calculateSize` will then have `lines.count == 1` instead of 0, returning a non-zero size for an empty layout.
+### `Utilities/Views/WrappingHStack.swift` — **[CLOSED]** _Utilities re-audit_
+- **[Bug]** Cache mutation in `sizeThatFits` — **[KEPT-AS-IS]** standard SwiftUI `Layout` pattern; cache is per-layout-pass.
+- **[Bug]** First-element overflow producing leading empty line — **[FIXED]** the line-break check is now `!currentLine.elements.isEmpty && (offsetX + width) > bounds.width`. An oversized first element stays on its line rather than producing an empty leading line.
+- **[Bug]** `>= bounds.width` vs `>` — **[FIXED]** changed to `>` (equality fits exactly).
+- **[Bug]** Trailing `horizontalSpacing` overcounts line width — **[FIXED]** `currentLine.width = max(0, offsetX - horizontalSpacing)` strips the trailing pad.
+- **[Convention]** Empty final-line append — **[FIXED]** the final-line append is now guarded on `!currentLine.elements.isEmpty`. Empty layouts now return `.zero` from `calculateSize` instead of `(0, verticalSpacing × 0)`.
 
-### `Utilities/WKWebView.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
+### `Utilities/WKWebView.swift` — **[UNAUDITED]** _no findings reported_
 - No issues.
 
 ### `Utilities/WebConsole.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
@@ -884,10 +883,10 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 - **[Convention]** File 197 lines; many delegate forwards could move to a separate file.
 - **[Bug]** `originalNavigationDelegate?.webView?(...)` selector forwarding via `responds(to:)` strings — string-based selector "webView:decidePolicyForNavigationAction:decisionHandler:" is fragile vs `#selector` (used elsewhere in same file).
 
-### `Utilities/WebConsoleView.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Non-localizable strings ("loaded", "Loaded", "No content", etc.) — note "loaded" vs "Loaded" capitalization mismatch between two cases (lines 34 and 38) suggests a copy-paste typo: the `.loading` case shows "Loaded" which is wrong.
-- **[Convention]** Hardcoded font size 16 (line 55). Use `.body` or system font tokens.
-- **[SwiftUI]** Several short text labels would benefit from `.monospaced()` etc; minor.
+### `Utilities/WebConsoleView.swift` — **[CLOSED]** _Utilities re-audit_
+- **[Bug]** "Loaded"/"Loading" label swap — **[FIXED 74ce1eb]** the `.loading` case showed "Loaded" — corrected in the typos pass.
+- **[Convention]** Hardcoded font size 16 — **[KEPT-AS-IS]** monospaced editor font; the size constant is unavoidable for this control.
+- **[SwiftUI]** `.monospaced()` not used elsewhere — **[KEPT-AS-IS]** minor styling.
 
 ## SwiftUI / Component Views
 

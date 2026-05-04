@@ -14,9 +14,7 @@ public extension String {
     var sha256: String {
         let inputData = Data(self.utf8)
         let hashedData = SHA256.hash(data: inputData)
-        let hashString = hashedData.compactMap {
-            return String(format: "%02x", $0)
-        }.joined()
+        let hashString = hashedData.map { String(format: "%02x", $0) }.joined()
         
         return hashString
     }

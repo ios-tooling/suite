@@ -36,7 +36,7 @@ extension KeyedEncodingContainer where K == JSONCodingKey {
 				try subContainer.encode(dict, dateEncodingStrategy: dateEncodingStrategy)
 			} else if let array = value as? [Any] {
 				var subContainer = nestedUnkeyedContainer(forKey: codingKey)
-				try subContainer.encode(array)
+				try subContainer.encode(array, dateEncodingStrategy: dateEncodingStrategy)
 			}
 		}
 	}
@@ -85,7 +85,7 @@ extension UnkeyedEncodingContainer {
 				try subContainer.encode(dict, dateEncodingStrategy: dateEncodingStrategy)
 			} else if let childArray = value as? [Any] {
 				var subContainer = nestedUnkeyedContainer()
-				try subContainer.encode(childArray)
+				try subContainer.encode(childArray, dateEncodingStrategy: dateEncodingStrategy)
 			}
 		}
 	}

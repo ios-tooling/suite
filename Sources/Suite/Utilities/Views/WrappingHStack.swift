@@ -52,42 +52,43 @@ public struct WrappingHStack: Layout {
 	
 	public func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout CacheStorage) -> CGSize {
 		let bounds = CGRect(origin: .zero, size: .init(width: proposal.width ?? .infinity, height: proposal.height ?? .infinity))
-		
+
 		cache.lines = []
-		
+
 		var offsetX = 0.0
 		var currentLine = CacheStorage.Line()
-		
+
 		for (_, view) in subviews.enumerated() {
 			let calculatedSize = view.sizeThatFits(
 				.init(width: bounds.width, height: bounds.height)
 			)
-			
-			if (offsetX + calculatedSize.width) >= bounds.width {					// line break
-				currentLine.width = offsetX
-				
+
+			// Break only when the line already contains an element; an oversized first element
+			// stays on its line rather than producing a leading empty line.
+			if !currentLine.elements.isEmpty, (offsetX + calculatedSize.width) > bounds.width {
+				currentLine.width = max(0, offsetX - horizontalSpacing)
 				offsetX = 0
 				cache.lines.append(currentLine)
 				currentLine = .init()
 			}
-			
+
 			let calculatedElement = CacheStorage.CalculatedElement(element: view, size: calculatedSize)
-			
+
 			currentLine.elements.append(calculatedElement)
-			
+
 			offsetX += calculatedSize.width + horizontalSpacing
-			
+
 			if currentLine.height < calculatedElement.size.height {
 				currentLine.height = calculatedElement.size.height
 			}
 		}
-		
-		currentLine.width = offsetX
-		cache.lines.append(currentLine)
-		
-		let size = cache.calculateSize(verticalSpacing: verticalSpacing)
-		
-		return size
+
+		if !currentLine.elements.isEmpty {
+			currentLine.width = max(0, offsetX - horizontalSpacing)
+			cache.lines.append(currentLine)
+		}
+
+		return cache.calculateSize(verticalSpacing: verticalSpacing)
 	}
 	
 	public func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout CacheStorage) {

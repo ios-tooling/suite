@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import CloudKit
 
 extension KeyedDecodingContainer {
 	public func decode(_ type: [String: Any].Type, forKey key: Self.Key) throws -> [String: Any] {
@@ -24,7 +23,9 @@ extension KeyedDecodingContainer {
 		var result: [String: Any] = [:]
 		
 		for nestedKey in container.allKeys {
-			if let int = try? container.decode(Int.self, forKey: nestedKey) {
+			if let bool = try? container.decode(Bool.self, forKey: nestedKey) {
+				result[nestedKey.stringValue] = bool
+			} else if let int = try? container.decode(Int.self, forKey: nestedKey) {
 				result[nestedKey.stringValue] = int
 			} else if let string = try? container.decode(String.self, forKey: nestedKey) {
 				result[nestedKey.stringValue] = string
@@ -53,7 +54,9 @@ extension KeyedDecodingContainer {
 		var result: [Any] = []
 		
 		while !container.isAtEnd {
-			if let int = try? container.decode(Int.self) {
+			if let bool = try? container.decode(Bool.self) {
+				result.append(bool)
+			} else if let int = try? container.decode(Int.self) {
 				result.append(int)
 			} else if let string = try? container.decode(String.self) {
 				result.append(string)
@@ -88,7 +91,9 @@ extension KeyedEncodingContainer {
 			let codedKey = StringCodingKey(key)
 			let value = dictionary[key]
 			
-			if let int = value as? Int {
+			if let bool = value as? Bool {
+				try container.encode(bool, forKey: codedKey)
+			} else if let int = value as? Int {
 				try container.encode(int, forKey: codedKey)
 			} else if let string = value as? String {
 				try container.encode(string, forKey: codedKey)
@@ -115,7 +120,9 @@ extension KeyedEncodingContainer {
 		for index in array.indices {
 			let value = array[index]
 			
-			if let int = value as? Int {
+			if let bool = value as? Bool {
+				try container.encode(bool)
+			} else if let int = value as? Int {
 				try container.encode(int)
 			} else if let string = value as? String {
 				try container.encode(string)
@@ -145,17 +152,6 @@ fileprivate struct StringCodingKey: CodingKey, Equatable, Comparable {
 	var intValue: Int? { nil }
 	
 	static func <(lhs: Self, rhs: Self) -> Bool { lhs.stringValue < rhs.stringValue }
-}
-
-fileprivate struct IntCodingKey: CodingKey, Comparable, Equatable {
-	let index: Int
-	init(_ index: Int) { self.index = index }
-	var stringValue: String { "\(index)" }
-	init?(stringValue: String) { return nil }
-	init?(intValue: Int) { index = intValue }
-	var intValue: Int? { index }
-	
-	static func <(lhs: Self, rhs: Self) -> Bool { lhs.intValue! < rhs.intValue! }
 }
 
 fileprivate struct EncodedDate: Codable { let date: Date }

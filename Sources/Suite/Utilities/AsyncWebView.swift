@@ -10,28 +10,22 @@ import WebKit
 
 @MainActor public class AsyncWebView: NSObject, WKNavigationDelegate {
 	var continuation: CheckedContinuation<Void, Error>?
-	public var webView: WKWebView!
-	
+	public let webView: WKWebView
+
 	public override init() {
-		super.init()
-		Task { @MainActor in
-			self.setup()
-		}
-	}
-	
-	func setup() {
 		webView = WKWebView(frame: .init(x: 0, y: 0, width: 100, height: 100))
+		super.init()
 		webView.navigationDelegate = self
 	}
-	
+
 	public func load(_ url: URL) async throws {
 		try await load(URLRequest(url: url))
 	}
-	
+
 	public func load(_ request: URLRequest) async throws {
 		let _: Void = try await withCheckedThrowingContinuation { continuation in
 			self.continuation = continuation
-			MainActor.run { _ = self.webView.load(request) }
+			_ = webView.load(request)
 		}
 	}
 	

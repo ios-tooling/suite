@@ -34,8 +34,10 @@ public extension Dictionary where Key == String {
 
 		for (key, value) in self {
 			result += prefix + "\t" + key + ": "
-			
-			if let int = value as? Int {
+
+			if let bool = value as? Bool {
+				result += "\(bool)"
+			} else if let int = value as? Int {
 				result += "\(int)"
 			} else if let string = value as? String {
 				result += "\(string)"
@@ -69,8 +71,10 @@ extension Array {
 		for index in indices {
 			let value = self[index]
 			result += prefix + "\t" + "\(index): "
-			
-			if let int = value as? Int {
+
+			if let bool = value as? Bool {
+				result += "\(bool)"
+			} else if let int = value as? Int {
 				result += "\(int)"
 			} else if let string = value as? String {
 				result += "\(string)"
