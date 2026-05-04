@@ -14,7 +14,11 @@ extension EnvironmentValues {
 @available(OSX 13, iOS 15, tvOS 14, watchOS 9, *)
 @MainActor public class DragCoordinator: ObservableObject {
 	var containerFrame: CGRect?
-	
+
+	public init(snapbackDuration: TimeInterval = 0.2) {
+		self.snapbackDuration = snapbackDuration
+	}
+
 	@Published var draggedImage: DragImage?
 	@Published var currentPosition: CGPoint?
 	@Published var startPosition: CGPoint?
@@ -31,7 +35,7 @@ extension EnvironmentValues {
 	@Published var sourcePoint = CGPoint.zero
 	@Published var dragAcceptance = DragAcceptance.rejected
 	
-	func describe() {
+	func describe() -> String {
 		var text = ""
 		if let draggedImage { text += "draggedImage: \(draggedImage)\n" }
 		if let currentPosition { text += "currentPosition: \(currentPosition)\n"}
@@ -47,8 +51,9 @@ extension EnvironmentValues {
 		text += "dropScale: \(dropScale)\n"
 		text += "sourcePoint: \(sourcePoint)\n"
 		text += "dragAcceptance: \(dragAcceptance)\n"
+		return text
 	}
-	
+
 
 	public enum DragAcceptance: Equatable { case rejected, accepted(Int), acceptedHighlight(Int), acceptedHidden(Int), acceptedHiddenHighlight(Int)
 		var showAccepted: Bool {

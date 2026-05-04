@@ -15,9 +15,7 @@ public struct DragContainer<Content: View>: View {
 	
 	public init(enabled: Bool = true, snapbackDuration: TimeInterval = 0.2, @ViewBuilder content: @escaping () -> Content) {
 		self.content = content
-		let coordinator = DragCoordinator()
-		coordinator.snapbackDuration = snapbackDuration
-		_coordinator = StateObject(wrappedValue: coordinator)
+		_coordinator = StateObject(wrappedValue: DragCoordinator(snapbackDuration: snapbackDuration))
 		isDragEnabled = enabled
 	}
 	

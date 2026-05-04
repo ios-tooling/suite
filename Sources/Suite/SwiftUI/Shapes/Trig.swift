@@ -56,19 +56,14 @@ public extension CGPoint {
 }
 
 public extension CGRect {
+	/// Point on a circle inscribed in this rect, at a clock-style angle (0° = 12 o'clock, increasing clockwise).
+	/// `radius` is a 0...1 multiplier of `min(width, height) / 2`.
 	func point(for angle: Angle, radius r: Double) -> CGPoint {
-		let adjustedAngle = angle.adjustedForQuadrant
 		let maxRadius = min(width, height) / 2
-		
-		let x = r * maxRadius * sin(adjustedAngle.radians)
-		let y = r * maxRadius * cos(adjustedAngle.radians)
-		
-		switch angle.quadrant {
-		case .i: return .init(x: midX + x, y: midY - y)
-		case .ii: return .init(x: midX - y, y: midY - x)
-		case .iii: return .init(x: midX - x, y: midY + y)
-		case .iv: return .init(x: midX + y, y: midY + x)
-		}
+		let radius = r * maxRadius
+		// Screen coordinates have y increasing downward, so cos is negated.
+		return CGPoint(x: midX + radius * sin(angle.radians),
+					   y: midY - radius * cos(angle.radians))
 	}
 }
 

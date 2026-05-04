@@ -1064,3 +1064,123 @@ Entries are grouped by directory and tagged at finding-level: `[FIXED]`, `[FIXED
 - **[Concurrency]** `ModelContext` is not Sendable; these extensions are usable only within the context's isolation domain (typically `@MainActor` for the main context). Methods are not annotated; fine in practice but document.
 - **[Convention]** File is fine size-wise.
 
+
+## SwiftUI / Component Views
+
+### `SwiftUI/Component Views/ErrorDisplayingView.swift` — **[CLOSED]** _batch A re-audit_
+- **[Bug]** Wrong `import Foundation` — **[FIXED]** changed to `import SwiftUI`.
+
+### `SwiftUI/Component Views/FixedSpacer.swift` — **[CLOSED]** _batch A re-audit; no changes_
+- **[Platform]** Missing tvOS in availability — **[KEPT-AS-IS]** stylistic; tvOS is implicit at the file level.
+- **[API]** Optional `width`/`height` shape — **[KEPT-AS-IS]** breaking redesign.
+
+### `SwiftUI/Component Views/FullScreenCoverLink.swift` — **[CLOSED]** _batch A re-audit; no changes_
+- **[Platform]** Misleading watchOS availability — **[KEPT-AS-IS]** the wrap is `#if os(iOS)`; the watchOS line is unreachable but harmless.
+- **[API]** `fullScreenCover` shadow — **[KEPT-AS-IS]** documented compatibility shim.
+- **[Style]** `String` vs `LocalizedStringKey` — **[KEPT-AS-IS]** breaking signature change.
+
+### `SwiftUI/Component Views/HostingWindow.swift` — **[CLOSED]** _batch A re-audit; no changes_
+- **[Concurrency]** `nonisolated(unsafe)` on closure default — **[KEPT-AS-IS]** EnvironmentKey constraint; the wrapper is the canonical workaround.
+- **[Memory]** Fetcher called every read — **[KEPT-AS-IS]** documented contract.
+- **[Bug]** Hard-coded 480x300 in init — **[KEPT-AS-IS]** Tier B item; widespread.
+- **[Platform]** `WindowFetcher` typealias scope — **[KEPT-AS-IS]** harmless.
+
+### `SwiftUI/Component Views/KeyboardSpacer.swift` — **[FIXED 74ce1eb]** entirely-commented-out file deleted in earlier typo/cleanup pass.
+
+### `SwiftUI/Component Views/LoadingView.swift` — **[CLOSED]** _batch A re-audit_
+- **[Bug]** Dead `showError` state — **[FIXED]** removed `@State var showError` and `@State var error` (both unused). Also removed the `showError = true` assignment in the `.task` body.
+- **[Bug]** `.idle` flash — **[KEPT-AS-IS]** `.task` runs immediately on appear; the flash window is a frame.
+- **[API]** `Body` generic shadows `View.Body` — **[KEPT-AS-IS]** breaking rename.
+- **[Style]** Dense init — **[KEPT-AS-IS]** parameters are necessary.
+
+### `SwiftUI/Component Views/LongPressButton.swift` — **[CLOSED]** _batch A re-audit; no changes_
+- **[Bug]** `Date!` IUO `@State` — **[KEPT-AS-IS]** never force-unwrapped; type signature is awkward but works.
+- **[Bug]** Double-fire risk — **[KEPT-AS-IS]** the `longPressInvalidated` guard handles the practical case.
+- **[Bug]** Inconsistent `@MainActor` on Task — **[KEPT-AS-IS]** the `longPress` callback is documented as user-supplied; isolation is the caller's concern.
+- **[Concurrency]** Local-capture pattern — **[KEPT-AS-IS]** SwiftUI gesture-state idiom.
+- **[Style]** Missing space `onEnded{` — **[KEPT-AS-IS]** cosmetic.
+- **[API]** 5-parameter init — **[KEPT-AS-IS]**.
+
+### `SwiftUI/Component Views/SimpleErrorMessageView.swift` — **[CLOSED]** _batch A re-audit_
+- **[Platform]** Missing tvOS — **[FIXED]** added `tvOS 15.0` to the `@available` line.
+- **[API]** `var fallbackText` — **[FIXED]** changed to `let`.
+- **[API]** No public init — **[FIXED]** added `public init(error:fallbackText:)`.
+
+### `SwiftUI/Component Views/SimpleProgressView.swift` — **[UNAUDITED]** _no actionable findings_
+- Spacer wrapping — **[KEPT-AS-IS]** documented behavior.
+
+### `SwiftUI/Component Views/Spacers.swift` — **[UNAUDITED]** _no actionable findings_
+- No `@available` — **[KEPT-AS-IS]** types use no version-gated APIs.
+
+## SwiftUI / Button Styles
+
+### `SwiftUI/Button Styles/FullWidthButtonStyle.swift` — **[CLOSED]** _batch A re-audit_
+- **[Bug]** Line 41 returns `foregroundColor` for background — **[FIXED]** corrected to `backgroundColor ?? .white`. Mirrors the line-38 iOS/macOS pattern. (Was a copy-paste bug in the watchOS branch.)
+- **[Style]** Hard-coded dimensions — **[KEPT-AS-IS]** Tier B item.
+- **[Platform]** Missing tvOS — **[KEPT-AS-IS]** consistent with the directory's pattern.
+- **[API]** No customizable cornerRadius — **[KEPT-AS-IS]** could add but breaks current API shape.
+
+### `SwiftUI/Button Styles/SafeGlassButtonStyle.swift` — **[CLOSED]** _batch A re-audit; no changes_
+- **[Platform]** visionOS branch — **[KEPT-AS-IS]** intentional; visionOS doesn't ship `.glass` style yet.
+- **[Suggestion]** `iOS 26.0` placeholder — **[KEPT-AS-IS]** forward-looking; `if #available` falls through gracefully.
+
+## SwiftUI / Drag and Drop
+
+### `SwiftUI/Drag and Drop/DragContainer.swift` — **[CLOSED]** _batch A re-audit_
+- **[Concurrency]** Mutating `@MainActor` property from non-actor init — **[FIXED]** added `init(snapbackDuration:)` to `DragCoordinator` so the construction-and-configure pattern collapses into one call (`DragCoordinator(snapbackDuration: ...)`).
+- **[Bug]** `coordinator.containerFrame` not @Published — **[KEPT-AS-IS]** intentional; the frame is recomputed in `dragOffset` each render.
+- **[API]** `containerFrame` internal — **[KEPT-AS-IS]** access scope works.
+
+### `SwiftUI/Drag and Drop/DragCoordinator.swift` — **[CLOSED]** _batch A re-audit_
+- **[Bug]** `describe()` builds string but returns nothing — **[FIXED]** now returns `String` so callers can actually use it.
+- **[API]** `Any?` draggedObject — **[KEPT-AS-IS]** the coordinator is type-erased by design (drag any type by string ID).
+- **[API]** `String?` dragType — **[KEPT-AS-IS]** stringly-typed by design.
+- **[Style]** Inline enum cases — **[KEPT-AS-IS]** stylistic.
+- **[Concurrency]** 10ms sleep as sync primitive — **[KEPT-AS-IS]** documented; relies on SwiftUI's state propagation timing.
+- **[Memory]** No cleanup of `draggedObject` — **[KEPT-AS-IS]** `completeDrag()` already nils it.
+- **[Style]** 159 lines — **[KEPT-AS-IS]** logical unit.
+- Bonus: added `public init(snapbackDuration:)` to support DragContainer's MainActor-correct construction.
+
+### `SwiftUI/Drag and Drop/View+makeDraggable.swift` — **[CLOSED]** _batch A re-audit_
+- **[Bug]** Custom `==` ignores associated value — **[FIXED]** removed the manual `==`; Swift's synthesized `Equatable` for the enum properly distinguishes `.dropped("a")` from `.dropped("b")`.
+- **[Concurrency]** Task without `@MainActor` mutates @State — **[FIXED]** Task now `@MainActor`.
+- **[Concurrency]** Local-capture pattern — **[KEPT-AS-IS]** SwiftUI gesture idiom.
+- **[Bug]** `ImageRenderer` MainActor — **[KEPT-AS-IS]** `.updating` runs on main during gesture.
+- **[Style]** Inline enum cases — **[KEPT-AS-IS]**.
+- **[API]** 7-parameter modifier — **[KEPT-AS-IS]** breaking redesign.
+- **[Convention]** 135 lines — **[KEPT-AS-IS]**.
+- File header `View+DragContainer.swift` — **[FIXED]** corrected to `View+makeDraggable.swift`.
+
+### `SwiftUI/Drag and Drop/View+makeDropTarget.swift` — **[CLOSED]** _batch A re-audit_
+- **[Concurrency]** `@MainActor extension CoordinateSpace` — **[KEPT-AS-IS]** harmless.
+- **[Bug]** Notification posted per onAppear — **[KEPT-AS-IS]** fan-out behavior is intentional.
+- **[Bug]** `dropPositionChanged` ignores priority — **[FIXED]** added the same `dragAcceptance.priority > priority` guard that `currentPositionChanged` uses, so a higher-priority hover is no longer overwritten by a lower-priority drop accept.
+- **[API]** 8-parameter modifier — **[KEPT-AS-IS]** breaking redesign.
+- **[Style]** Hard-coded `dropIndicatorSize = 30.0` — **[KEPT-AS-IS]** Tier B item.
+- **[Convention]** 144 lines — **[KEPT-AS-IS]**.
+
+## SwiftUI / Shapes
+
+### `SwiftUI/Shapes/Line.swift` — **[CLOSED]** _batch A re-audit_
+- **[API]** `var horizontal` — **[FIXED]** changed to `let`.
+- **[API]** Bool vs `Axis` — **[KEPT-AS-IS]** breaking rename.
+
+### `SwiftUI/Shapes/PartlyRoundedRectangle.swift` — **[CLOSED]** _batch A re-audit_
+- **[Bug]** Radius clamp — **[FIXED]** clamps to `min(rect.width, rect.height) / 2` (was `min(rect.width, rect.height)`, which let opposite-side corners overlap when radius reached the full dimension).
+- **[Platform]** Angle extension scope — **[FALSE-POSITIVE]** public Angle extensions are needed for the path math.
+- **[Style]** `CGPoint(_:_:)` unlabeled init — **[KEPT-AS-IS]** project-supplied extension on `CGPoint`.
+- **[API]** `Corner` array vs OptionSet — **[KEPT-AS-IS]** breaking rename.
+
+### `SwiftUI/Shapes/Path.swift` — **[CLOSED]** _batch A re-audit_
+- **[Bug]** `encircle(radius:)` used the parameter as diameter — **[FIXED]** rewrote the rect math so `radius` is actually a radius (`x: current.x - radius`, `width: radius * 2`). Also halved the two internal call sites (`encircle(radius: 5)` → `encircle(radius: 2.5)`) so the rendered control-point markers stay the same visual size.
+- **[Bug]** Recursive call risk — **[FALSE-POSITIVE]** Swift selects the standard `addCurve(to:control1:control2:)` overload (no `showingControlPoints` label).
+
+### `SwiftUI/Shapes/Shape.swift` — **[UNAUDITED]** _no actionable findings_
+- **[API]** `some View` return — **[KEPT-AS-IS]** intentional API shape.
+
+### `SwiftUI/Shapes/Trig.swift` — **[CLOSED]** _batch A re-audit_
+- **[Bug]** `Angle.quadrant` mapping — **[KEPT-AS-IS]** the public API stayed; the enum has known quirks but no in-repo callers.
+- **[Bug]** `adjustedForQuadrant` math — **[KEPT-AS-IS]** same.
+- **[Bug]** `CGPoint.quadrant` vs `Angle.quadrant` system mismatch — **[FIXED via rewrite]** rewrote `CGRect.point(for:radius:)` to use the direct parametric form (`midX + r·sin(θ)`, `midY − r·cos(θ)`) instead of going through the broken quadrant adjustment. Now correct for all clock-style angles 0..360. (The Quadrant enum itself stays public but `point(for:)` no longer depends on it.) Reversal of the earlier "DISPUTED" disposition: the old `.iv` math actually placed angle=180 at top-center (wrong); the rewrite fixes it.
+- **[API]** Inline enum cases — **[KEPT-AS-IS]** stylistic.
+- **[Suggestion]** No tests — **[KEPT-AS-IS]** flagged for follow-up.

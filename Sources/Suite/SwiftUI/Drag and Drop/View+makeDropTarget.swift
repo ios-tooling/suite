@@ -91,6 +91,8 @@ struct DropTargetView<Content: View>: View {
 	func dropPositionChanged(to dropPoint: CGPoint?, using geo: GeometryProxy) {
 		guard let dropPoint = convert(point: dropPoint, using: geo) else { return }
 		if let point = dropPosition(at: dropPoint), let type = dragCoordinator.dragType, let object = dragCoordinator.draggedObject {
+			// Honor the priority ladder: a higher-priority target already accepted, so don't overwrite it.
+			if dragCoordinator.dragAcceptance.priority > priority { return }
 			if dropped(type, object, point, dragCoordinator.sourcePoint) {
 				dragCoordinator.acceptedDrop = true
 				dragCoordinator.currentDropTargetID = dropTargetID

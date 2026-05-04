@@ -1,5 +1,5 @@
 //
-//  View+DragContainer.swift
+//  View+makeDraggable.swift
 //  Internal
 //
 //  Created by Ben Gottlieb on 3/14/23.
@@ -10,16 +10,6 @@ import SwiftUI
 #if !os(tvOS)
 public enum DragPhase: Equatable {
 	case idle, starting, dropped(String), cancelled
-		
-	public static func ==(lhs: Self, rhs: Self) -> Bool {
-		switch (lhs, rhs) {
-		case (.idle, .idle): true
-		case (.starting, .starting): true
-		case (.cancelled, .cancelled): true
-		case (.dropped, .dropped): true
-		default: false
-		}
-	}
 }
 public typealias DropPhaseChangedCallback = (@Sendable (DragPhase) -> Void)
 
@@ -119,7 +109,7 @@ struct DraggableView<Content: View>: View {
 			}
 			.onEnded { action in
 				if !enabled { return }
-				Task {
+				Task { @MainActor in
 					try? await Task.sleep(for: .seconds(snapbackDuration))
 					isDragging.wrappedValue = false
 					if dragCoordinator.acceptedDrop, let targetID = dragCoordinator.currentDropTargetID {

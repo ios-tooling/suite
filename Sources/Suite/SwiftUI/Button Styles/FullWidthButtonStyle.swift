@@ -38,7 +38,7 @@ public struct FullWidthButtonStyle: ButtonStyle {
 			if !borderOnly { return backgroundColor ?? Color.accentColor }
 			return backgroundColor ?? Color.systemBackground
 		#else
-			if !borderOnly { return foregroundColor ?? .white }
+			if !borderOnly { return backgroundColor ?? .white }
 			return backgroundColor ?? Color.black
 		#endif
 	}

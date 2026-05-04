@@ -5,7 +5,7 @@
 //  Created by Ben Gottlieb on 8/18/23.
 //
 
-import Foundation
+import SwiftUI
 
 @available(OSX 12, iOS 14.0, tvOS 13, watchOS 7, *)
 public struct ErrorDisplayingView: View {

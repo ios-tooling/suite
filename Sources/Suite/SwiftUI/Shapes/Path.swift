@@ -13,12 +13,12 @@ public extension Path {
     mutating func addCurve(to end: CGPoint, control1 cp1: CGPoint, control2 cp2: CGPoint, showingControlPoints: Bool) {
         if showingControlPoints, let current = currentPoint {
             move(to: cp1)
-            encircle(radius: 5)
+            encircle(radius: 2.5)
             move(to: cp1)
             addLine(to: current)
 
             move(to: cp2)
-            encircle(radius: 5)
+            encircle(radius: 2.5)
             move(to: cp2)
             addLine(to: end)
 
@@ -29,7 +29,7 @@ public extension Path {
     
     mutating func encircle(radius: CGFloat) {
         guard let current = currentPoint else { return }
-        addEllipse(in: CGRect(x: current.x - radius / 2, y: current.y - radius / 2, width: radius, height: radius))
+        addEllipse(in: CGRect(x: current.x - radius, y: current.y - radius, width: radius * 2, height: radius * 2))
     }
 }
 #endif

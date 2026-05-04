@@ -8,7 +8,7 @@
 import SwiftUI
 
 public struct Line: Shape {
-	var horizontal = true
+	let horizontal: Bool
 	public init(horizontal: Bool = true) {
 		self.horizontal = horizontal
 	}

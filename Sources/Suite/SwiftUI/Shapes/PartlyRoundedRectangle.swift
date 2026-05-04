@@ -22,7 +22,7 @@ public struct PartlyRoundedRectangle: Shape {
 
 	public func path(in rect: CGRect) -> Path {
 		var path = Path()
-		let radius = min(self.radius, min(rect.width, rect.height))
+		let radius = min(self.radius, min(rect.width, rect.height) / 2)
 		
 		path.move(to: CGPoint(rect.minX, rect.midY))
 		if corners.contains(.topLeading) {

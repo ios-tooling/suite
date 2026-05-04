@@ -8,11 +8,16 @@
 import SwiftUI
 
 
-@available(iOS 15.0, macOS 12.0, watchOS 8.0, *)
+@available(iOS 15.0, macOS 12.0, watchOS 8.0, tvOS 15.0, *)
 public struct SimpleErrorMessageView: View {
 	let error: Error?
-	var fallbackText: String?
-	
+	let fallbackText: String?
+
+	public init(error: Error?, fallbackText: String? = nil) {
+		self.error = error
+		self.fallbackText = fallbackText
+	}
+
 	public var body: some View {
 		Group {
 			if let error {

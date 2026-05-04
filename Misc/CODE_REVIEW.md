@@ -165,9 +165,9 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 
 # Detailed Findings (file-by-file) — Open Work
 
-> **Status:** 175 of 310 file sections have been resolved (fixed, false positives, kept-as-is with reasoning, or rendered moot by other refactors). Those have been moved to **`CODE_REVIEW_RESOLVED.md`** in this directory. This file holds the **135 file sections still labeled `[UNAUDITED]`** — the original review snapshot, not yet re-verified against current code.
+> **Status:** 123 file sections still labeled `[UNAUDITED]` here — the original review snapshot, not yet re-verified against current code. The other ~187 file sections have been resolved (fixed, false positives, kept-as-is with reasoning, or rendered moot by other refactors) and moved to **`CODE_REVIEW_RESOLVED.md`** in this directory.
 >
-> Re-audit passes that have produced finding-level tags so far: macros (6 files), Foundation M-Z (19), Utilities (20), Foundation A-K (21), SwiftUI batch C (11), SwiftUI batch B (22).
+> Re-audit passes that have produced finding-level tags so far: macros, Foundation M-Z, Utilities, Foundation A-K, SwiftUI batch C, SwiftUI batch B, SwiftUI batch A.
 
 
 ## Package
@@ -331,133 +331,6 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 
 ### `Utilities/WKWebView.swift` — **[UNAUDITED]** _no findings reported_
 - No issues.
-
-## SwiftUI / Component Views
-
-
-### `SwiftUI/Component Views/ErrorDisplayingView.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Line 8: imports `Foundation` but uses SwiftUI types (`View`, `Text`). Builds only because `View` leaks via another import? Should `import SwiftUI`.
-
-### `SwiftUI/Component Views/FixedSpacer.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Platform]** Line 11: `@available` is missing `tvOS`. Other files in the directory specify it; inconsistent.
-- **[API]** `width`/`height` stored as optionals when the init forces exactly one — can simplify by storing axis + dimension or two distinct types.
-
-### `SwiftUI/Component Views/FullScreenCoverLink.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Platform]** Line 27: `@available(iOS 14.0, watchOS 8.0, *)` claims watchOS support, but the type is wrapped in `#if os(iOS)` (line 26) — so the `watchOS` availability is unreachable/misleading.
-- **[API]** Line 12-22: macOS `fullScreenCover` shim aliasing to `.sheet` shadows Apple's own `fullScreenCover` API on Catalyst-imported codebases. Naming-collision risk; consider a different name (`compatFullScreenCover`).
-- **[Style]** Line 49: `extension FullScreenCoverLink where Label == Text` exposes `String` (not `LocalizedStringKey`) — inconsistent with `AsyncButton` which uses `LocalizedStringKey`.
-
-### `SwiftUI/Component Views/HostingWindow.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** Line 20: `nonisolated(unsafe) static let defaultValue: WindowFetcher = { nil }` — `WindowFetcher` is a closure that's not `@Sendable`, and `EnvironmentKey.defaultValue` is now Sendable-required. Marking `unsafe` papers over the warning.
-- **[Memory]** Line 27: setter `set { self[HostingWindowKey.self] = { [weak newValue] in newValue } }` is good (weak), but the env-value getter calls the fetcher on every read — fine, but worth documenting.
-- **[Bug]** Line 32-56: `HostingWindow.init` uses hard-coded `width: 480, height: 300` with no parameter — violates "avoid hard-coded dimensions". Should be configurable.
-- **[Platform]** File guards `#if canImport(AppKit) && canImport(SwiftUI) && !targetEnvironment(macCatalyst)` — typealias `WindowFetcher` (line 16) is declared at file scope without `@available`, so it's exported even when `EnvironmentKey` (line 19) requires macOS 10.15. Minor.
-
-### `SwiftUI/Component Views/KeyboardSpacer.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Style]** Entire file is commented out. Either delete the file or extract a TODO; leaving 80 lines of dead code in the repo creates noise.
-
-### `SwiftUI/Component Views/LoadingView.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Line 46-58: `.task { state = .loading; ...; showError = true }`. After `state = .loaded(...)`, setting `showError = true` triggers a re-render but `showError` is unused anywhere in the body. Dead state. Also, `task` re-runs whenever the view's identity changes; after success, `showError` flip is meaningless.
-- **[Bug]** Line 30: `.idle` case shows `EmptyView()` — but `.task` will run on first appear and set state to `.loading`, so `.idle` is briefly visible (may flash). Fine, but consider showing `loadingBody()` for `.idle` too.
-- **[API]** Line 11: `Body` generic parameter shadows SwiftUI's `View.Body` associated type — confusing.
-- **[Style]** Long line 20: 6-parameter init declaration on a single line is dense but compliant with rule.
-
-### `SwiftUI/Component Views/LongPressButton.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Line 20: `@State private var longPressStartedAt: Date!` — implicitly unwrapped optional `@State`. Force-unwraps don't appear, but the type signature is awkward — should be `Date?`.
-- **[Bug]** Line 89: `abs(longPressStartedAt.wrappedValue?.timeIntervalSinceNow ?? 0) > delay` — fires `longPressed()` based on elapsed time during drag updates, which is redundant with the `Task.sleep`-driven trigger at line 84, and can fire `longPressed()` twice in rapid succession (the `longPressInvalidated` guard helps but is not atomic).
-- **[Bug]** Line 56: `Task { ... try await longPress() }` is not `@MainActor`-annotated, while line 43 is. Inconsistent — if `longPress` mutates view state it must be on main.
-- **[Concurrency]** Line 67-69: capturing `_longPressStartedAt`, `longPressed`, `delay` into locals inside `body` is a workaround for `@State` quirks; usable but obscure. The `longPressed` local function will be re-created every body invocation, potentially causing re-evaluation churn.
-- **[Style]** Line 100: `.onEnded{ value in` — missing space; the parameter `value` is unused.
-- **[API]** Line 24: 5-parameter init plus default empty `longPress` closure; ok.
-
-### `SwiftUI/Component Views/SimpleErrorMessageView.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Platform]** Line 11: missing `tvOS` in availability — used by `LoadingView` which targets tvOS 15.
-- **[API]** Line 14: `fallbackText` is `var` not `let` — should be `let` (set only at init).
-- **[API]** No public init — generated memberwise init is internal, blocking external instantiation despite `public struct`.
-
-### `SwiftUI/Component Views/SimpleProgressView.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Style]** No issues beyond `Spacer()` wrapping that may stretch full height where unwanted.
-
-### `SwiftUI/Component Views/Spacers.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[API]** Public types but no `@available`. Minor.
-
-## SwiftUI / Button Styles
-
-
-### `SwiftUI/Button Styles/FullWidthButtonStyle.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Line 41: `if !borderOnly { return foregroundColor ?? .white }` — in the `borderOnly = false` watchOS branch, returns *foreground* color as background. Almost certainly a bug; should be `backgroundColor ?? .white` (mirrors line 38 pattern).
-- **[Style]** Line 17: `let cornerRadius = 8.0` and line 65: `.frame(height: 50)` — hard-coded dimensions.
-- **[Platform]** Line 11: missing `tvOS` from availability.
-- **[API]** No way to customize `cornerRadius`.
-
-### `SwiftUI/Button Styles/SafeGlassButtonStyle.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Platform]** Line 13: `#if os(visionOS)` branch returns `.bordered`/`.borderedProminent` regardless of macOS 26 / iOS 26 glass availability — ok intentionally. But note: visionOS 26 may also have glass. Verify that's intended.
-- **[Suggestion]** The `if #available(iOS 26.0, ...)` check is forward-looking placeholders for future API. If `.glass` button style isn't yet shipping in any released SDK, this won't compile against current SDK. Confirm against SDK availability.
-
-## SwiftUI / Drag and Drop
-
-
-### `SwiftUI/Drag and Drop/DragContainer.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** Line 13: `@StateObject private var coordinator: DragCoordinator` — `DragCoordinator` is `@MainActor` (good). Line 18-20: `DragCoordinator()` then `coordinator.snapbackDuration = snapbackDuration` happens in `init` which is NOT `@MainActor`. Mutating a `@MainActor` property from a non-MainActor context is a data race.
-- **[Bug]** Line 43-46: `coordinator.containerFrame = geo.frame(...)` set inside `onAppear` and `onReceive` — `onAppear` runs synchronously during view rendering and assigns to a non-`@Published` property (line 16) — view will not refresh on container resize.
-- **[API]** Line 16: `containerFrame: CGRect?` is `internal`; should likely be `private` or with controlled accessor.
-
-### `SwiftUI/Drag and Drop/DragCoordinator.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Line 50: `describe()` builds `text` then never uses it — dead code; should `print` or `SuiteLogger.debug(text)`.
-- **[API]** Line 25: `@Published var draggedObject: Any?` — type-erased `Any`. Forces consumers to downcast, and Sendable is impossible. Consider a generic constraint or `AnySendable` wrapper.
-- **[API]** Line 24: `dragType: String?` — stringly-typed identifier; an enum or phantom-type approach would be safer.
-- **[Style]** Line 53-77: `enum DragAcceptance` declared inline with cases on the same line as `enum` keyword — unusual formatting.
-- **[Concurrency]** Line 97: `Task { @MainActor in try? await Task.sleep(nanoseconds: 10_000_000); if self.acceptedDrop { ... } }` — 10ms sleep used as a synchronization primitive (waiting for SwiftUI to propagate state). Fragile. Document or replace with a deterministic mechanism.
-- **[Memory]** No explicit cleanup of `draggedObject` (`Any?`) on view tear-down — could retain large user objects until next drag. Minor.
-- **[Style]** File is 159 lines — over guidance; consider splitting `DragAcceptance` enum into its own file.
-
-### `SwiftUI/Drag and Drop/View+makeDraggable.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Line 14-22: custom `==` for `DragPhase` ignores associated values (`.dropped(String)` matches any other `.dropped`). If consumers rely on the targetID this is a bug; if intentional, document. Synthesized Equatable would be preferable.
-- **[Concurrency]** Line 122-130: `Task { try? await Task.sleep(...); isDragging.wrappedValue = false; ... }` — Task is not `@MainActor`; mutates `@State` projected `_isDragging` from a background context. Race condition.
-- **[Concurrency]** Line 96-99: capturing `dragCoordinator = dragCoordinator` (an `EnvironmentObject`) into a closure that's evaluated outside body — risky if the coordinator instance changes; usually fine but fragile.
-- **[Bug]** Line 109: `let renderer = ImageRenderer(content: dragContent())` — `ImageRenderer` must be created on `MainActor`; gesture `updating` closure runs on main during gesture, but it's not annotated. Verify.
-- **[Style]** Line 11: `enum DragPhase` declared with cases on same line as `enum` keyword — unusual.
-- **[API]** Line 28: 7-parameter modifier — awkward; consider a config struct.
-- **[Convention]** File is 135 lines — slightly over guidance.
-
-### `SwiftUI/Drag and Drop/View+makeDropTarget.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** Line 10: `@MainActor extension CoordinateSpace` for static `let` constants is unusual; statics shouldn't need `@MainActor`. The `CoordinateSpace.named(...)` initializer is `Sendable`-safe; the wrapper isolation is restrictive and unnecessary.
-- **[Bug]** Line 31: `CoordinateSpace.dragAndDropSpaceCreatedNotification.notify()` posted on every `onAppear` of every drag-and-drop coordinate-space view. If multiple containers/targets exist, it'll fire repeatedly. Acceptable but worth a comment.
-- **[Bug]** Line 91-98: `dropPositionChanged` always sets `acceptedDrop = true` and `currentDropTargetID = dropTargetID` if `dropped(...)` returns `true`, but does not respect `priority` ordering against other targets — earlier `currentPositionChanged` (line 110) does respect priority, but on actual drop the priority check is missing.
-- **[API]** Line 24: `makeDropTarget` 8-parameter modifier — awkward.
-- **[Style]** Line 60: `let dropIndicatorSize = 30.0` — hard-coded dimension.
-- **[Convention]** File is 144 lines — over guidance.
-
-## SwiftUI / Shapes
-
-
-### `SwiftUI/Shapes/Line.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[API]** Line 11: `var horizontal = true` should be `let` (set only at init).
-- **[API]** Could expose `axis: Axis` (`.horizontal`/`.vertical`) instead of a Bool for clarity.
-
-### `SwiftUI/Shapes/PartlyRoundedRectangle.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Line 25: `let radius = min(self.radius, min(rect.width, rect.height))` — should clamp to half the minimum dimension, not the full minimum, otherwise corners can overlap (e.g., a square with radius == width produces malformed arcs).
-- **[Platform]** Line 11: tvOS in availability OK; but Angle extensions at line 64 are public — fine.
-- **[Style]** Line 27: `CGPoint(rect.minX, rect.midY)` — uses an unlabeled `CGPoint(_:_:)` initializer; not standard. Verify the project's `CGPoint` extension exists.
-- **[API]** Line 13: `Corner` is `Sendable` but stored in an `Array<Corner>` — fine; consider `OptionSet` for ergonomic call sites: `PartlyRoundedRectangle(corners: [.top], ...)`.
-
-### `SwiftUI/Shapes/Path.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Line 32: `addEllipse(in: CGRect(x: current.x - radius / 2, y: current.y - radius / 2, width: radius, height: radius))` — width/height should be `radius * 2` if `radius` is a true radius. As written, you're drawing a circle of *diameter* `radius`, half-shifted. Either rename param to `diameter` or fix to `radius * 2`.
-- **[Bug]** Line 14-26: `addCurve(...)` only draws the control-point markers when `showingControlPoints == true`. After drawing markers, calls `addCurve(to: end, control1:cp1, control2:cp2)` (line 27) which is the original mutating method on `Path` — recursive call risk? No, because the parameter labels differ (no `showingControlPoints`), Swift selects the standard one. Confirmed OK.
-
-### `SwiftUI/Shapes/Shape.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[API]** Line 13: returns `some View`, but caller may want `InsettableShape`-style chaining — hard to extend.
-- No major issues.
-
-### `SwiftUI/Shapes/Trig.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Line 18-23: `quadrant` getter has incorrect mapping. Standard math quadrants (counter-clockwise from +x axis): I=0-90, II=90-180, III=180-270, IV=270-360. The code returns `.i` for ≤90, then `.iv` for ≤180 (should be `.ii`), then `.iii` for ≤270 (matches), then `.ii` for >270 (should be `.iv`). The label-to-range mapping is wrong; either rename quadrants or fix the ranges.
-- **[Bug]** Line 25-43: `adjustedForQuadrant` does inconsistent math:
-  - `.i`: returns `degrees` (0-90) — fine
-  - `.ii`: subtracts 270 — would yield negative for typical "II" range. Combined with the wrong `quadrant` getter, the math may "work out" but is impossible to reason about.
-  - `.iii`: subtracts 180; `.iv`: subtracts 90 — pattern doesn't match standard angular reduction.
-- **[Bug]** Line 49-55: `CGPoint.quadrant(in:)` maps top-left to `.ii`, bottom-left to `.iii`, top-right to `.i`, bottom-right to `.iv`. This conflicts with the angular `Angle.quadrant` mapping above — same enum used for two different quadrant systems. Confusing and error-prone.
-- **[API]** Line 11: enum cases `i, ii, iii, iv` declared on same line as `enum` keyword.
-- **[Suggestion]** Add unit tests; the trig math here looks subtly wrong and untested.
 
 ## SwiftUI / View Extensions, Modifiers, Wrappers
 

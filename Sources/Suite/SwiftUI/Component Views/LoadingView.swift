@@ -14,8 +14,6 @@ import SwiftUI
 	@ViewBuilder var loadingBody: () -> LoadingBody
 	var buildTarget: () async throws -> Target?
 	@ViewBuilder var failedBody: (Error?) -> ErrorBody
-	@State var showError = false
-	@State var error: Error?
 
 	public init(target: @escaping () async throws -> Target?, @ViewBuilder loading: @escaping () -> LoadingBody, @ViewBuilder failed: @escaping (Error?) -> ErrorBody, @ViewBuilder body: @escaping (Target) -> Body) {
 		self.buildTarget = target
@@ -54,7 +52,6 @@ import SwiftUI
 			} catch {
 				state = .failed(error)
 			}
-			showError = true
 		}
 	}
 }
