@@ -12,12 +12,18 @@ import Combine
 import SwiftUI
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
-@MainActor public class NotificationObserver: ObservableObject {
-	var token: Any?
+@MainActor public class NotificationObserver: NSObject, ObservableObject {
 	public init(_ name: Notification.Name, _ object: Any? = nil) {
-		token = NotificationCenter.default.addObserver(forName: name, object: object, queue: .main, using: { [weak self] note in
-			self?.objectWillChange.send()
-		})
+		super.init()
+		NotificationCenter.default.addObserver(self, selector: #selector(publish), name: name, object: object)
+	}
+
+	@objc private func publish() {
+		objectWillChange.send()
+	}
+
+	deinit {
+		NotificationCenter.default.removeObserver(self)
 	}
 }
 

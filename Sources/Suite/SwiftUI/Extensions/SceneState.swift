@@ -82,21 +82,6 @@ extension Array where Element == Notification.Name {
 	}
 }
 
-
-@available(iOS 13.0, *)
-@MainActor public class SceneStateObserver: ObservableObject {
-	var cancellables: [AnyCancellable] = []
-	public var trigger = StateChange.appEnterForeground
-
-	public init(which: StateChange = .appEnterForeground) {
-		let names = StateChange.allOptions.filter { which.contains($0) }.compactMap { $0.notificationName }
-		cancellables = names.observe { [weak self] name in
-			guard let self else { return }
-			self.trigger = StateChange(name) ?? self.trigger
-			Task { @MainActor in self.objectWillChange.send() }
-		}
-	}
-}
 #endif
 #endif
 #endif
