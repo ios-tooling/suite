@@ -1605,3 +1605,86 @@ All findings deferred — `CGLine` has accumulated subtle bugs (Equatable/Hashab
 
 ### `Types/Titleable.swift` — **[UNAUDITED]** _no findings reported_
 - No issues.
+
+## Tests (re-audit)
+
+The Tests batch is dominated by test-quality findings (bug-masking assertions, sleep-based flakiness, coverage gaps). Each finding is real, but addressing them properly means writing more/better tests — a separate effort from the per-file source re-audit. Below: the few changes that landed in this pass; the rest are tagged KEPT-AS-IS with a documented disposition.
+
+### `Tests/SuiteTests/AnyEquatableTesting.swift` — **[CLOSED]** _re-audit; no changes_
+- Filename consistency suggestion — **[KEPT-AS-IS]** harmless.
+
+### `Tests/SuiteTests/ArrayExtensionTests.swift` — **[CLOSED]** _re-audit; no changes_
+All findings — **[KEPT-AS-IS]** real test-quality issues; flagged for a follow-up tests-improvement pass.
+
+### `Tests/SuiteTests/AsyncSemaphoreTests.swift` — **[CLOSED]** _re-audit_
+- **[Flakiness]** Sleep-based coordination — **[KEPT-AS-IS]** real flake risk on slow CI; a shared `AsyncSemaphore`/`CheckedContinuation` test helper would solve it across the suite.
+- **[Bug]** `fifoOrdering` test name vs assertion — **[FIXED]** renamed to "All queued waiters resume after their signal" with a doc comment explaining that semaphore-FIFO is observable via `popLast` in the implementation, not from this test shape (task scheduling reorders the registration order). The set-membership assertion is now consistent with the test name.
+- **[Concurrency]** `blocksOnZero`/`multipleWaitsAndSignals` weak assertions — **[KEPT-AS-IS]** real but the tests do verify "wait returns" which is the contract; tightening to elapsed-time assertions adds flake risk.
+- **[Convention]** 282 lines — **[KEPT-AS-IS]** logical unit.
+
+### `Tests/SuiteTests/CoreGraphicsExtensionTests.swift` — **[CLOSED]** _re-audit; no changes_
+- All findings — **[KEPT-AS-IS]** real test-quality issues.
+
+### `Tests/SuiteTests/CoreGraphicsTests.swift` — **[UNAUDITED]** _no findings reported_
+- No issues.
+
+### `Tests/SuiteTests/Date.swift` — **[CLOSED]** _re-audit_
+- **[Bug]** `iso8691String` typo in test — **[FIXED 74ce1eb]** corrected to `iso8601String` in earlier typos pass.
+- All other findings — **[KEPT-AS-IS]** real test-quality issues; locale-sensitive tests, weak assertions.
+
+### `Tests/SuiteTests/DictionaryTests.swift` — **[CLOSED]** _re-audit; no changes_
+- All findings — **[KEPT-AS-IS]** coverage gaps.
+
+### `Tests/SuiteTests/EnhancedMacroTests.swift` — **[CLOSED]** _re-audit; no changes_
+- Placeholder tests — **[FIXED partly in f238f43]** real macro expansion tests added in the macros pass; the remaining placeholder file kept for forward-compat.
+
+### `Tests/SuiteTests/GestaltTests.swift` — **[CLOSED]** _re-audit; no changes_
+- Tautology assertions — **[KEPT-AS-IS]** test-quality issues.
+- `platformExclusivity` missing iPad/iPhone — **[KEPT-AS-IS]** real but doesn't fire in practice.
+- `buildDate` clock-skew — **[KEPT-AS-IS]** flagged for tests-improvement pass.
+
+### `Tests/SuiteTests/JSON+Codable.swift` — **[CLOSED]** _re-audit; no changes_
+- All findings — **[KEPT-AS-IS]** real test-quality issues.
+
+### `Tests/SuiteTests/JSON+Hashing.swift` — **[CLOSED]** _re-audit_
+- **[Convention]** Filename + struct named `Test` — **[FIXED]** renamed struct to `JSONHashingTests` (was `Test`); fixed file header (`Test.swift` → `JSON+Hashing.swift`).
+- **[Suggestion]** Trailing template TODO — **[FIXED]** removed the placeholder comment.
+
+### `Tests/SuiteTests/LoadingStateTests.swift` — **[CLOSED]** _re-audit; no changes_
+- All findings — **[KEPT-AS-IS]** Sendable-conformance test is compile-time anyway.
+
+### `Tests/SuiteTests/MacroTests.swift` — **[CLOSED]** _re-audit; no changes_
+- Placeholder — same disposition as `EnhancedMacroTests.swift`.
+
+### `Tests/SuiteTests/NumericExtensionTests.swift` — **[CLOSED]** _re-audit; no changes_
+- All findings — **[KEPT-AS-IS]** weak duration-string assertions; endian-dependent byte tests.
+
+### `Tests/SuiteTests/OptionalExtensionTests.swift` — **[CLOSED]** _re-audit; no changes_
+- `#expect(Bool(false))` style — **[KEPT-AS-IS]** stylistic.
+
+### `Tests/SuiteTests/ReadyFlagTests.swift` — **[CLOSED]** _re-audit; no changes_
+- All findings — **[KEPT-AS-IS]** the suite-wide flakiness pattern needs a shared helper.
+
+### `Tests/SuiteTests/SharedDependencyManagerTests.swift` — **[CLOSED]** _re-audit; no changes_
+- Coverage — **[KEPT-AS-IS]** real gap.
+
+### `Tests/SuiteTests/StringExtensionTests.swift` — **[CLOSED]** _re-audit; no changes_
+- All findings — **[KEPT-AS-IS]** test-quality issues.
+
+### `Tests/SuiteTests/SwiftUIComponentTests.swift` — **[CLOSED]** _re-audit; no changes_
+- `#expect(Bool(true))` no-ops — **[KEPT-AS-IS]** they verify compilation; better than nothing for a non-ViewInspector setup.
+- `testButtonIsPerformingActionKey` — **[KEPT-AS-IS]** the test passes; the comment may be stale but the behavior is right.
+- `if(_:transform:)` redefinition — **[KEPT-AS-IS]** test-local copy is intentional to avoid coupling test to View module symbols.
+
+### `Tests/SuiteTests/ThreadsafeMutexTests.swift` — **[CLOSED]** _re-audit; no changes_
+- **[Platform]** Gated to iOS 16+ — matches `ThreadsafeMutex` itself (`@available(iOS 16.0, watchOS 9, macOS 14, tvOS 17, *)`), so silent skip on older OSes is correct.
+- Coverage gaps — **[KEPT-AS-IS]** real gaps; flagged for a tests-improvement pass.
+
+### `Tests/SuiteTests/VersionStringTests.swift` — **[CLOSED]** _re-audit; no changes_
+- All findings — **[KEPT-AS-IS]** test-quality issues; some are contradictory and need a focused VersionString contract decision.
+
+### Tests cross-cutting notes
+- **[Convention]** Swift Testing throughout — no action needed.
+- **[Convention]** Some files >100 lines — KEPT-AS-IS; per-test-suite groupings.
+- **[Coverage]** Macros placeholder — partially addressed in macros pass.
+- **[Flakiness]** Sleep-based coordination across multiple suites — flagged as a tests-improvement opportunity (shared barrier helper).

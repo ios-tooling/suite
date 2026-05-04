@@ -84,7 +84,11 @@ struct AsyncSemaphoreTests {
 		#expect(completed == true)
 	}
 
-	@Test("FIFO ordering of waiters")
+	/// Note: this asserts that all queued waiters complete, not the order they complete in.
+	/// Task scheduling may register `wait()` calls out of submission order, so semaphore-FIFO is
+	/// not directly observable from this test shape. See `AsyncSemaphore.signal()`'s `popLast` for
+	/// the FIFO contract itself.
+	@Test("All queued waiters resume after their signal")
 	func fifoOrdering() async {
 		actor ResultCollector {
 			var results: [Int] = []
