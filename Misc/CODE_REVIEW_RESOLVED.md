@@ -1352,3 +1352,83 @@ Entries are grouped by directory and tagged at finding-level: `[FIXED]`, `[FIXED
 - **[Concurrency]** Not `@MainActor` — **[FIXED]** all three extensions now `@MainActor`.
 - **[Platform]** `UIActivityViewController` on visionOS — **[FALSE-POSITIVE]** the `share` extension is gated `#if !os(tvOS)`; the parent file's `!os(visionOS)` exclusion handles visionOS.
 - **[API]** `presentedest` typo — **[FIXED 74ce1eb]** renamed to `topPresentedViewController` in earlier typos pass.
+
+## Combine & Async (re-audit)
+
+### `Combine & Async/AsyncSemaphore.swift` — **[CLOSED]** _re-audit; no changes_
+- **[Convention]** 240+ lines — **[KEPT-AS-IS]** thread-safety-critical class with private state shared across every method.
+- **[Bug]** "FIFO comment vs LIFO impl" — **[FALSE-POSITIVE]** `insert(at: 0)` adds to the front, `popLast()` removes from the back; the oldest waiter (added first, ended up at the back) is signaled first. That IS FIFO. Walk: w1 → [w1]; w2 → [w2, w1]; popLast → w1 (oldest).
+- **[Suggestion]** Attribution sound — confirmed.
+
+### `Combine & Async/Binding.swift` — **[CLOSED]** _re-audit; no changes_
+- **[Convention]** Multi-line `inverted` declaration — **[KEPT-AS-IS]** stylistic.
+- **[API]** `Binding(_ boolProvider:)` no setter — **[KEPT-AS-IS]** the explicit no-set semantics is documented; renaming is breaking.
+- **[Suggestion]** Missing space — cosmetic.
+
+### `Combine & Async/CurrentValueSubject.swift` — **[CLOSED]** _re-audit; no changes_
+- **[Concurrency]** Retroactive `@unchecked Sendable` — **[KEPT-AS-IS]** required for `CurrentValueSubject` to flow through `Sendable`-required public APIs.
+
+### `Combine & Async/Loadable.swift` — **[UNAUDITED]** _no findings reported_
+- No issues.
+
+### `Combine & Async/ObservableObjectPublisher.swift` — **[CLOSED]** _re-audit_
+- **[Memory]** ObserverMonitor recreates per render — **[KEPT-AS-IS]** the cancellable is dropped each render and a new one created; SwiftUI's diffing may or may not actually rebuild the view. Refactoring to `@StateObject` is a redesign.
+- **[API]** `monitor(message:)` discards subscription — **[FALSE-POSITIVE]** `subscribe(Subscribers.Sink(...))` is retained by the upstream publisher's demand chain; the sink stays alive as long as the publisher does. Caller can't cancel, but it's not "released immediately."
+- **[Concurrency]** `sendOnMain` — **[FALSE-POSITIVE]** uses the project's async-Task-based `MainActor.run(after:)` shim.
+- **[Convention]** OSX vs macOS — **[KEPT-AS-IS]** cosmetic.
+
+### `Combine & Async/ObservableObserver.swift` — **[CLOSED]** _re-audit_
+- **[Memory]** Sink retain cycle — **[FIXED]** `[weak self]` in the sink, plus a `Task { @MainActor }` hop so the @MainActor-isolated `update()` can be called from any publisher thread.
+- **[Concurrency]** `check` not `@Sendable` — **[KEPT-AS-IS]** breaking signature change.
+- **[API]** `target` parameter unused after init — **[KEPT-AS-IS]** confirmed.
+
+### `Combine & Async/Subscription.swift` — **[CLOSED]** _re-audit; no changes_
+- **[Concurrency]** Global `SubscriptionBag` — **[KEPT-AS-IS]** `@MainActor` isolation guards access.
+- **[API]** `key` parameter unused — **[KEPT-AS-IS]** removing is a breaking signature change.
+
+## AppKit (re-audit)
+
+### `AppKit/NSAlert.swift` — **[CLOSED]** _re-audit_
+- **[Concurrency]** Free-floating `MainActor.run` wrapper — **[FIXED]** marked the extension `@MainActor` and dropped the wrapper. Both `showAlert(...)` and `show(in:completion:)` are now main-actor-isolated.
+- **[API]** No async variant — **[KEPT-AS-IS]** would be additive but is a separate API design.
+- **[Convention]** Multi-line signature — **[KEPT-AS-IS]** parameters needed.
+
+### `AppKit/NSApplication.swift` — **[CLOSED]** _re-audit_
+- **[Concurrency]** `sleepDisabled` accessors not isolated — **[FIXED]** the `NSApplication` extension is now `@MainActor`.
+- **[Bug]** `sleepDisabled` flag dual-purposed — **[KEPT-AS-IS]** the assertion-success-also-marks-disabled pattern is correct enough; `IOPMAssertionCreateWithName` is documented as not writing the assertion ID on failure.
+- **[Convention]** Size — confirmed fine.
+
+### `AppKit/NSButton.swift` — **[CLOSED]** _re-audit_
+- Bonus: marked the extension `@MainActor` for strict-concurrency hygiene.
+
+### `AppKit/NSEvent.swift` — **[UNAUDITED]** _no findings reported_
+- `location(in:)` already `@MainActor`.
+
+### `AppKit/NSView.swift` — **[CLOSED]** _re-audit_
+- **[Bug]** `backgroundColor` getter/setter asymmetry — **[KEPT-AS-IS]** documented contract: setter enables layer-backing; getter returns nil when not yet layer-backed. Added a doc comment to make it explicit.
+- **[Convention]** `OSX 10.14` dead `#available` — **[FIXED]** removed; deployment minimum is macOS 10.15, so the check was always true.
+- Bonus: marked the extension `@MainActor`.
+
+### `AppKit/PasteboardMonitor.swift` — **[CLOSED]** _re-audit_
+- **[Bug]** Closure param `timer` typo — **[FIXED 74ce1eb]** corrected in earlier typo pass to `_ in`.
+- **[Memory]** Observer token not stored — **[KEPT-AS-IS]** singleton lifetime; observer dies with process.
+- **[Memory]** Timer not invalidated — **[FALSE-POSITIVE]** the timer block already invalidates via `guard let self else { timer.invalidate(); return }`.
+- **[Perf]** Polling while backgrounded — **[KEPT-AS-IS]** the impact is negligible (1Hz).
+- **[API]** `public init(pollInterval:)` — **[KEPT-AS-IS]** allows callers to make non-singleton instances with custom intervals.
+- **[Concurrency]** Task hop on main runloop — **[KEPT-AS-IS]** `MainActor.assumeIsolated` is iOS 17+/macOS 14+; the Task hop is the iOS 13-floor-compatible form.
+
+## Cocoa (re-audit)
+
+### `Cocoa/ErrorHandling.swift` — **[CLOSED]** _re-audit_
+- **[Concurrency]** `runModal` blocks main — **[KEPT-AS-IS]** modal alerts are inherently blocking; documented behavior.
+- **[Suggestion]** Async variant — **[KEPT-AS-IS]** additive separate API.
+- **[Convention]** Sheet/modal duplication — **[FIXED]** extracted a `finish(_:)` closure that handles both paths uniformly.
+- **[Platform]** Brittle `#if !canImport(UIKit)` — **[FIXED]** changed to `#if canImport(AppKit) && !targetEnvironment(macCatalyst)`, matching the convention in neighboring AppKit files.
+
+### `Cocoa/NSImage.swift` — **[CLOSED]** _re-audit_
+- **[Concurrency]** `scaledImage` not `@MainActor` — **[FIXED]** the whole `NSImage` extension is now `@MainActor`.
+- **[Bug]** `changeScaleTo` parameter unused — **[KEPT-AS-IS]** documented as a no-op placeholder; `NSImage` doesn't expose a direct scale setter at the representation level, so wiring the parameter requires a representation-pixel-size rebuild. Left in the signature for source-stable callers; flagged for follow-up.
+- **[Convention]** Trailing semicolons — **[FIXED]** removed.
+
+### `Cocoa/NSTextFieldAndView.swift` — **[CLOSED]** _re-audit_
+- **[Convention]** `editabled(_:)` typo — **[FIXED 74ce1eb]** corrected to `editable(_:)` in earlier typo pass.

@@ -165,9 +165,9 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 
 # Detailed Findings (file-by-file) — Open Work
 
-> **Status:** 89 file sections still labeled `[UNAUDITED]` here — the original review snapshot, not yet re-verified against current code. The other ~212 file sections have been resolved (fixed, false positives, kept-as-is with reasoning, or rendered moot by other refactors) and moved to **`CODE_REVIEW_RESOLVED.md`** in this directory.
+> **Status:** 73 file sections still labeled `[UNAUDITED]` here — the original review snapshot, not yet re-verified against current code. The other ~228 file sections have been resolved (fixed, false positives, kept-as-is with reasoning, or rendered moot by other refactors) and moved to **`CODE_REVIEW_RESOLVED.md`** in this directory.
 >
-> Re-audit passes that have produced finding-level tags so far: macros, Foundation M-Z, Utilities, Foundation A-K, SwiftUI batch C, SwiftUI batch B, SwiftUI batch A, SwiftUI batch D, UIKit.
+> Re-audit passes that have produced finding-level tags so far: macros, Foundation M-Z, Utilities, Foundation A-K, SwiftUI batch C, SwiftUI batch B, SwiftUI batch A, SwiftUI batch D, UIKit, Combine/AppKit/Cocoa.
 
 
 ## Package
@@ -353,90 +353,6 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 
 ### `SwiftUI/Other Views/CalendarMonthView/CalendarWeekDayLabel.swift` — **[UNAUDITED]** _no findings reported_
 - No issues.
-
-## Combine & Async
-
-
-### `Combine & Async/AsyncSemaphore.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Convention]** 240+ lines — well over the ~100-line guideline. Could split `Suspension`, `wait`, and `waitUnlessCancelled` into separate files.
-- **[Bug]** `suspensions.insert(at: 0)` + `popLast()` (lines 124, 174, 227) — comments say "FIFO" but inserting at 0 and popping from the end gives LIFO order. Either the comment or implementation is wrong; based on intent the comment is right but you should pop first or insert at end.
-- **[Suggestion]** Attribution is good (groue/Semaphore). Otherwise sound.
-
-### `Combine & Async/Binding.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Convention]** Line 85-86: ugly multi-line declaration of `inverted` with closing `}) }` jammed together; reformat for readability.
-- **[API]** `Binding(_ boolProvider:)` (line 88) constructs a Binding with no setter — silently swallows writes. This can be surprising; consider naming `init(get:)` or document loudly.
-- **[Suggestion]** `bool(default:)` on line 59 — missing space before `{`.
-
-### `Combine & Async/CurrentValueSubject.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** `extension CurrentValueSubject: @unchecked @retroactive Sendable` — broad retroactive Sendable conformance on an Apple type can collide if Apple later marks it Sendable; works but flagged as fragile.
-- No other issues.
-
-### `Combine & Async/Loadable.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- No issues.
-
-### `Combine & Async/ObservableObjectPublisher.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Memory]** `ObserverMonitor` stores `cancellable` as a struct property and assigns inside `init`. Because `ObserverMonitor` is a `View` (struct, value type) created on each render, the cancellable is recreated every render and the previous one is dropped — leaks/duplicate logging are likely. Subscriptions like this don't belong on a `View` struct; use `.onReceive`/`.task` or a `@StateObject` wrapper.
-- **[API]** `monitor(message:)` on line 60 calls `eraseToAnyPublisher().onSuccess()` but discards the resulting subscription — the `Subscribers.Sink` will be released immediately. This is broken.
-- **[Concurrency]** `sendOnMain()` uses `Thread.isMainThread` then `MainActor.run` synchronously from arbitrary contexts — `MainActor.run` is async and not called via `await`; this likely doesn't compile under strict concurrency or silently ignores the call. Verify.
-- **[Convention]** Mixed availability annotations (`OSX 11` vs `macOS 11`).
-
-### `Combine & Async/ObservableObserver.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Memory]** `target.objectWillChange.sink { _ in self.update() }` (line 22) — strong-captures `self`, retain cycle: `self` -> `cancellable` -> closure -> `self`. Use `[weak self]`.
-- **[Concurrency]** `check: () -> Bool` is not marked `@Sendable` and the class is `@MainActor` — fine in practice but the closure stored is non-Sendable if the type is later relaxed.
-- **[API]** `target` parameter is unused after init (only `target.objectWillChange` captured) — fine, just noting.
-
-### `Combine & Async/Subscription.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** Global `var SubscriptionBag` annotated `@MainActor` — works under strict concurrency, but a single global bag means cancellables are never freed unless rotated by key. Method ignores `key` (line 19) — `sequester(_ key:)` doesn't actually use the key. Misleading API.
-- **[API]** `key` parameter is dead. Either implement keyed storage (dictionary of sets keyed by key) or remove the parameter.
-
-## AppKit
-
-
-### `AppKit/NSAlert.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** `MainActor.run { ... }` on line 16 inside a non-async function is incorrect — `MainActor.run` returns an async closure result. This compiles only with implicit discard; under strict concurrency this is a warning/error. `Task { @MainActor in ... }` would be correct.
-- **[API]** `showAlert` and `show(in:completion:)` don't expose a `default`/`cancel` button distinction nor return a value; consider an `async` variant.
-- **[Convention]** Multi-line function signature on line 14 is borderline.
-
-### `AppKit/NSApplication.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** `DisableSleep` is `@MainActor`, but `NSApplication.sleepDisabled` set/get accessors aren't isolated — calling from non-main contexts will blow up. Mark the extension property `@MainActor` or guard.
-- **[Bug]** `disableScreenSleep` reuses `sleepDisabled` as both "should be disabled" and "successfully disabled" (line 37). If `IOPMAssertionCreateWithName` fails, `sleepDisabled` stays `false` which is OK, but `assertionID` may have been written. Acceptable but a clearer second flag would help.
-- **[Convention]** File is fine size-wise.
-
-### `AppKit/NSButton.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- No issues.
-
-### `AppKit/NSEvent.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- No issues.
-
-### `AppKit/NSView.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `backgroundColor` getter accesses `self.layer?.backgroundColor` without `wantsLayer = true` — fine, returns nil if no layer, but setter sets `wantsLayer = true` while getter doesn't. Asymmetric.
-- **[Convention]** `if #available(OSX 10.14, ...)` always true since deployment is 10.15+. Dead branch.
-
-### `AppKit/PasteboardMonitor.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Line 42: `addObserver(forName:...)` closure parameter shadowed as `timer` — should be `_ in` or `note in` (it's a Notification, not a Timer). Confusing typo.
-- **[Memory]** Notification observer token is never stored and never removed; the `MainActor`-isolated singleton leaks an observer reference. Since this is a singleton with `static let instance`, this is acceptable in practice, but if anyone instantiates more `PasteboardMonitor`s, leaks ensue. Consider `private init` to enforce singleton.
-- **[Memory]** Same for `Timer.scheduledTimer` — never invalidated unless `self` is nil. With singleton lifetime this is fine.
-- **[Perf]** Polling every 1s for pasteboard is wasteful when the app is backgrounded. Consider only polling while frontmost (you already observe activation; you could stop the timer on resign-active).
-- **[API]** `init(pollInterval:)` is `public` but the type is documented as a singleton (`static let instance`) — second instances are possible and dangerous given the shared observer/timer. Make `init` private.
-- **[Concurrency]** `Timer.scheduledTimer` block runs on the main runloop; calling `Task { @MainActor in self.checkForChanges() }` is unnecessary indirection — within main runloop you're already on main thread; can call directly with `MainActor.assumeIsolated`.
-
-## Cocoa
-
-
-### `Cocoa/ErrorHandling.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** `@MainActor extension Error` adds main-actor isolation to `display(...)`. The `completion` is `@Sendable` but the closure passed to `beginSheetModal` captures it without crossing actors — fine under main actor, but the modal `runModal()` blocks the main thread, which is exactly what main-actor isolation is supposed to discourage.
-- **[Suggestion]** Extracting an async variant `func display(in:) async -> Int` would be much nicer than a completion handler.
-- **[Convention]** Logic is duplicated for sheet vs modal — extract a `finish(_:)` like NSAlert.swift does.
-- **[Platform]** `#if !canImport(UIKit)` is brittle — Catalyst can import both. Prefer `#if canImport(AppKit) && !targetEnvironment(macCatalyst)` for consistency with neighboring files.
-
-### `Cocoa/NSImage.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** `scaledImage(newSize:)` uses `lockFocus()`/`unlockFocus()` — these are main-thread only, but the function is not `@MainActor`. Will misbehave off the main thread.
-- **[Bug]** In `resized(to:trimmed:changeScaleTo:)` the `changeScaleTo` parameter is accepted but never used (line 26).
-- **[Convention]** Trailing semicolons on lines 36, 37, 44 (`frame.origin.x = 0;`) — non-Swift style.
-
-### `Cocoa/NSTextFieldAndView.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Convention]** `editabled(_:)` (line 42) — typo, should be `editable(_:)`.
-- No other issues.
 
 ## Geometry
 

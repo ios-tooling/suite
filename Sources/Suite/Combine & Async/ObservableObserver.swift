@@ -19,8 +19,8 @@ import Combine
    public init(target: Target, check: @escaping () -> Bool) {
       self.check = check
       lastValue = check()
-      cancellable = target.objectWillChange.sink { _ in
-         self.update()
+      cancellable = target.objectWillChange.sink { [weak self] _ in
+         Task { @MainActor [weak self] in self?.update() }
       }
    }
    

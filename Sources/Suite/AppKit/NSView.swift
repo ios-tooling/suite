@@ -11,19 +11,16 @@ import Foundation
 
 import AppKit
 
-public extension NSView {
+@MainActor public extension NSView {
+	/// `set` enables layer-backing if necessary. `get` returns nil if the view isn't layer-backed yet.
 	var backgroundColor: NSColor? {
 		set { self.wantsLayer = true; self.layer?.backgroundColor = newValue?.cgColor }
 		get { if let color = self.layer?.backgroundColor { return NSColor(cgColor: color) }; return nil }
 	}
 
 	var isInDarkMode: Bool {
-		if #available(OSX 10.14, OSXApplicationExtension 10.14, *) {
-			let appearance = self.effectiveAppearance.bestMatch(from: [.aqua, .darkAqua])
-			return appearance == .darkAqua
-		} else {
-			return false
-		}
+		let appearance = self.effectiveAppearance.bestMatch(from: [.aqua, .darkAqua])
+		return appearance == .darkAqua
 	}
 }
 

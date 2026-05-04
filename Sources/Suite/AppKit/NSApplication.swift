@@ -12,7 +12,7 @@ import IOKit.pwr_mgt
 import Cocoa
 import AppKit
 
-extension NSApplication {
+@MainActor extension NSApplication {
 	public var sleepDisabled: Bool {
 		set {
 			if newValue {

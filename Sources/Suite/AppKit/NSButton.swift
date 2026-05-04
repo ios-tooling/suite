@@ -9,7 +9,7 @@
 
 import AppKit
 
-public extension NSButton {
+@MainActor public extension NSButton {
 	var isOn: Bool {
 		get { return self.state == NSControl.StateValue.on }
 		set { self.state = newValue ? NSControl.StateValue.on : NSControl.StateValue.off }

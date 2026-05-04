@@ -10,7 +10,7 @@
 import Cocoa
 import AppKit
 
-public extension NSImage {
+@MainActor public extension NSImage {
 	func scaledImage(newSize: CGSize) -> NSImage? {
 		let size: CGSize = self.size
 		let targetSize = size.scaled(within: newSize)
@@ -22,35 +22,37 @@ public extension NSImage {
 
 		return result
 	}
-	
-	@MainActor func resized(to size: CGSize, trimmed: Bool = true, changeScaleTo: CGFloat? = nil) -> NSImage? {
+
+	/// `changeScaleTo` is currently a no-op placeholder; NSImage doesn't expose a direct scale setter at the
+	/// representation level, so wiring this requires a representation-pixel-size rebuild. Left in the
+	/// signature for source-stable callers; flagged for follow-up.
+	func resized(to size: CGSize, trimmed: Bool = true, changeScaleTo: CGFloat? = nil) -> NSImage? {
+		_ = changeScaleTo
 		var frame = self.size.rect.within(limit: size.rect, placed: .scaleAspectFit).rounded()
-		
-		
+
 		if frame.origin.x > 0 {
-			if (!trimmed) {
+			if !trimmed {
 				let bump = size.height * (frame.origin.x / frame.width)
 				frame.origin.y -= bump
 				frame.size.height += bump * 2
 			}
-			frame.origin.x = 0;
-			frame.size.width = size.width;
+			frame.origin.x = 0
+			frame.size.width = size.width
 		} else {
-			if (!trimmed) {
+			if !trimmed {
 				let bump = size.width * (frame.origin.y / frame.height)
 				frame.origin.x -= bump
 				frame.size.width += bump * 2
 			}
-			frame.origin.y = 0;
+			frame.origin.y = 0
 		}
-		
+
 		let result = NSImage(size: size)
 		result.lockFocus()
 		self.draw(in: frame)
 		result.unlockFocus()
-		
+
 		return result
 	}
-
 }
 #endif
