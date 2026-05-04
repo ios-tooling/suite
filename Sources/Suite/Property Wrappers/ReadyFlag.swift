@@ -39,6 +39,15 @@ import Foundation
 		var value = false
 		var continuations: [UnsafeContinuation<Bool, Never>] = []
 
+		/// Number of currently-suspended waiters. Test-only — used to write
+		/// deterministic barriers ("wait until N tasks have registered") instead
+		/// of relying on yield-based heuristics.
+		var waiterCount: Int {
+			os_unfair_lock_lock(_lock)
+			defer { os_unfair_lock_unlock(_lock) }
+			return continuations.count
+		}
+
 		func appendOrResumeIfReady(_ continuation: UnsafeContinuation<Bool, Never>) {
 			os_unfair_lock_lock(_lock)
 			if value {

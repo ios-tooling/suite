@@ -17,24 +17,17 @@ struct ReadyFlagTests {
 	func startsNotReady() async {
 		let flag = ReadyFlag()
 
-		var completed = false
+		let task = Task { await flag.waitForReady() }
 
-		Task {
-			await flag.waitForReady()
-			completed = true
-		}
+		// Deterministic barrier: wait until the task has registered as a waiter.
+		await flag.waitUntilWaiters(count: 1)
 
-		// Give task time to start waiting
-		await yieldUntilSuspended()
-
-		#expect(completed == false)
-
-		// Make it ready
+		// At this point the flag is blocking the task. Trigger it.
 		flag.makeReady()
 
-		await yieldUntilSuspended()
-
-		#expect(completed == true)
+		// `await task.value` returns iff the flag fired; if it doesn't,
+		// the test would hang and Swift Testing's per-test timeout would catch it.
+		await task.value
 	}
 
 	@Test("ReadyFlag when already ready returns immediately")
@@ -59,20 +52,20 @@ struct ReadyFlagTests {
 		let flag = ReadyFlag()
 		let counter = Counter()
 
+		var tasks: [Task<Void, Never>] = []
 		for _ in 0..<5 {
-			Task {
+			tasks.append(Task {
 				await flag.waitForReady()
 				await counter.increment()
-			}
+			})
 		}
 
-		// Give tasks time to start waiting
-		await yieldUntilSuspended(iterations: 50)
+		// Deterministic barrier: every waiter has registered.
+		await flag.waitUntilWaiters(count: 5)
 
-		await flag.makeReady()
+		flag.makeReady()
 
-		// Give tasks time to complete
-		await yieldUntilSuspended(iterations: 50)
+		for task in tasks { await task.value }
 
 		let count = await counter.count
 		#expect(count == 5)
@@ -82,20 +75,13 @@ struct ReadyFlagTests {
 	func setTrue() async {
 		let flag = ReadyFlag()
 
-		var completed = false
+		let task = Task { await flag.waitForReady() }
 
-		Task {
-			await flag.waitForReady()
-			completed = true
-		}
-
-		await yieldUntilSuspended()
+		await flag.waitUntilWaiters(count: 1)
 
 		flag.set(true)
 
-		await yieldUntilSuspended()
-
-		#expect(completed == true)
+		await task.value
 	}
 
 	@Test("Set to false does nothing")
@@ -104,16 +90,17 @@ struct ReadyFlagTests {
 
 		flag.set(false)
 
-		var completed = false
+		let task = Task { await flag.waitForReady() }
 
-		Task {
-			await flag.waitForReady()
-			completed = true
-		}
+		// Wait until the task is registered as a waiter — set(false) didn't fire.
+		await flag.waitUntilWaiters(count: 1)
 
-		await yieldUntilSuspended()
+		// Verify the task is still suspended (it's a waiter, not yet completed).
+		#expect(flag.storage.waiterCount == 1)
 
-		#expect(completed == false)
+		// Cancel by triggering — proves the flag is still capable of firing.
+		flag.makeReady()
+		await task.value
 	}
 
 	@Test("Sequential ready flags")
@@ -121,31 +108,39 @@ struct ReadyFlagTests {
 		let flag1 = ReadyFlag()
 		let flag2 = ReadyFlag()
 
-		var step1 = false
-		var step2 = false
+		actor Steps {
+			var step1 = false
+			var step2 = false
+			func setStep1() { step1 = true }
+			func setStep2() { step2 = true }
+		}
+		let steps = Steps()
 
-		Task {
+		let runner1 = Task {
 			await flag1.waitForReady()
-			step1 = true
+			await steps.setStep1()
 			flag2.makeReady()
 		}
 
-		Task {
+		let runner2 = Task {
 			await flag2.waitForReady()
-			step2 = true
+			await steps.setStep2()
 		}
 
-		await yieldUntilSuspended()
-
-		#expect(step1 == false)
-		#expect(step2 == false)
+		// Both runners are now suspended on their respective flags.
+		await flag1.waitUntilWaiters(count: 1)
+		await flag2.waitUntilWaiters(count: 1)
 
 		flag1.makeReady()
 
-		await yieldUntilSuspended(iterations: 50)
+		// Drive both runners to completion deterministically.
+		await runner1.value
+		await runner2.value
 
-		#expect(step1 == true)
-		#expect(step2 == true)
+		let s1 = await steps.step1
+		let s2 = await steps.step2
+		#expect(s1)
+		#expect(s2)
 	}
 
 	@Test("Concurrent waiters with delayed ready")
@@ -167,7 +162,7 @@ struct ReadyFlagTests {
 			}
 
 			group.addTask {
-				await yieldUntilSuspended(iterations: 50)
+				await flag.waitUntilWaiters(count: 10)
 				await flag.makeReady()
 			}
 		}
