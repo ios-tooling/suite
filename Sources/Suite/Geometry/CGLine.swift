@@ -22,8 +22,8 @@ public struct CGLine: Codable, Equatable, Hashable, RawRepresentable {
 	}
 	
 	public func hash(into hasher: inout Hasher) {
-		hasher.combine(start)
-		hasher.combine(end)
+		// Order-independent: == treats reversed lines as equal, so the hash must too.
+		hasher.combine(start.hashValue ^ end.hashValue)
 	}
 	
 	public func rounded() -> CGLine {
@@ -113,11 +113,9 @@ public struct CGLine: Codable, Equatable, Hashable, RawRepresentable {
 	public var midpoint: CGPoint {
 		get { (start + end) / 2.0 }
 		set {
-			let startDelta = midpoint - start
-			let endDelta = midpoint - end
-			
-			start = newValue + startDelta
-			end = newValue + endDelta
+			let delta = newValue - midpoint
+			start = start + delta
+			end = end + delta
 		}
 	}
 	mutating public func flip() {
@@ -171,14 +169,16 @@ extension CGLine: StringInitializable {
 	}
 	
 	public var stringValue: String {
-		"(\(start),\(end))"
+		"(\(start.stringValue),\(end.stringValue))"
 	}
 	
 	public init?(rawValue: String) {
-		let components = rawValue.trimmingCharacters(in: .decimalDigits.inverted).components(separatedBy: "),(")
+		let components = rawValue.components(separatedBy: "),(")
 		if components.count != 2 { return nil }
-		
-		guard let start = CGPoint(rawValue: components[0].trimmingCharacters(in: .whitespacesAndNewlines)), let end = CGPoint(rawValue: components[1].trimmingCharacters(in: .whitespacesAndNewlines)) else { return nil }
+
+		let trimSet = CharacterSet(charactersIn: "()").union(.whitespacesAndNewlines)
+		guard let start = CGPoint(rawValue: components[0].trimmingCharacters(in: trimSet)),
+			  let end = CGPoint(rawValue: components[1].trimmingCharacters(in: trimSet)) else { return nil }
 		self.init(start: start, end: end)
 	}
 }

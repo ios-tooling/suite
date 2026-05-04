@@ -94,10 +94,13 @@ public extension Vector2 {
 	var rawValue: String { stringValue }
 
 	init?(rawValue: String) {
-		let components = rawValue.trimmingCharacters(in: .decimalDigits.inverted).components(separatedBy: ",")
+		let components = rawValue.components(separatedBy: ",")
 		if components.count != 2 { return nil }
-		
-		guard let x = Double(components[0].trimmingCharacters(in: .whitespacesAndNewlines)), let y = Double(components[1].trimmingCharacters(in: .whitespacesAndNewlines)) else { return nil }
+
+		// Trim parens and whitespace, but preserve `-` and `.` so signed/fractional values round-trip.
+		let trimSet = CharacterSet(charactersIn: "()").union(.whitespacesAndNewlines)
+		guard let x = Double(components[0].trimmingCharacters(in: trimSet)),
+			  let y = Double(components[1].trimmingCharacters(in: trimSet)) else { return nil }
 		self = Self.init(x: x, y: y)
 	}
 	
