@@ -9,16 +9,12 @@ import SwiftUI
 
 #if canImport(Combine)
 
-import SwiftUI
-
 @available(OSX 10.15, iOS 13.0, watchOS 6.0, *)
 @MainActor public class ObservableStub: ObservableObject {
-	public init() {
-		
-	}
-	
+	public init() { }
+
 	public func nudge() {
-		Task { await MainActor.run { self.objectWillChange.send() }}
+		objectWillChange.send()
 	}
 }
 #endif

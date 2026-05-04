@@ -8,14 +8,6 @@
 import SwiftUI
 
 #if os(iOS)
-extension UIPickerView {
-	override open var intrinsicContentSize: CGSize {
-		get {
-			CGSize(width: UIView.noIntrinsicMetric, height: 150)
-		}
-	}
-}
-
 @available(iOS 16, macOS 14.0, watchOS 10, *)
 struct MultiColumnPicker<Data>: View where Data: Hashable {
 	let labels: [String]

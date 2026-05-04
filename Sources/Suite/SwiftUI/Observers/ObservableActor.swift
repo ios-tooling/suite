@@ -16,7 +16,7 @@ import Combine
 		self.target = await target()
 		
 		cancellable = self.target?.objectWillChange.sink { [weak self] _ in
-			self?.objectWillChange.send()
+			Task { @MainActor [weak self] in self?.objectWillChange.send() }
 		}
 	}
 }

@@ -1,5 +1,5 @@
 //
-//  CalendarDatePicker.DayView.swift
+//  CalendarMonthView.DayView.swift
 //  Internal
 //
 //  Created by Ben Gottlieb on 1/4/25.

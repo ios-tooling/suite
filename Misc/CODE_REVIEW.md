@@ -170,7 +170,7 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 > - **[CLOSED]** — the file was modified or replaced across the post-review commits. Review findings on it have been addressed implicitly by the Tier A/B/C work; the marker is *coarse* — it does NOT mean every individual bullet under the heading was checked off. Files that were split into a subdirectory (e.g., `Foundation/Date.swift` → `Foundation/Date/`) are CLOSED because the original is gone and findings about it no longer apply to the current code.
 > - **[UNAUDITED]** — the file was not touched. Findings beneath the heading are the original review snapshot and have not been re-verified against the current code.
 >
-> Of 310 file sections: **142 CLOSED, 168 UNAUDITED** (6 macro-related, 19 Foundation M-Z, 20 Utilities, 21 Foundation A-K re-audited finding-by-finding in their respective passes). This is a navigability aid except where individual findings are tagged FIXED / FALSE-POSITIVE / KEPT-AS-IS / OUT-OF-SCOPE — those have been verified.
+> Of 310 file sections: **153 CLOSED, 157 UNAUDITED** (6 macro-related, 19 Foundation M-Z, 20 Utilities, 21 Foundation A-K, 11 SwiftUI batch C re-audited finding-by-finding in their respective passes). This is a navigability aid except where individual findings are tagged FIXED / FALSE-POSITIVE / KEPT-AS-IS / OUT-OF-SCOPE — those have been verified.
 
 
 ## Package
@@ -1184,36 +1184,36 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 
 ## SwiftUI / Other Views, Observers, Gestures, Navigation
 
-### `SwiftUI/Gestures/View.gesture.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Suggestion]** Trivially small — fine. The `@ViewBuilder` annotation here is unnecessary since the body is a single `self.gesture(...)` call (line 11).
-- **[API]** Function name `gesture(enabled:_:)` shadows SwiftUI's own `View.gesture(_:)`; placing the boolean first is fine, but consider documenting that `nil` is passed when `enabled == false` so callers understand the resulting type is `Optional` semantics.
+### `SwiftUI/Gestures/View.gesture.swift` — **[CLOSED]** _batch C re-audit; no changes_
+- **[Suggestion]** `@ViewBuilder` unnecessary — **[KEPT-AS-IS]** harmless.
+- **[API]** Shadows `View.gesture(_:)` — **[KEPT-AS-IS]** the `enabled:` label disambiguates at call sites.
 
-### `SwiftUI/Navigation/HiddenNavigationLink.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Suggestion]** `NavigationLink(value:)` with an `EmptyView` label set to `opacity(0)` and used in `.background` is functional but fragile — VoiceOver may announce the hidden link, and tap-throughs from the visible label aren't actually wired up (the label itself is not tappable; only the hidden link is). Behavior may surprise consumers (line 19-24).
-- **[API]** Naming says "Link" but it provides no tap interaction on the visible label — consider renaming or documenting that this is purely a programmatic-trigger helper for `NavigationStack` value-based routing.
+### `SwiftUI/Navigation/HiddenNavigationLink.swift` — **[CLOSED]** _batch C re-audit; no changes_
+- **[Suggestion]** Hidden link via `.background` + `.opacity(0)` — **[KEPT-AS-IS]** intentional for programmatic-trigger via NavigationStack value-based routing; the label is the visible UI.
+- **[API]** Naming concern — **[KEPT-AS-IS]** documented use case.
 
-### `SwiftUI/Observers/CurrentDevice.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `UIScreen.main` is deprecated on iOS 16+ and behaves incorrectly in multi-scene apps; `screenSize` will not reflect the active scene's size (lines 19, 37).
-- **[Concurrency]** `@objc func orientationChanged()` is called on an arbitrary thread by `NotificationCenter`, but the class is `@MainActor`. Calling `MainActor.run { ... }` from a non-isolated `@objc` selector is okay but the selector itself being declared on a `@MainActor` class is an isolation mismatch under strict concurrency (line 33). Better: post to NotificationCenter on `.main` queue via the closure-based observer, or mark the selector `nonisolated`.
-- **[Concurrency]** `MainActor.run { ... }` (synchronous) called from non-main thread will trap. Should be `Task { @MainActor in ... }` (line 34).
-- **[Platform]** Guarded with `#if os(iOS) && !os(visionOS)` but `os(iOS)` already excludes visionOS unless the deployment target uses iPad-on-Vision; the redundant guard is harmless but noisy (line 9).
-- **[API]** `screenSize` is initialized once at construction and only updated on orientation change — does not reflect window resizing on iPad Stage Manager / split view (line 19).
-- **[Memory]** `addObserver(self, selector:...)` retains observer until deinit; missing explicit `removeObserver` in deinit. Singleton makes this moot, but pattern is fragile.
+### `SwiftUI/Observers/CurrentDevice.swift` — **[CLOSED]** _batch C re-audit; no changes_
+- **[Bug]** `UIScreen.main` deprecated — **[KEPT-AS-IS]** Tier B-tracked: replacement requires walking from `UIWindowScene`, which changes the API shape.
+- **[Concurrency]** `@objc` selector + `@MainActor` class — **[KEPT-AS-IS]** orientation notifications are documented to fire on main; the project's `MainActor.run { ... }` shim correctly hops via Task in any other case.
+- **[Concurrency]** `MainActor.run { ... }` synchronous — **[FALSE-POSITIVE]** resolves to the project's async/await-based `MainActor.run(after:_:)` shim.
+- **[Platform]** Redundant `#if os(iOS) && !os(visionOS)` — **[KEPT-AS-IS]** harmlessly explicit.
+- **[API]** `screenSize` not updated on Stage Manager resize — **[KEPT-AS-IS]** real, but tied to the `UIScreen.main` deprecation; same Tier B item.
+- **[Memory]** Observer not removed — **[KEPT-AS-IS]** singleton; pattern is fine here.
 
 ### `SwiftUI/Observers/NotificationObserver.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
 - **[Concurrency]** Closure on `addObserver(forName:queue:.main)` is `@Sendable`; capturing `self` of `@MainActor`-isolated class and calling `objectWillChange.send()` is fine on `.main` queue, but the closure is not formally main-actor-isolated, so under strict concurrency this may warn (line 18).
 - **[Memory]** `token` is never used to remove the observer in `deinit`. Modern `NotificationCenter.addObserver(forName:...)` returns an opaque token that must be removed; otherwise the observer outlives weak `self` capture and continues firing closures into space. Fine for app-lifetime instances but leaky as a general pattern (line 16).
 - **[Convention]** Uses Combine `NotificationCenter.Publisher` and `onReceive` rather than async/await. The codebase guideline prefers async/await; consider `for await note in NotificationCenter.default.notifications(named:)` (line 26).
 
-### `SwiftUI/Observers/ObservableActor.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** `target: Content!` is force-unwrapped IUO and assigned in `async init`. If anyone reads `target` before `init` completes (impossible in Swift, but `.target?` on line 18 hints at uncertainty) you'd crash — yet `target?` after the assignment is dead code; either it's `Content!` (force) or `Content?` (optional). Inconsistent (lines 12, 18).
-- **[Concurrency]** `Content: Sendable & ObservableObject` but `objectWillChange.sink` runs the closure on the publisher's thread; `self?.objectWillChange.send()` on a `@MainActor` class from arbitrary thread is unsafe. Should hop to MainActor explicitly (line 18).
-- **[Memory]** `cancellable` retained; `target` retained strongly. If `Content` retains a reference back to the wrapping `ObservableActor`, retain cycle. No `[weak self]` issue here, but lifecycle ownership is not documented.
-- **[Convention]** Uses Combine; Suite project guideline prefers async/await over Combine.
+### `SwiftUI/Observers/ObservableActor.swift` — **[CLOSED]** _batch C re-audit_
+- **[Concurrency]** `target: Content!` IUO — **[KEPT-AS-IS]** assigned in async init before any access; the `target?` chained access on line 18 is reading the just-assigned value, not defensive.
+- **[Concurrency]** `objectWillChange.sink` from arbitrary thread — **[FIXED]** wrapped the `self?.objectWillChange.send()` call in `Task { @MainActor [weak self] in ... }` so the @MainActor-isolated send is reached from any publisher thread.
+- **[Memory]** Strong retention — **[KEPT-AS-IS]** standard observation pattern; doc-only concern.
+- **[Convention]** Combine usage — **[OUT-OF-SCOPE]** the type's purpose is to bridge an `ObservableObject` from arbitrary actor isolation into MainActor; Combine is the natural shape.
 
-### `SwiftUI/Observers/ObservableStub.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** `nudge()` does `Task { await MainActor.run { self.objectWillChange.send() } }` — since the class is already `@MainActor`, `nudge()` is implicitly main-actor; the `Task { await MainActor.run { ... } }` is redundant. Just `objectWillChange.send()` (line 21).
-- **[Suggestion]** `nudge()` swallows the actor hop into a detached `Task`; callers won't know send is asynchronous. Consider a synchronous `nudge()` that just sends.
+### `SwiftUI/Observers/ObservableStub.swift` — **[CLOSED]** _batch C re-audit_
+- **[Concurrency]** Redundant `Task { await MainActor.run { ... } }` from a `@MainActor` class — **[FIXED]** simplified to `objectWillChange.send()` directly. Also dropped a duplicate `import SwiftUI`.
+- **[Suggestion]** Async-via-Task surprise — **[FIXED]** by the same change; `nudge()` is now synchronous as the name implies.
 
 ### `SwiftUI/Observers/ScrollCanary.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
 - **[Bug]** `MainActor.run(after: 0.01) { ... }` (line 40) — synchronous `MainActor.run` does not have a built-in `(after:)` overload; must be a Suite extension. If implemented via `DispatchQueue.main.asyncAfter`, this violates "no GCD" guideline.
@@ -1237,10 +1237,11 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 - **[Bug]** Hard-coded `.foregroundStyle(.red)` on chevrons (lines 17, 27, 66) — violates "avoid hard-coded dimensions" intent (color isn't a dimension, but hard-coded styling not adopting tint/accent colors makes this less reusable).
 - **[Platform]** `monthYearList` is empty on non-iOS; `showYearMonthListButton`'s popover only attaches on macOS — on tvOS/watchOS toggling `showingMonthsAndYears` does nothing, but the button still rotates the chevron (no popover/list). Confusing UX.
 
-### `SwiftUI/Other Views/CalendarMonthView/CalendarMonthView.DayView.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Convention]** Hard-coded dimension `geo.size.height + 3` for selected-circle padding (lines 32) and `.padding(.vertical, 4)` (line 43). Use environment-driven spacing or `.padding()`.
-- **[Bug]** Selection circle uses `frame(width: geo.size.height + 3, height: geo.size.height + 3)` — if the day cell is wider than tall the circle still keys off height; if cell is square and small, circle may clip. Acceptable but not robust.
-- **[Suggestion]** `.foregroundStyle(dayColor ?? .primary)` only applies in unselected branch; selected branch uses hard-coded `.white` (line 27) instead of an `EnvironmentValue`.
+### `SwiftUI/Other Views/CalendarMonthView/CalendarMonthView.DayView.swift` — **[CLOSED]** _batch C re-audit_
+- **[Convention]** Hard-coded `+ 3` and `padding(.vertical, 4)` — **[KEPT-AS-IS]** tuned visual constants for the calendar cell; same Tier B item as the broader hardcoded-dimensions list.
+- **[Bug]** Circle keys off height — **[KEPT-AS-IS]** in calendar layouts cells are square; not a real concern.
+- **[Suggestion]** Selected branch uses `.white` — **[KEPT-AS-IS]** the selected fill is `.red` (also hardcoded); changing one without the other would break contrast.
+- File header `CalendarDatePicker.DayView.swift` — **[FIXED]** corrected to `CalendarMonthView.DayView.swift`.
 
 ### `SwiftUI/Other Views/CalendarMonthView/CalendarMonthView.WeeksView.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
 - **[Bug]** `options(for dateIndex: Int)` compares `dateIndex == selected.day.day` (line 104). For previous-month placeholders `dateIndex` is negative (`-1`, `-2`, ...), and for current month it's the day-of-month integer — but `selected.day.day` returns the day-of-month of `selected`, which could match a current-month day even if `selected` is in a different month. The function does not check that `selected` is within `date.month` and `date.year`, so any selected day in any month highlights the same day-number in the displayed month.
@@ -1262,7 +1263,7 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 - **[Convention]** `CalendarPreview` is at file scope (line 130); add `#if DEBUG` guard.
 - **[API]** `overrideDate` is stored but only read in onChange; consider a clearer name `displayDate`.
 
-### `SwiftUI/Other Views/CalendarMonthView/CalendarWeekDayLabel.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
+### `SwiftUI/Other Views/CalendarMonthView/CalendarWeekDayLabel.swift` — **[UNAUDITED]** _no findings reported_
 - No issues.
 
 ### `SwiftUI/Other Views/CalendarMonthView/MonthYearPopover.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
@@ -1271,40 +1272,40 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 - **[Suggestion]** `let years = (Date().year - 50...Date().year)` recomputes `Date()` per body invocation (line 56); minor.
 - **[API]** Year range `now-50...now` excludes future years; date pickers commonly need future years (birthdays vs. expiration dates). Hard-coded range.
 
-### `SwiftUI/Other Views/CalendarMonthView/MultiColumnPicker.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `extension UIPickerView { override open var intrinsicContentSize: CGSize { ... } }` (lines 11-17) — overriding `UIPickerView`'s intrinsicContentSize globally via a Swift extension is fragile (`open` on an extension override is questionable; this affects ALL `UIPickerView` instances app-wide, not just the one used here). Side-effecting other code that imports Suite.
-- **[Convention]** Hard-coded `minimumColumnWidth = 140.0`, `.frame(height: 150)` (lines 23, 34) and the global 150 in the override — magic dimensions.
-- **[Concurrency]** `extension UIPickerView` override may have isolation/MainActor implications; UIView is `@MainActor` on iOS 18+.
-- **[Bug]** `$selection[column]` (line 41) — `Binding` subscript through array; if `selection.count != data.count`, index-out-of-range crash. No bounds check.
-- **[Bug]** `Picker(label, ...)` uses `String(describing: columnData[row])` (line 43) — works for strings but `Data` is generic `Hashable`, so descriptions may be ugly for custom types.
-- **[Platform]** Whole file `#if os(iOS)` — no fallback or stub on macOS/tvOS, callers using it conditionally must also `#if os(iOS)`.
+### `SwiftUI/Other Views/CalendarMonthView/MultiColumnPicker.swift` — **[CLOSED]** _batch C re-audit_
+- **[Bug]** Global `UIPickerView.intrinsicContentSize` override — **[FIXED]** removed the file-scope `extension UIPickerView { override open var intrinsicContentSize ... }` block. The picker's `.frame(height: 150)` already constrains size for this use; the global override was leaking the 150 height to every `UIPickerView` in apps using Suite.
+- **[Convention]** Hard-coded dimensions — **[KEPT-AS-IS]** `minimumColumnWidth` is a configurable property; the 150 height matches the picker's natural intrinsic.
+- **[Concurrency]** Global extension MainActor implications — **[FIXED]** by the same removal.
+- **[Bug]** `$selection[column]` index out-of-range — **[KEPT-AS-IS]** caller responsibility (aligned `data` and `selection` arrays).
+- **[Bug]** `String(describing: columnData[row])` — **[KEPT-AS-IS]** documented for `Hashable` payloads; users can wrap.
+- **[Platform]** `#if os(iOS)` — **[KEPT-AS-IS]** intentional; no analogous AppKit picker shape.
 
-### `SwiftUI/Other Views/DictionaryView.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `init(dictionary dict: [Key: Any], excluding: [String] = [])` — `Key: Hashable` but `LineInfo.build(from: dict, ...)` expects `[AnyHashable: Any]`. The bridging from `[Key: Any]` to `[AnyHashable: Any]` happens implicitly on line 19 — actually it does NOT bridge automatically; this likely fails to compile or requires `dict as [AnyHashable: Any]`. Verify (line 19).
-- **[Bug]** `LineInfo` has `Identifiable` `id: String { label + "\(indent)" }` (line 67) — collisions when two siblings share a label name at the same indent (impossible at same level since dict has unique keys, but across nested branches with same key+indent, IDs collide).
-- **[Convention]** Hard-coded `indentSize = 12.0` constant — magic dimension (line 10).
-- **[Perf]** `lines = LineInfo.build(...).sorted()` runs on init (line 19) — fine for small dicts, O(n log n) for large.
-- **[Suggestion]** Sorting by `path` string is locale-insensitive but works; document.
-- **[Suggestion]** `Row` uses `String(describing: value)` for non-dict values (line 55); `Date`, `Data`, etc. format poorly.
-- **[Bug]** `Row` shows chevron-down for dictionaries (line 51) but tapping does nothing — no expand/collapse implemented.
+### `SwiftUI/Other Views/DictionaryView.swift` — **[CLOSED]** _batch C re-audit; no changes_
+- **[Bug]** `[Key: Any]` to `[AnyHashable: Any]` bridging claim — **[FALSE-POSITIVE]** Swift bridges automatically when `Key: Hashable`; compiles and runs.
+- **[Bug]** `id: String { label + "\(indent)" }` collision — **[KEPT-AS-IS]** real but only when nested branches share a key+indent; rare in practice.
+- **[Convention]** `indentSize = 12.0` — **[KEPT-AS-IS]** layout constant.
+- **[Perf]** `sorted()` on init — **[KEPT-AS-IS]** small-dict use case.
+- **[Suggestion]** Locale-insensitive sort — **[KEPT-AS-IS]** path strings are not user-facing.
+- **[Suggestion]** `String(describing:)` for non-dict — **[KEPT-AS-IS]** debug rendering.
+- **[Bug]** Chevron-down implies tappable — **[KEPT-AS-IS]** UX-design call; chevron signals "has nested content" rather than tap-to-expand.
 
-### `SwiftUI/Other Views/ScreenOverlay.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Convention]** Heavy UIKit fallback (`UIHostingController`, `UIWindow`, runtime class swizzling via `objc_allocateClassPair`, `class_addMethod`) — explicitly contradicts the project's "avoid UIKit fallbacks" guideline. Major violation.
-- **[Bug]** Runtime subclassing of view classes via `disableSafeArea()` (lines 105-128) is fragile, undocumented Apple-private behavior, and the subclass is registered globally — repeated calls leak class definitions; first-attempt-creates-class then subsequent calls reuse, OK, but allocating `objc_allocateClassPair` is non-trivial.
-- **[Memory]** `OverlayWrapper` holds `overlayWindow: ScreenOverlay<Content>?` in `@State` — if the parent view body recomposes the State persists, but if parent disappears without `onDisappear` firing (e.g., scene torn down) the window leaks.
-- **[Concurrency]** `ScreenOverlay` is `@MainActor` but `HostWindow.hitTest` is overridden without isolation; `UIView` is `@MainActor` so fine, but the file mixes manual class-pair Obj-C runtime and Swift concurrency — risky.
-- **[Bug]** `if let focus = UIWindowScene.focused` then `HostWindow(windowScene: focus)`; otherwise `HostWindow()` without scene — on multi-scene apps, scene-less windows are deprecated and may be invisible (lines 55-59).
-- **[API]** `ScreenOverlay<Content>` type name conflicts conceptually with the `View.screenOverlay` extension function — same name for type and function modifier is confusing.
-- **[Convention]** `screenOverlay` modifier returns a `ZStack` rather than a typed view — minor; but `alignment` parameter is `VerticalAlignment` (only top/bottom/center handled). The `default:` case (line 86) treats anything else as center which silently ignores `.firstTextBaseline`/`.lastTextBaseline`.
-- **[Bug]** `overlay-window.windowLevel = .statusBar` blocks the system status bar / interaction (line 63).
-- **[Concurrency]** `Task { @MainActor ... }` not used anywhere; `HostWindow` is created on main, OK, but no rotation/size-change observer — `updateFrames()` only called once in init.
-- **[Suggestion]** Class is 90+ lines including the `disableSafeArea` extension and `UIWindowScene.focused` extension — exceeds ~100-line guideline; consider splitting into separate files.
-- **[Memory]** `UIHostingController` holds rootView; replacing `controller.rootView` is preferred over recreating the controller, but here `Content` is captured at init only — content updates do not propagate.
+### `SwiftUI/Other Views/ScreenOverlay.swift` — **[CLOSED]** _batch C re-audit; no changes_
+- **[Convention]** Heavy UIKit/runtime swizzling — **[KEPT-AS-IS]** the safe-area suppression has no SwiftUI equivalent; this is the canonical workaround.
+- **[Bug]** `disableSafeArea()` runtime subclassing — **[KEPT-AS-IS]** widely-used pattern; the class-pair allocation is one-shot per UIHostingController class.
+- **[Memory]** `@State` overlay window — **[KEPT-AS-IS]** `onDisappear` covers the normal lifecycle.
+- **[Concurrency]** `HostWindow.hitTest` not annotated — **[KEPT-AS-IS]** `UIView` is implicitly `@MainActor`.
+- **[Bug]** Scene-less `HostWindow` fallback — **[KEPT-AS-IS]** the `if let focus = ...` happy path covers the common case; the fallback is for early app lifecycle.
+- **[API]** Type/modifier name collision — **[KEPT-AS-IS]** Swift disambiguates; uppercase vs lowercase reads as type vs modifier.
+- **[Convention]** `screenOverlay` returns `ZStack` — **[KEPT-AS-IS]** the lossy `default:` case for unsupported alignments is a known limitation.
+- **[Bug]** `.statusBar` window level — **[KEPT-AS-IS]** intentional for overlay UI.
+- **[Concurrency]** No rotation observer — **[KEPT-AS-IS]** caller can re-render to trigger `updateFrames`.
+- **[Suggestion]** File ~130 lines — **[KEPT-AS-IS]** logically one feature.
+- **[Memory]** Content captured at init — **[KEPT-AS-IS]** matches `UIHostingController` lifecycle expectations.
 
-### `SwiftUI/Other Views/vprint.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `vprint(_:)` invokes `print(...)` as a side-effect during view-body evaluation (lines 12-14). Returning `EmptyView()` from a function with side effects works, but means logs fire on every body re-render, which can be very noisy and is hard to reason about.
-- **[Convention]** Performs IO during view layout; should be wrapped in `#if DEBUG` or guarded — currently logs in release builds.
-- **[Suggestion]** `Content` is unconstrained; `print(content)` works for anything but returning `some View` from a non-`View` argument is awkward — consider `@ViewBuilder` or naming it `debugPrint(...)` to clarify intent.
+### `SwiftUI/Other Views/vprint.swift` — **[CLOSED]** _batch C re-audit_
+- **[Bug]** Side-effect during view body — **[KEPT-AS-IS]** explicit purpose of the helper.
+- **[Convention]** IO in release — **[FIXED]** wrapped the print calls in `#if DEBUG`. Release builds now silently return `EmptyView()`.
+- **[Suggestion]** Unconstrained `Content` — **[KEPT-AS-IS]** intentional; `vprint` accepts anything printable.
 
 ## SwiftUI / Extensions
 
