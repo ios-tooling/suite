@@ -25,14 +25,14 @@ struct ReadyFlagTests {
 		}
 
 		// Give task time to start waiting
-		try? await Task.sleep(nanoseconds: 50_000_000)
+		await yieldUntilSuspended()
 
 		#expect(completed == false)
 
 		// Make it ready
 		flag.makeReady()
 
-		try? await Task.sleep(nanoseconds: 50_000_000)
+		await yieldUntilSuspended()
 
 		#expect(completed == true)
 	}
@@ -67,12 +67,12 @@ struct ReadyFlagTests {
 		}
 
 		// Give tasks time to start waiting
-		try? await Task.sleep(nanoseconds: 100_000_000)
+		await yieldUntilSuspended(iterations: 50)
 
 		await flag.makeReady()
 
 		// Give tasks time to complete
-		try? await Task.sleep(nanoseconds: 100_000_000)
+		await yieldUntilSuspended(iterations: 50)
 
 		let count = await counter.count
 		#expect(count == 5)
@@ -89,11 +89,11 @@ struct ReadyFlagTests {
 			completed = true
 		}
 
-		try? await Task.sleep(nanoseconds: 50_000_000)
+		await yieldUntilSuspended()
 
 		flag.set(true)
 
-		try? await Task.sleep(nanoseconds: 50_000_000)
+		await yieldUntilSuspended()
 
 		#expect(completed == true)
 	}
@@ -111,7 +111,7 @@ struct ReadyFlagTests {
 			completed = true
 		}
 
-		try? await Task.sleep(nanoseconds: 50_000_000)
+		await yieldUntilSuspended()
 
 		#expect(completed == false)
 	}
@@ -135,14 +135,14 @@ struct ReadyFlagTests {
 			step2 = true
 		}
 
-		try? await Task.sleep(nanoseconds: 50_000_000)
+		await yieldUntilSuspended()
 
 		#expect(step1 == false)
 		#expect(step2 == false)
 
 		flag1.makeReady()
 
-		try? await Task.sleep(nanoseconds: 100_000_000)
+		await yieldUntilSuspended(iterations: 50)
 
 		#expect(step1 == true)
 		#expect(step2 == true)
@@ -167,7 +167,7 @@ struct ReadyFlagTests {
 			}
 
 			group.addTask {
-				try? await Task.sleep(nanoseconds: 100_000_000)
+				await yieldUntilSuspended(iterations: 50)
 				await flag.makeReady()
 			}
 		}

@@ -47,8 +47,8 @@ struct AsyncSemaphoreTests {
 			await semaphore.wait()
 		}
 
-		// Give the task time to suspend
-		try? await Task.sleep(nanoseconds: 50_000_000)
+		// Yield until the spawned task reaches its suspension point.
+		await yieldUntilSuspended()
 
 		let resumed = semaphore.signal()
 		#expect(resumed == true)
@@ -107,16 +107,15 @@ struct AsyncSemaphoreTests {
 			}
 		}
 
-		// Give tasks time to queue
-		try? await Task.sleep(nanoseconds: 100_000_000)
+		// Yield until all five spawned tasks have reached `wait()`.
+		await yieldUntilSuspended(iterations: 50)
 
-		// Signal them in order
+		// Signal them — they each need a yield window to land in the collector.
 		for _ in 0..<5 {
 			semaphore.signal()
-			try? await Task.sleep(nanoseconds: 10_000_000)
+			await yieldUntilSuspended(iterations: 5)
 		}
-
-		try? await Task.sleep(nanoseconds: 100_000_000)
+		await yieldUntilSuspended(iterations: 25)
 
 		let results = await collector.results
 		#expect(results.count == 5)
@@ -162,13 +161,13 @@ struct AsyncSemaphoreTests {
 			try await semaphore.waitUnlessCancelled()
 		}
 
-		// Give task time to start waiting
-		try? await Task.sleep(nanoseconds: 50_000_000)
+		// Yield until the task reaches `waitUnlessCancelled` and suspends.
+		await yieldUntilSuspended()
 
 		task.cancel()
 
-		// Wait for cancellation to process
-		try? await Task.sleep(nanoseconds: 50_000_000)
+		// Yield to let the cancellation handler run.
+		await yieldUntilSuspended()
 
 		// The semaphore value should be restored to 0
 		// If we signal now, it should return false (no waiters)

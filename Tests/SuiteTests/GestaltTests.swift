@@ -25,17 +25,13 @@ struct GestaltTests {
 		#expect(!(Gestalt.DebugLevel.debugging < Gestalt.DebugLevel.none))
 	}
 
-	@Test("Simulator detection is boolean")
+	@Test("Simulator detection matches build configuration")
 	func simulatorDetection() {
-		// Should be either true or false, never nil
-		let isSimulator = Gestalt.isOnSimulator
-		#expect(isSimulator == true || isSimulator == false)
-	}
-
-	@Test("Debugger attachment is boolean")
-	func debuggerAttachment() {
-		let isAttached = Gestalt.isAttachedToDebugger
-		#expect(isAttached == true || isAttached == false)
+		#if targetEnvironment(simulator)
+		#expect(Gestalt.isOnSimulator == true)
+		#else
+		#expect(Gestalt.isOnSimulator == false)
+		#endif
 	}
 
 	@Test("Extension detection")
@@ -44,22 +40,16 @@ struct GestaltTests {
 		#expect(Gestalt.isExtension == false)
 	}
 
-	@Test("Preview detection")
-	func previewDetection() {
-		let isPreview = Gestalt.isInPreview
-		#expect(isPreview == true || isPreview == false)
-	}
-
 	@Test("Platform detection exclusivity")
 	func platformExclusivity() {
-		// Only one platform should be true
-		let platforms = [
-			Gestalt.isOnMac,
-			Gestalt.isOnWatch,
-			Gestalt.isOnTV
-		]
+		// At most one platform-family flag should be true.
+		#if os(iOS) || os(visionOS)
+		let platforms = [Gestalt.isOnMac, Gestalt.isOnWatch, Gestalt.isOnTV, Gestalt.isOnIPad, Gestalt.isOnIPhone, Gestalt.isOnVision]
+		#else
+		let platforms = [Gestalt.isOnMac, Gestalt.isOnWatch, Gestalt.isOnTV]
+		#endif
 		let trueCount = platforms.filter { $0 }.count
-		#expect(trueCount <= 1) // At most one platform is true
+		#expect(trueCount <= 1)
 	}
 
 	#if os(iOS) || os(visionOS)
@@ -100,14 +90,6 @@ struct GestaltTests {
 	}
 	#endif
 
-	@Test("Running unit tests flag")
-	func unitTestsDetection() {
-		// Note: Swift Testing framework doesn't use XCTest, so this may be false
-		// Just verify the property is accessible and returns a boolean
-		let isRunning = Gestalt.isRunningUnitTests
-		#expect(isRunning == true || isRunning == false)
-	}
-
 	@Test("UI tests flag")
 	func uiTestsDetection() {
 		// Should be false in unit tests
@@ -118,7 +100,8 @@ struct GestaltTests {
 	func buildDate() {
 		#expect(Gestalt.buildDate != nil)
 		if let buildDate = Gestalt.buildDate {
-			#expect(buildDate < Date()) // Build date should be in the past
+			// Allow a 1-minute slack for clock skew on CI machines whose clock may drift slightly.
+			#expect(buildDate < Date().addingTimeInterval(60))
 		}
 	}
 

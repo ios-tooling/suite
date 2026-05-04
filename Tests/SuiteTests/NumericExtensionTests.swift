@@ -163,46 +163,45 @@ struct TimeIntervalTests {
 		#expect(sixtyOneSeconds.leftoverSeconds == 1) // 61 % 60 = 1
 	}
 
-	@Test("Duration string simple")
+	@Test("Duration string simple — 60s renders without leading hours")
 	func durationStringSimple() {
 		let oneMinute: TimeInterval = 60.0
 		let string = oneMinute.durationString(style: .seconds, showLeadingZero: false, roundUp: false)
 
-		#expect(!string.isEmpty)
-		// Should be something like "1:00" or "0:59" depending on rounding
+		#expect(string == "1:00")
 	}
 
-	@Test("Duration string with hours")
+	@Test("Duration string with hours — 1h renders as h:mm:ss")
 	func durationStringHours() {
 		let oneHour: TimeInterval = .hour
 		let string = oneHour.durationString(style: .hours, showLeadingZero: false, roundUp: false)
 
-		#expect(!string.isEmpty)
+		#expect(string == "1:00:00")
 	}
 
-	@Test("Duration string minutes only")
+	@Test("Duration string minutes only — 90 min renders as h:mm")
 	func durationStringMinutes() {
 		let ninetyMinutes: TimeInterval = .minute * 90
 		let string = ninetyMinutes.durationString(style: .minutes, showLeadingZero: false, roundUp: false)
 
-		#expect(!string.isEmpty)
+		#expect(string == "1:30")
 	}
 
-	@Test("Duration string with leading zero")
+	@Test("Duration string with leading zero pads but without leading drops")
 	func durationStringLeadingZero() {
 		let oneMinute: TimeInterval = 60.0
 		let withZero = oneMinute.durationString(style: .seconds, showLeadingZero: true, roundUp: false)
 		let withoutZero = oneMinute.durationString(style: .seconds, showLeadingZero: false, roundUp: false)
 
-		#expect(!withZero.isEmpty)
-		#expect(!withoutZero.isEmpty)
+		#expect(withZero == "00:01:00")
+		#expect(withoutZero == "1:00")
 	}
 
-	@Test("Milliseconds property")
+	@Test("Milliseconds property returns sub-second fractional 0..<1")
 	func millisecondsProperty() {
+		// Despite the name, `milliseconds` returns 0.0..<1.0 (the fractional part of the interval).
+		// This is a documented misnomer used internally by durationString.
 		let interval: TimeInterval = 1.5
-		let millis = interval.milliseconds
-
-		#expect(millis > 0)
+		#expect(interval.milliseconds == 0.5)
 	}
 }
