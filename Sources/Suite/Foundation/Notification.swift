@@ -8,21 +8,6 @@
 
 import Foundation
 
-//public protocol Notifier: RawRepresentable { }
-//
-//public extension Notifier {
-//	var notificationName: Notification.Name { return Notification.Name("\(self.rawValue)") }
-//	func notify(object: Any? = nil, info: [String: Any]? = nil) {
-//		self.notificationName.notify(object, info: info, forceCurrentThread: false)
-//	}
-//}
-//
-//public extension NSObject {
-//	func addAsObserver<Note: Notifier>(of note: Note, selector sel: Selector, object: Any? = nil) {
-//		NotificationCenter.default.addObserver(self, selector: sel, name: note.notificationName, object: object)
-//	}
-//}
-
 public extension Notification.Name {
 	func notify(_ object: Sendable? = nil, info: [String: Sendable]? = nil, forceCurrentThread: Bool = false) {
 		if forceCurrentThread {
@@ -33,7 +18,6 @@ public extension Notification.Name {
 	}
 }
 
-//extension Notification: @retroactive @unchecked Sendable { }
 public extension Notification {
 	static func post(name: String, object: Sendable? = nil, userInfo: [String: Sendable]? = nil) {
 		self.post(name: Notification.Name(rawValue: name), object: object, userInfo: userInfo)

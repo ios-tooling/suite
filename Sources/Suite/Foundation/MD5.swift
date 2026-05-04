@@ -20,7 +20,7 @@ extension [MD5able]: MD5able {
 	public var md5: String {
 		get throws {
 			if isEmpty { return emptyMD5 }
-			let result = try compactMap { try $0.md5 }.joined(separator: "-")
+			let result = try map { try $0.md5 }.joined(separator: "-")
 			return result
 		}
 	}

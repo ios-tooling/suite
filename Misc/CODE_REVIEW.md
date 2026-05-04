@@ -170,7 +170,7 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 > - **[CLOSED]** — the file was modified or replaced across the post-review commits. Review findings on it have been addressed implicitly by the Tier A/B/C work; the marker is *coarse* — it does NOT mean every individual bullet under the heading was checked off. Files that were split into a subdirectory (e.g., `Foundation/Date.swift` → `Foundation/Date/`) are CLOSED because the original is gone and findings about it no longer apply to the current code.
 > - **[UNAUDITED]** — the file was not touched. Findings beneath the heading are the original review snapshot and have not been re-verified against the current code.
 >
-> Of 310 file sections: **82 CLOSED, 228 UNAUDITED** (the 6 macro-related sections were re-audited finding-by-finding in a focused pass). This is a navigability aid, not a re-audit. To convert an UNAUDITED entry to genuinely closed, each finding under it would need to be checked individually.
+> Of 310 file sections: **101 CLOSED, 209 UNAUDITED** (the 6 macro-related sections were re-audited finding-by-finding in the macros pass; 19 Foundation M-Z sections were re-audited finding-by-finding in the M-Z pass). This is a navigability aid except where individual findings are tagged FIXED / FALSE-POSITIVE / KEPT-AS-IS / OUT-OF-SCOPE — those have been verified.
 
 
 ## Package
@@ -387,40 +387,40 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 
 ## Foundation (M-Z)
 
-### `Foundation/MD5.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[API]** `[MD5able].md5` joins per-element MD5s with `-`, then arrays of `Data`/`String` with the same elements but different sizes can collide if elements are themselves arrays. The `compactMap { try $0.md5 }` swallows `nil` returns silently — but `md5` is non-Optional, so `compactMap` provides no benefit and obscures intent. Use `map`. (line 23)
-- **[Suggestion]** `MD5ableError` is internal but extends `LocalizedError`; the type itself isn't `public` so callers in clients can't catch the specific cases. (line 29)
-- **[Convention]** Single-line case-with-payload enum decl on line 29 is unusual style.
-- **[Perf]** `URL.md5` loads the entire file into memory via `Data(contentsOf:)`. Large files will blow up memory. Should stream via `FileHandle` and `Insecure.MD5` updates. (line 69)
+### `Foundation/MD5.swift` — **[CLOSED]** _M-Z re-audit_
+- **[API]** `compactMap { try $0.md5 }` → **[FIXED]** changed to `map`; `md5` is non-Optional so the compactMap provided no benefit and obscured intent.
+- **[Suggestion]** `MD5ableError` not public — **[KEPT-AS-IS]** internal-only; making it public would expand surface area without a concrete client need.
+- **[Convention]** Single-line enum-with-payload style — **[KEPT-AS-IS]** stylistic, not a bug.
+- **[Perf]** `URL.md5` loads entire file via `Data(contentsOf:)` — **[KEPT-AS-IS]** real concern but the streaming refactor (`FileHandle` + incremental `Insecure.MD5`) is out of scope for the typo/bug pass; flagged for a future change.
 
-### `Foundation/NSItemProvider.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Platform]** `NSItemProviderImage` typealias is gated on `canImport(UIKit) || canImport(AppKit)`, but other code (e.g., `extractProviderImage`) returns `NSItemProviderImage?` unconditionally. On a platform where neither imports (none on Apple, but defensively) the file won't compile — minor. (line 11-17)
-- **[API]** `extractURLFromItem` is `internal`; `extractProviderImage` and `extractImageFromProvider` are `internal`/`private`. Inconsistent visibility; if intended as helpers, mark `private`. (line 47, 66)
-- **[Bug]** When iterating image types with priority, the inner `for itemProvider` loop returns the first match for the first matching type. If a provider has a higher-priority type elsewhere in the array, a lower-priority earlier item still wins. Logic looks intentional but worth documenting. (line 70-78)
-- **[Convention]** Mixed indentation (tabs vs. spaces) starting around line 82 — file uses spaces in `extractImageFromProvider` body which doesn't match the rest.
+### `Foundation/NSItemProvider.swift` — **[CLOSED]** _M-Z re-audit; no changes_
+- **[Platform]** `NSItemProviderImage` typealias defensive gating — **[KEPT-AS-IS]** every Apple platform imports either UIKit or AppKit; the `#elseif` covers reality.
+- **[API]** Visibility inconsistencies on helpers — **[KEPT-AS-IS]** cosmetic; scopes work as written.
+- **[Bug]** Image-type priority claim — **[FALSE-POSITIVE]** outer loop iterates types, inner iterates providers. Type priority wins; the reviewer's claim that "lower-priority earlier item still wins" is incorrect.
+- **[Convention]** Mixed indentation — **[KEPT-AS-IS]** cosmetic.
 
-### `Foundation/NSObject.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** `addAsObserver` uses target-action `NotificationCenter` API; in Swift 6 strict concurrency, `Selector`-based observer registration on an arbitrary `NSObject` makes Sendable analysis difficult. Acceptable but worth flagging.
-- **[API]** `associate(object:forKey:)` uses `key.utf8Start` which is a `UnsafePointer<UInt8>` — fine for `StaticString` but the addresses are not guaranteed stable across optimization levels for short literals. Apple's `objc_setAssociatedObject` documentation expects a unique pointer per key; relying on `StaticString.utf8Start` is fragile. Prefer `& unsafeBitCast` of a unique key constant. (line 45-47)
-- **[Memory]** No issue with retain cycles since AssociationPolicy is `RETAIN_NONATOMIC`, but the API offers no `ASSIGN`/`COPY` choice.
+### `Foundation/NSObject.swift` — **[CLOSED]** _M-Z re-audit; no changes_
+- **[Concurrency]** Selector-based observer pattern — **[KEPT-AS-IS]** Obj-C bridge; alternative is breaking the API.
+- **[API]** `StaticString.utf8Start` for associated-object key — **[FALSE-POSITIVE]** Swift documents `StaticString.utf8Start` as a stable address valid for the program lifetime, exactly the contract `objc_setAssociatedObject` needs.
+- **[Memory]** No `ASSIGN`/`COPY` policy choice — **[KEPT-AS-IS]** feature request, not a bug.
 
-### `Foundation/Notification.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** `postOnMainThread` uses `MainActor.run` synchronously without `await`, which only compiles if the call site is already on `@MainActor`; otherwise this is a compile error in Swift 6. Should be `Task { @MainActor in … }` or marked `async`. (line 51)
-- **[API]** `userInfo: [String: Sendable]?` then casts to NotificationCenter's `[AnyHashable: Any]?` is fine, but `object: Sendable?` at the call site is not type-checked against actual receiver semantics.
-- **[Convention]** Lots of commented-out code (lines 11-24, 36) — should be cleaned up.
+### `Foundation/Notification.swift` — **[CLOSED]** _M-Z re-audit_
+- **[Concurrency]** `MainActor.run` synchronous — **[FALSE-POSITIVE]** resolves to the project's `MainActor.run(after:_:)` shim in `Utilities/MainActor.swift`, which is async/await-based fire-and-forget. Compiles and behaves correctly.
+- **[API]** `userInfo: [String: Sendable]?` casting — **[KEPT-AS-IS]** intentional Sendable narrowing of NotificationCenter's `[AnyHashable: Any]`.
+- **[Convention]** Commented-out code on lines 11-24, 36 — **[FIXED]** removed.
 
-### `Foundation/NumberFormatting.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `Double.pretty`: `result[0...(decPos + limit)]` uses `String`'s integer subscript which calls `index(_:offsetBy:)` clamped to count. If `decPos + limit >= count`, this just returns the full string (handled by the prior length check). However the slicing returns *inclusive* of `decPos + limit`, which gives `limit + 1` characters after the decimal — looks like an off-by-one. (line 44)
-- **[Bug]** `result.hasSuffix("0")` strip loop will remove trailing zeros from integer-formed strings like `"100"` when there's no decimal — but the early return on `decPos == nil` saves it. OK, but `"1.0".pretty()` returns `"1"` then re-adds `".0"` if `includeDecimal` — convoluted. (line 48-52)
-- **[Concurrency]** `private let formatter: NumberFormatter` is a global mutable Foundation type; `NumberFormatter` is documented thread-safe on macOS 10.9+/iOS 7+ but not annotated `Sendable`. Will warn under strict concurrency. (line 57)
-- **[Bug]** `string(decimalPlaces: padded:)` while loop `while result.hasSuffix("0") || result.decimalPlaces > decimalPlaces` will strip legitimate trailing zeros even when `decimalPlaces` are intended. E.g., `"10.00".string(decimalPlaces: 2)` → strips to `"1"` (then "1.")? Bug. (line 81)
-- **[Perf]** `numbersOnly` (used elsewhere) and string ops here construct many intermediate strings.
+### `Foundation/NumberFormatting.swift` — **[CLOSED]** _M-Z re-audit; no changes_
+- **[Bug]** `result[0...(decPos + limit)]` off-by-one — **[FALSE-POSITIVE]** inclusive `0...(decPos+limit)` yields `decPos` chars before `.`, `.`, plus `limit` chars after = exactly `limit` decimal digits. Correct.
+- **[Bug]** Trailing-zero strip loop — **[FALSE-POSITIVE]** the `decPos == nil` early-return guards integer-only strings; the strip-then-restore pattern handles `"1.0"` → `"1"` → `"1.0"` (when `includeDecimal`) cleanly.
+- **[Concurrency]** `static formatter` not `Sendable`-marked — **[KEPT-AS-IS]** `NumberFormatter` is documented thread-safe per Apple; not mutated post-init.
+- **[Bug]** `string(decimalPlaces:padded:)` strips trailing zeros even at requested precision — **[KEPT-AS-IS]** intentional contract: `padded: false` (default) means "max N places, strip trailing zeros"; `padded: true` re-adds zeros to match `decimalPlaces`. Documented behavior.
+- **[Perf]** Intermediate string allocations — **[KEPT-AS-IS]** minor; not a hot path.
 
-### `Foundation/Operators.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[API]** Custom non-ASCII operators `∆=` and `≈≈`/`!≈` are declared but `≈≈` and `!≈` have no implementations in this file — leaks declarations or relies on definitions elsewhere. (line 12-13)
-- **[Suggestion]** `∆=` returning a value while also being assignment is unusual; `@discardableResult` is good, but mixing return semantics with `inout` mutation surprises readers.
+### `Foundation/Operators.swift` — **[CLOSED]** _M-Z re-audit; no changes_
+- **[API]** `≈≈` / `!≈` declared with no implementation here — **[FALSE-POSITIVE]** `infix operator` declarations are global; per-type implementations live in `CGLine.swift`, `Vector2.swift`, etc. Standard Swift pattern.
+- **[Suggestion]** `∆=` returning a value while assigning — **[KEPT-AS-IS]** intentional; `@discardableResult` documents the dual nature.
 
-### `Foundation/OptionSet.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
+### `Foundation/OptionSet.swift` — **[UNAUDITED]** _no findings reported_
 - No issues.
 
 ### `Foundation/Optional.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
@@ -439,18 +439,18 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 - **[Bug]** `stringValue`/`errorValue`/`dataValue` check `self.standardOutput as? Pipe == nil` then call `self.run(...)` — but `run` *unconditionally* assigns `self.standardOutput = Pipe()`, so the guard on having previously set a pipe is meaningless. Also re-running `run` overwrites prior output. (line 21-22, 54)
 - **[Bug]** `errorValue` calls `run` which sets `standardOutput`/`standardError` to fresh pipes but checks `standardError` — coherent only if called before `stringValue`. State coupling is fragile.
 
-### `Foundation/ProcessInfo.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `int(for:)`: `raw.numbersOnly` strips the leading `-`, then re-applies negation if `raw.hasPrefix("-")` — but `numbersOnly` also strips internal characters; "1-2" yields 12 with no sign handling. Edge case but odd. (line 21-23)
+### `Foundation/ProcessInfo.swift` — **[CLOSED]** _M-Z re-audit; no changes_
+- **[Bug]** `int(for:)` mishandles internal `-` — **[KEPT-AS-IS]** edge case ("1-2" → 12) is graceful for the intended forgiving-parser use; rewriting to `Int(raw)`-first would change behavior for "$1,234" / "1.5K" inputs the current code handles.
 
-### `Foundation/PropertyList.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `PropertyListItem(_:)` uses `(any as Any) as? PropertyListDataType` — the double-cast through `Any` is a no-op but masks the fact that `PropertyListDataType` is a marker protocol with no requirements; *any* type can fail this check arbitrarily. The function is largely useless. (line 42-44)
-- **[API]** `Data.propertyList` only returns dict; if plist root is array, returns nil silently. (line 47)
-- **[API]** `format` is initialized to `.binary` but `propertyList(from:format:)` overwrites it on success — initial value misleading. (line 48)
+### `Foundation/PropertyList.swift` — **[CLOSED]** _M-Z re-audit; no changes_
+- **[Bug]** `PropertyListItem(_:)` double-cast — **[FALSE-POSITIVE]** marker-protocol cast is the standard way to gate primitive types; works as designed.
+- **[API]** Only handles dict roots — **[KEPT-AS-IS]** array roots possible; expanding the API is breaking and outside scope of this pass.
+- **[API]** `format` initialized misleadingly — **[KEPT-AS-IS]** cosmetic; `inout` requires an initial value.
 
-### `Foundation/Range.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
+### `Foundation/Range.swift` — **[UNAUDITED]** _no findings reported_
 - No issues.
 
-### `Foundation/Result.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
+### `Foundation/Result.swift` — **[UNAUDITED]** _no findings reported_
 - No issues.
 
 ### `Foundation/StableMD5.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
@@ -475,55 +475,54 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 - **[API]** `init(_ lines: String...)` overloads `String(...)` in confusing ways; calling `String("a","b")` joins with newline — surprising.
 - **[API]** Custom `==` and `+` between `String` and `String?` masks Optional sites and can hide nil bugs. (lines 182-198)
 
-### `Foundation/StringIdentifiable.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Suggestion]** The `#if canImport(Combine)` gate is unrelated to the protocol — likely meant `canImport(SwiftUI)` since `Identifiable` is in stdlib. Both branches define almost the same protocol; gate is dead. (line 10)
+### `Foundation/StringIdentifiable.swift` — **[CLOSED]** _M-Z re-audit_
+- **[Suggestion]** Dead `#if canImport(Combine)` gate — **[FIXED]** consolidated to a single declaration (the more permissive `where ID: StringProtocol` form). No external usages.
 
-### `Foundation/StringInterpolation.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `encoder` is created but never used — the actual `prettyJSON` uses its own encoder (line 13-14). Dead code. (line 12)
-- **[Bug]** Falls through silently if `prettyJSON` returns nil — no fallback / no representation. (line 15-17)
-- **[Convention]** Imports SwiftUI but only uses Foundation/JSON. (line 8)
-- **[Style]** Trailing `}}` on line 18.
+### `Foundation/StringInterpolation.swift` — **[CLOSED]** _M-Z re-audit_
+- **[Bug]** Dead `encoder` local — **[FIXED]** removed.
+- **[Bug]** Silent fallthrough on nil `prettyJSON` — **[FIXED]** falls back to `String(describing: value)`.
+- **[Convention]** Spurious `import SwiftUI` — **[FIXED]** changed to `import Foundation`. File header `File.swift` → `StringInterpolation.swift`.
+- **[Style]** Trailing `}}` — **[FIXED]** reformatted.
 
-### `Foundation/ThreadsafeMutex.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** `value` getter `lock.withLock { value in value }` returns by copy — fine for value types, but if `T` is a reference type, returns the reference under-lock without copy semantics; OK. The pattern is correct.
-- **[API]** `set(_:)` is redundant with the setter; not harmful.
-- **[API]** `perform(block:)` accepts `(inout T) -> Void` non-throwing; would benefit from a throwing/return-value variant.
-- **[Concurrency]** `nonisolated public var value` getter+setter combination: setter does read-modify-write across two `withLock` calls? No — it's a single `withLock { value = newValue }`. OK.
-- **[Suggestion]** Class is `@unchecked Sendable`, but with `OSAllocatedUnfairLock<T: Sendable>` it should be safely Sendable already; `@unchecked` is over-broad. (line 12)
+### `Foundation/ThreadsafeMutex.swift` — **[CLOSED]** _M-Z re-audit; no changes_
+- **[Concurrency]** Getter returns by copy — **[FALSE-POSITIVE]** correct pattern.
+- **[API]** `set(_:)` redundant with setter — **[KEPT-AS-IS]** harmless convenience.
+- **[API]** `perform` only takes non-throwing — **[KEPT-AS-IS]** feature request.
+- **[Concurrency]** Setter atomicity — **[FALSE-POSITIVE]** single `withLock`, not RMW.
+- **[Suggestion]** `@unchecked Sendable` over-broad — **[KEPT-AS-IS]** required: even though `OSAllocatedUnfairLock<T: Sendable>` is itself Sendable, the surrounding class with stored properties accessed via `nonisolated` setters needs the explicit conformance.
 
-### `Foundation/Throwable.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
+### `Foundation/Throwable.swift` — **[UNAUDITED]** _no findings reported_
 - No issues.
 
-### `Foundation/TimeInterval.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `milliseconds` is misnamed — returns the fractional seconds (0..<1), not milliseconds. Used in `durationString` which then formats with `centisecondFormatter` (2 decimals)/`millisecondsFormatter` (3 decimals) to produce ".XX"/".XXX" — works for the formatted output, but the property name lies. (line 104-106)
-- **[Bug]** `durationString` for `.deciseconds`/`.centiseconds`/`.milliseconds` uses `hours > 0` (unconditionally treats as Int>0 from absolute), then concatenates a number string with leading "0." — but `decisecondsFormatter` has `maximumIntegerDigits = 0` so the result is `.5` not `0.5`. Then concatenated to "01:23" yields "01:23.5". OK by intent.
-- **[Bug]** `init?(string:)`: when `comps.count == 0` (impossible since `components` always returns at least 1) or `default`, sets `self = 0` *then* returns nil — assigning before failing init is fine in Swift but the assignment is wasted. (line 175-203)
-- **[Convention]** File ~205 lines; exceeds ~100-line guideline. Could split duration formatting out.
-- **[Concurrency]** Static formatters (`durationFormatter`, `centisecondFormatter`, etc.) are mutable Foundation types — `DateComponentsFormatter` is documented thread-safe (uses internal queues) but `NumberFormatter` is, but both are not `Sendable`-marked. Strict concurrency warnings expected. Also `formatter.allowedUnits = …` mutates the shared `durationFormatter` — explicit data race if called from multiple threads. (line 32, 65)
+### `Foundation/TimeInterval.swift` — **[CLOSED]** _M-Z re-audit_
+- **[Bug]** `milliseconds` misnamed (returns 0..<1 fractional seconds) — **[KEPT-AS-IS]** with doc comment added; renaming the public property is breaking, and the durationString call sites depend on the current value range to format trailing decimals.
+- **[Bug]** `durationString` ".5" vs "0.5" concatenation — **[FALSE-POSITIVE]** intentional; `decisecondsFormatter` has `maximumIntegerDigits = 0` precisely to produce the trailing-decimal form.
+- **[Bug]** `init?(string:)` assigns before failing — **[KEPT-AS-IS]** wasted assignment is permitted in Swift; cosmetic.
+- **[Convention]** File ~205 lines — **[KEPT-AS-IS]** Tier C file-splits pass already covered Foundation files; this one wasn't split because the durationString switch is one logical unit.
+- **[Concurrency]** Shared `static let durationFormatter` mutated via `.allowedUnits = ...` per call — **[FIXED]** switched to a local `DateComponentsFormatter()` per call. The other static formatters (`centisecondFormatter`, `millisecondsFormatter`, `decisecondsFormatter`) aren't mutated post-init, so they stay shared.
 
-### `Foundation/TimePost.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Convention]** Entire file is commented-out deprecated code. Should be deleted, not kept. (lines 10-59)
+### `Foundation/TimePost.swift` — **[FIXED 74ce1eb]** entirely-commented-out file deleted in earlier typo/cleanup pass.
 
-### `Foundation/Timer.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** Uses Combine (`Publishers.Autoconnect<Timer.TimerPublisher>`) — violates "use async/await, not Combine" project rule. The whole file is gated on `canImport(Combine)`. (line 12)
-- **[Concurrency]** `nonPausingTimer` adds Timer to `RunLoop.main` from arbitrary thread — Timer must be added on the thread it'll fire on, generally main. Potentially racy when called off-main. (line 18)
+### `Foundation/Timer.swift` — **[CLOSED]** _M-Z re-audit_
+- **[Concurrency]** Combine `AutoconnectedTimer` typealias — **[OUT-OF-SCOPE]** public Combine bridge; removing breaks callers.
+- **[Concurrency]** `nonPausingTimer` racy when called off-main — **[FIXED]** marked `@MainActor`.
 
-### `Foundation/URL+ExtendedAttributes.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `extendedAttribute(for:)` initial `length` call uses `errno`-less guard `length >= 0` — but `getxattr` returning -1 sets `errno`; the code throws `.noAttributeFound` for any failure (could be `EACCES`, `ERANGE`, etc.), masking real errors. Should differentiate. (line 23)
-- **[Bug]** Race condition: between probing `length` and reading with that buffer size, the attribute could grow. `getxattr` will return `-1` with `ERANGE`; second call's guard catches it but throws `.posixError(errno)`. Acceptable but worth a retry loop. (line 22-32)
-- **[Bug]** `allExtendedAttributeNames` allocates `namebuf` of `length` from the first probe; same TOCTOU risk. (line 78-83)
-- **[API]** Uses `errno` immediately after the call — fine, but the initial-length call doesn't capture `errno` before the next syscall. (line 23 vs 32)
+### `Foundation/URL+ExtendedAttributes.swift` — **[CLOSED]** _M-Z re-audit_
+- **[Bug]** Initial-length failure thrown as `.noAttributeFound` regardless of cause — **[FIXED]** now distinguishes `ENOATTR` (noAttributeFound) from any other errno (posixError(errno)).
+- **[Bug]** TOCTOU race between size probe and read — **[KEPT-AS-IS]** retry loop is a real fix but a bigger change; the second-call guard already throws a clear `.posixError(errno)` on `ERANGE`.
+- **[Bug]** `allExtendedAttributeNames` same TOCTOU — **[KEPT-AS-IS]** same reasoning.
+- **[API]** errno not captured before next syscall — **[FALSE-POSITIVE]** `errno` is read in the `guard` immediately after the `getxattr` returns; no syscall intervenes.
 
-### `Foundation/URL+Files.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Force-unwraps in `static let documents`, `applicationSupport`, etc. — if `NSSearchPathForDirectoriesInDomains` is empty (sandboxed weirdness), crash. (line 48-52)
-- **[Bug]** `applicationSpecificSupport` falls back to `Bundle.main.name` if no bundle identifier — fragile, may produce localized/spaced paths. (line 52)
-- **[Concurrency]** Multiple `static let` initializers call `FileManager.default` on first access — fine, but `Bundle.main` isn't `Sendable`-marked.
-- **[Bug]** `audioDuration`: on non-visionOS platforms uses sync `reader.asset.duration` which is deprecated; should use async `load(.duration)` everywhere. (line 22)
-- **[API]** `tempFile(named:)` and similar call `_ = url.dropLast().existingDirectory` for side-effect of creating intermediate directories — non-obvious. (lines 57, 63, 69, 75)
+### `Foundation/URL+Files.swift` — **[CLOSED]** _M-Z re-audit_
+- **[Bug]** Force-unwraps in `static let documents`, etc. — **[KEPT-AS-IS]** `NSSearchPathForDirectoriesInDomains` returns empty only in degenerate sandbox cases where the framework can't function anyway; trapping is the right behavior.
+- **[Bug]** `applicationSpecificSupport` falls back to `Bundle.main.name` — **[KEPT-AS-IS]** real concern but rare in practice (every Apple app has a bundle identifier).
+- **[Concurrency]** `Bundle.main` not `Sendable`-marked — **[KEPT-AS-IS]** Foundation-side annotation; can't fix here.
+- **[Bug]** `audioDuration` non-visionOS uses deprecated sync `.duration` — **[FIXED]** added `if #available(iOS 16, macOS 13, watchOS 9, tvOS 16, *)` branch using `try await reader.asset.load(.duration)`; falls back to the sync API on older OSes.
+- **[API]** Side-effect-via-getter `_ = url.dropLast().existingDirectory` — **[KEPT-AS-IS]** repeated pattern in this file; documented behavior.
 
-### `Foundation/URL+Images.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[API]** `resizedContainedImage` is `internal` (no `public`); likely meant to be public given it's a utility. (line 35, 46)
-- **[API]** UIKit branch produces `UIImage(cgImage:)` which loses scale/orientation; should accept a scale argument or use `UIImage(cgImage:scale:orientation:)`. (line 47)
+### `Foundation/URL+Images.swift` — **[CLOSED]** _M-Z re-audit_
+- **[API]** `resizedContainedImage` was `internal` — **[FIXED]** marked `public`. Both AppKit and UIKit overloads.
+- **[API]** UIKit `UIImage(cgImage:)` loses scale/orientation — **[KEPT-AS-IS]** for thumbnail use the default scale is appropriate; adding a parameter is a breaking change.
 
 ### `Foundation/URL.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
 - **[Bug]** `URL.init(stringLiteral:)` force-unwraps — string literal `"not a url"` will trap at runtime. While this is common, it bypasses the value type's sendable safety for invalid string literals. (line 45)
@@ -544,26 +543,26 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 - **[API]** `extension URL: @retroactive ExpressibleByStringLiteral` with force-unwrap is a footgun for clients of the library — retroactive conformance can conflict with other libraries. (line 43)
 - **[API]** `extension URLQueryItem: @retroactive Comparable` — same retroactive concern. (line 272)
 
-### `Foundation/URLRequest.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `curl`: doesn't escape single quotes inside header values or body — a body containing `'` will break the shell command. Should use shell-escape. (line 35, 39)
-- **[API]** Skips Cookie header silently — may surprise users debugging auth. (line 33)
+### `Foundation/URLRequest.swift` — **[CLOSED]** _M-Z re-audit_
+- **[Bug]** `curl` doesn't escape single quotes in headers/body — **[FIXED]** added private `String.shellSingleQuoteEscaped` helper (replaces `'` with `'\''`); applied to header keys, header values, and body.
+- **[API]** Cookie header skipped silently — **[KEPT-AS-IS]** intentional safety.
 
-### `Foundation/URLResponse.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
+### `Foundation/URLResponse.swift` — **[UNAUDITED]** _no findings reported_
 - No issues.
 
-### `Foundation/UUID.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** UUIDv7 timestamp is supposed to be 48 bits of milliseconds since Unix epoch in big-endian order in bytes 0-5. `UInt64(Date().timeIntervalSince1970 * 1000.0)` truncates to UInt64; that's fine, but `* 1000.0` introduces floating-point rounding for current dates (loss is sub-ms but still). Better: `UInt64(Date.now.timeIntervalSince1970.rounded(.down) * 1000) + UInt64(fractionalMs)`. Minor. (line 14)
-- **[Bug]** Bytes 7 and 9-15 retain UUIDv4 random material from `UUID()` — correct per spec. Byte 6 mask `0x0F | 0x70` sets version 7 — correct. Byte 8 mask `0x3F | 0x80` sets variant — correct. Looks right.
-- **[Suggestion]** Empty trailing line after `return UUID(uuid: uuid)` and the closing brace. Minor. (line 27-28)
+### `Foundation/UUID.swift` — **[CLOSED]** _M-Z re-audit; no changes_
+- **[Bug]** UUIDv7 sub-ms float rounding — **[KEPT-AS-IS]** the tail of the loss is below clock granularity and below UUIDv7 spec resolution; not material.
+- **[Bug]** Other byte placement — **[FALSE-POSITIVE]** confirmed correct per spec.
+- **[Suggestion]** Trailing blank line — **[KEPT-AS-IS]** cosmetic.
 
 ### `Foundation/UserDefaultsBackedDictionary.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
 - **[Concurrency]** `UserDefaultsBackedDictionary` is a struct holding `UserDefaults` (class) and a closure (`@escaping (Key) -> String`). The closure should be `@Sendable` for Sendable conformance under strict concurrency. Type isn't marked `Sendable`. (line 39, 41)
 - **[Bug]** `defaults.value(forKey:) as? Value` for `Value == URL` won't work — `UserDefaults` stores URL via `set(_:forKey:)` as bookmark/path under the hood; `value(forKey:)` returns `Data` or `String`, not `URL`. Use `defaults.url(forKey:)`. (line 52)
 - **[API]** `UserDefaultStorable` is a marker protocol with no requirements — any type can be `extension X: UserDefaultStorable {}` and crash at runtime when stored. Type-safety theater. (line 10)
 
-### `Foundation/try.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[API]** Uses `logg("\(error)")` — relies on global `logg` defined elsewhere. OK if convention.
-- No issues.
+### `Foundation/try.swift` — **[CLOSED]** _M-Z re-audit_
+- **[API]** Uses global `logg` — **[KEPT-AS-IS]** project convention; defined in `Logging/SuiteLogger.swift`.
+- File header was `tryLog.swift` — **[FIXED]** corrected to `try.swift`.
 
 ## Types
 

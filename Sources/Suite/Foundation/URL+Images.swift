@@ -30,7 +30,7 @@ extension URL {
 
 #if canImport(AppKit) && !targetEnvironment(macCatalyst)
 import AppKit
-extension URL {
+public extension URL {
 	/// Resize an image on-disk without first loading it in
 	func resizedContainedImage(maxDimension: CGFloat) -> NSImage? {
 		guard let cgImage = self.resizedImage(maxDimension: maxDimension) else { return nil }
@@ -41,7 +41,7 @@ extension URL {
 
 #if canImport(UIKit)
 import UIKit
-extension URL {
+public extension URL {
 	/// Resize an image on-disk without first loading it in
 	func resizedContainedImage(maxDimension: CGFloat) -> UIImage? {
 		guard let cgImage = self.resizedImage(maxDimension: maxDimension) else { return nil }

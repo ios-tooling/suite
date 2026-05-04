@@ -28,8 +28,7 @@ public extension TimeInterval {
 	var leftoverSeconds: Int { return Int(self) % 60 }
 
 	enum DurationStyle: Sendable { case hours, minutes, secondsMaybeHours, secondsNoHours, seconds, deciseconds, centiseconds, milliseconds }
-	
-	static let durationFormatter = DateComponentsFormatter()
+
 	static let centisecondFormatter: NumberFormatter = {
 		let numberFormatter = NumberFormatter()
 		numberFormatter.minimumFractionDigits = 2
@@ -62,7 +61,7 @@ public extension TimeInterval {
 			return self.rounded(.up).durationString(style: style, showLeadingZero: showLeadingZero, roundUp: false)
 		}
 		
-		let formatter = Self.durationFormatter
+		let formatter = DateComponentsFormatter()
 		formatter.allowedUnits = [.minute, .second]
 		formatter.zeroFormattingBehavior = showLeadingZero ? .pad : .dropLeading
 
@@ -101,6 +100,7 @@ public extension TimeInterval {
 		return result
 	}
 	
+	/// Sub-second fractional part of the interval (0.0 ..< 1.0). Misleadingly named — used internally by `durationString` to format trailing decimals like ".5" / ".50" / ".500".
 	var milliseconds: Double {
 		(self).truncatingRemainder(dividingBy: 1)
 	}

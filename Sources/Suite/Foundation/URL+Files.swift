@@ -13,8 +13,12 @@ public extension URL {
 	var audioDuration: TimeInterval? {
 		get async throws {
 			let asset = AVURLAsset(url: self)
-			
+
 			let reader = try AVAssetReader(asset: asset)
+			if #available(iOS 16, macOS 13, watchOS 9, tvOS 16, visionOS 1, *) {
+				let time: CMTime = try await reader.asset.load(.duration)
+				return time.seconds
+			}
 			#if os(visionOS)
 				let time: CMTime = try await reader.asset.load(.duration)
 				return time.seconds

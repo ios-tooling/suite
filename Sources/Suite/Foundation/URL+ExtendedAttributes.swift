@@ -20,7 +20,10 @@ public extension URL {
 			
 			// Determine attribute size:
 			let length = getxattr(fileSystemPath, name, nil, 0, 0, 0)
-			guard length >= 0 else { throw ExtendedAttributeError.noAttributeFound }
+			guard length >= 0 else {
+				if errno == ENOATTR { throw ExtendedAttributeError.noAttributeFound }
+				throw ExtendedAttributeError.posixError(errno)
+			}
 			
 			// Create buffer with required size:
 			var data = Data(count: length)

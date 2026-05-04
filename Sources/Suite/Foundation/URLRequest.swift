@@ -31,15 +31,20 @@ public extension URLRequest {
 		
 		if let headers = allHTTPHeaderFields {
 			for (key, value) in headers where key != "Cookie" {
-				command.append("-H '\(key): \(value)'")
+				command.append("-H '\(key.shellSingleQuoteEscaped): \(value.shellSingleQuoteEscaped)'")
 			}
 		}
-		
+
 		if let data = httpBody, let body = String(data: data, encoding: .utf8) {
-			command.append("-d '\(body)'")
+			command.append("-d '\(body.shellSingleQuoteEscaped)'")
 		}
 		
 		return command.joined(separator: " \\\n\t")
 	}
-	
+
+}
+
+private extension String {
+	/// Escapes the string for safe inclusion inside a single-quoted shell argument.
+	var shellSingleQuoteEscaped: String { replacingOccurrences(of: "'", with: "'\\''") }
 }
