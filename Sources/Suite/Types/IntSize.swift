@@ -30,7 +30,9 @@ public struct IntPoint: Codable, Equatable, CustomStringConvertible, Sendable, H
 	public static let zero = IntPoint(0, 0)
 	public var description: String { "(\(x), \(y))" }
 	
-	public var magnitude: Int { x * y }
+	/// Euclidean distance from the origin (rounded to Int). For a non-rounded result, see `magnitudeDouble`.
+	public var magnitude: Int { Int(magnitudeDouble.rounded()) }
+	public var magnitudeDouble: Double { (Double(x) * Double(x) + Double(y) * Double(y)).squareRoot() }
 }
 
 extension IntSize {

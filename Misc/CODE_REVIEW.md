@@ -165,9 +165,9 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 
 # Detailed Findings (file-by-file) — Open Work
 
-> **Status:** 57 file sections still labeled `[UNAUDITED]` here — the original review snapshot, not yet re-verified against current code. The other ~244 file sections have been resolved (fixed, false positives, kept-as-is with reasoning, or rendered moot by other refactors) and moved to **`CODE_REVIEW_RESOLVED.md`** in this directory.
+> **Status:** 39 file sections still labeled `[UNAUDITED]` here — the original review snapshot, not yet re-verified against current code. The other ~262 file sections have been resolved (fixed, false positives, kept-as-is with reasoning, or rendered moot by other refactors) and moved to **`CODE_REVIEW_RESOLVED.md`** in this directory.
 >
-> Re-audit passes that have produced finding-level tags so far: macros, Foundation M-Z, Utilities, Foundation A-K, SwiftUI batch C, SwiftUI batch B, SwiftUI batch A, SwiftUI batch D, UIKit, Combine/AppKit/Cocoa, Geometry/Logging/PropertyWrappers/Widgets.
+> Re-audit passes so far: macros, Foundation M-Z, Utilities, Foundation A-K, SwiftUI batches A-D, UIKit, Combine/AppKit/Cocoa, Geometry/Logging/PropertyWrappers/Widgets, Types.
 
 
 ## Package
@@ -229,98 +229,6 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 ### `Foundation/TimePost.swift` — **[FIXED 74ce1eb]** entirely-commented-out file deleted in earlier typo/cleanup pass.
 
 ### `Foundation/URLResponse.swift` — **[UNAUDITED]** _no findings reported_
-- No issues.
-
-## Types
-
-
-### `Types/AsyncBlocker.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** In both `ThrowingAsyncBlocker.update()` and `AsyncBlocker.update()`, the `defer` block resets `continuations = []` before resuming. Since the for-loop runs *before* the defer, this is fine for resumption, but the `defer` ordering is subtle: `defer { isUpdating = false; continuations = [] }` runs after the loop. Correct as-is, but fragile — a future edit moving the resume into a separate Task could leak.
-- **[Bug]** Race window in coalescing: a caller arriving between `isUpdating = false` (in defer) and the *next* call to `update()` will start a fresh action — that's intended. But a caller that arrives after the action returns but BEFORE the defer runs (impossible inside an actor — fine on reflection). No bug, but worth noting the assumption.
-- **[Bug]** Continuations appended *after* the action completes but *before* the defer clears them will never resume. Inside an actor with non-reentrant calls this can't happen between the loop and the defer, but the action's `await` points permit reentry. Specifically: if `action` itself awaits and another `update()` re-enters during that await, the new caller sees `isUpdating == true` and appends a continuation. When the original action returns and the loop resumes everyone, the new caller is correctly resumed too — so no leak. OK on closer read, but worth a comment to document the invariant.
-- **[Suggestion]** The `action` closure should be `@Sendable` since it's stored across actor boundaries.
-
-### `Types/ChangeTracker.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Memory]** `tokens` dictionary entries are never reaped except in `didChange(id:)` when the token is found nil. If `didChange` is never called for a particular ID after its observer goes away, the `WeakToken` entry stays in the dictionary forever. With many short-lived IDs this grows unbounded.
-- **[Bug]** In `OnTrackedChangeModifier`, `task?.cancel()` is on `onDisappear` but the previous task is *also* cancelled in `onChange(of: token?.version)` — fine. However, on first appear, `token` is set in `onAppear`, which sets `token?.version` from `nil` to `0` — this triggers `onChange` and fires `callback()` immediately on appearance. That may or may not be desired; if not, it's a bug.
-- **[Suggestion]** `let _ = token?.version` in `ObserveIDModifier.body` is a clever way to subscribe to Observation, but a comment explaining why is warranted.
-
-### `Types/CrashPad.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** `Task { ... UserDefaults.standard.set(false, ...) }` is detached and uncancellable. If the app crashes during the sleep window, the `true` value persists — that's the intended behavior. OK.
-- **[Bug]** `launchedSafely` performs side effects (`set`, `Task`) on every call. Calling it twice flips state. The doc says "should be called just before restoring state" — assumes single-call. A guard against repeated calls would be safer.
-- **[Concurrency]** `Task.sleep(nanoseconds:)` is deprecated in favor of `Task.sleep(for:)` on iOS 16+; minor.
-
-### `Types/DefaultsBasedPreferences.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** Heavy use of KVO + Mirror reflection + UserDefaults from `observeValue` callback (called on arbitrary threads). No synchronization — `defaults.set(...)` is thread-safe but `Notification.postOnMainThread` mitigates only the notify side. No `Sendable` conformance possible.
-- **[Bug]** In `load()`, `addObserver` is added every time `load()` is called (init + `willEnterForeground` + `refresh()`). Each call re-adds observers without removing existing ones, leading to multiple-fire on KVO and crashes when `removeObserver` runs only once in `deinit`.
-- **[Convention]** 121 lines — slightly over the ~100 guideline.
-- **[API]** Mirror-based reflection for KVO is fragile; the macro-based `@AppSettings` approach is recommended in `CLAUDE.md` and supersedes this. Consider deprecating.
-- **[Suggestion]** `saveTimer` property is declared but never used.
-
-### `Types/Gestalt+Background.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Platform]** `application?` is a fileprivate `@MainActor` UIApplication holder. The else-branch (non-iOS) provides empty stubs; this is fine for cross-platform compilation. OK.
-- **[Suggestion]** `logger` uses `@available(iOS 14.0, ...)`, but the surrounding extension already targets iOS — the availability annotation on a top-level fileprivate is unusual but harmless.
-
-### `Types/Gestalt+watchOS.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `WatchCaseSize` extraction strips trailing "m" but the model strings used are like "Apple Watch Series 7 41mm" → split by space → last is "41mm" → trim "m" → "41" — works. But "larger = 100" sentinel is suspect; if a new size lands (e.g. 50mm), it returns `.larger` silently.
-- **[Bug]** No entry for Apple Watch Ultra (49mm is there) or Apple Watch Series 8/9/10. Stale data.
-- **[Concurrency]** `WKInterfaceDevice.current()` access in a `static let` initializer is MainActor-isolated in newer SDKs; the `caseSize` is `static let` (not @MainActor), which may now warn under strict concurrency.
-
-### `Types/IdentifiableEnum.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `id` for an enum case with associated values returns just the case name (not including associated values). Two enum values like `.foo(1)` and `.foo(2)` share the same `id` — violates `Identifiable` semantics. The doc/name suggests this is for enums, but with associated-value enums this breaks ForEach uniqueness.
-- **[Suggestion]** Should be documented as "for enums *without* associated values" or use a hash that includes the full description.
-
-### `Types/IntSize.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `IntPoint.magnitude` returns `x * y` — that's not magnitude (which would be `sqrt(x*x + y*y)` or at least area). Misleading name.
-- **[Bug]** `IntSize(screenW w:_:)` swaps to ensure `width <= height`. Internal-only init so OK, but the doc/name unclear.
-
-### `Types/KeychainBasePreferences.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Same KVO double-add issue as `DefaultsBasedPreferences` if `refresh()` is called after init.
-- **[Bug]** `setValue(value, forKey: label)` on KVO change can re-fire `observeValue`, potentially recursing if the observer doesn't recognize the no-op.
-- **[Bug]** `observeValue` ignores `Bool`, `Int`, `Double` types — only stores `String` and `Data`. If a subclass has `@objc dynamic var count: Int`, changes are silently dropped on the keychain side.
-- **[Concurrency]** Same lack of thread-safety as `DefaultsBasedPreferences`.
-
-### `Types/LoadingState.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Custom `==` ignores associated values: `.failed(errorA) == .failed(errorB)` returns true regardless of error identity. Likely intended for state-equality, but it's surprising. Also `.loaded(a) == .loaded(b)` falls into `default` which returns false — so `.loaded` cases are *never* equal to each other, which is also surprising.
-- **[Bug]** `Equatable` is not declared on the enum (just an `==` operator). Cannot be used in generic Equatable contexts.
-- **[API]** `isLoaded` returns true for both `.loaded` and `.empty` — that's a design choice (data is "ready"), but the name is misleading; consider `isReady` or `hasResolved`.
-
-### `Types/MobileProvisionFile.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Convention]** Entire file is commented out (deprecated). Either remove the file or leave a stub. Currently it consumes a slot but has no compiled code.
-
-### `Types/NetworkInterface.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** `static var allInterfaces` is a computed property doing C calls each time — not `static let`. That's correct (interfaces change), but it's not Sendable-safe across threads (although `getifaddrs` is reentrant per man page). Consider documenting.
-- **[Bug]** `String(NSString(cString: hostname, encoding: NSUTF8StringEncoding) ?? "")` is a roundabout conversion and depends on Foundation. The simpler `String(cString: hostname)` (commented out) is safer for null-terminated strings.
-- **[Bug]** `addrFamily` filters in callers compare `UInt8(family)` to a `sa_family_t` (`UInt8` on Darwin) — OK on Darwin but fragile if ported.
-- **[Suggestion]** No filtering of loopback or link-local — caller sees `lo0`, etc.
-
-### `Types/OnDemandFetcher.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `request.endAccessingResources()` is called only on success; if `JSONDecoder` throws, the resources are never released. Use `defer`.
-- **[Bug]** Caches the dictionary in Keychain — peculiar choice (Keychain isn't designed for bulk cache data and survives app uninstalls). UserDefaults or Caches dir would be more appropriate.
-- **[Suggestion]** Hardcoded `loadingPriority = 1` is the maximum — ensure that's intended.
-
-### `Types/Point.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[API]** Just `Equatable` — no `Hashable`, `Codable`, or `Sendable` despite being trivially conformable. Compare with `IntPoint` in `IntSize.swift` which is a duplicate. Two structs serving the same purpose; consolidate.
-- **[Convention]** Custom `==` is unnecessary; default synthesized `Equatable` would suffice.
-
-### `Types/RawCodable.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `RawCodable` requires `Identifiable` and conforms `id = rawValue`. But if `RawValue` is `String`, two enum cases with the same rawValue (impossible by definition) — fine. But forcing Identifiable is restrictive; some users may want their own `id`.
-- **[Suggestion]** `RawCodableError` is internal but the protocol is public — decoding errors thrown to the caller will be opaque.
-
-### `Types/SFSymbol.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Convention]** 1804 lines — vastly exceeds guideline. Auto-generated data dictionary, but Apple now provides `Image(systemName:)` with broad coverage and Apple's own SF Symbols framework. Recommend deprecating or splitting by category file.
-- **[Bug]** Many entries marked "Usage restricted to ..." (Apple App Store rules) are exposed as public cases — App Store reviewers may reject apps that ship these symbols outside the allowed contexts.
-- **[Perf]** Compiling this file is slow (1804 cases). Consider moving to a generated resource bundle.
-
-### `Types/SharedDependencyManager.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** Manual `os_unfair_lock` via `UnsafeMutablePointer` — this is correct but verbose. Modern Swift offers `OSAllocatedUnfairLock` (iOS 16+). Recommend migrating once min target allows.
-- **[Bug]** In `register`, `case .default: if replace == .default { fatalError(...) }` — the outer `case .default` already implies `replace == .default`, so the inner check is redundant. The logic is correct but reads as a typo.
-- **[Bug]** `ReplacementRule.single` policy: "current.isDefault → allow replace; not default → fatalError". So registering twice as `.single` crashes — that's harsh for a framework-level singleton; consider returning a Bool or throwing.
-- **[Concurrency]** `SharedDependency` property wrapper resolves on every access (no caching); each access takes the lock. For hot paths this is contention.
-- **[Memory]** `dependencies: [String: Any]` keyed by `String(describing: T.self)` — a generic struct used with two type parameters distinguishes properly, but `String(describing:)` on generic types can produce ambiguous keys for nested types. Consider `ObjectIdentifier` for class types or `_typeName` for stable keys.
-- **[API]** `@unchecked Sendable` is justified given the lock, but a comment to that effect would help.
-
-### `Types/Titleable.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
 - No issues.
 
 ## Utilities

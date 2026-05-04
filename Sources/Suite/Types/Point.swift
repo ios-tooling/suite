@@ -7,14 +7,10 @@
 
 import Foundation
 
-public struct Point: Equatable {
+public struct Point: Equatable, Hashable, Codable, Sendable {
 	public var x: Int
 	public var y: Int
-	
-	public static func ==(lhs: Point, rhs: Point) -> Bool {
-		lhs.x == rhs.x && lhs.y == rhs.y
-	}
-	
+
 	public init(_ x: Int, _ y: Int) {
 		self.x = x
 		self.y = y

@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  NetworkInterface.swift
 //  Suite
 //
 //  Created by Ben Gottlieb on 7/10/24.
@@ -55,9 +55,10 @@ public struct NetworkInterface: CustomStringConvertible, Sendable {
 					let ifaAddr = interface?.ifa_addr
 					getnameinfo(ifaAddr, socklen_t(saLen), &hostname, socklen_t(hostname.count), nil, socklen_t(0), NI_NUMERICHOST)
 					
-					//let address: String = String(decoding: hostname, as: UTF8.self)
-					let address = String(NSString(cString: hostname, encoding: NSUTF8StringEncoding) ?? "")
-					//let address = String(cString: hostname)
+					let address = hostname.withUnsafeBufferPointer { buffer -> String in
+						guard let base = buffer.baseAddress else { return "" }
+						return String(cString: base)
+					}
 					if !address.isEmpty {
 						results.append(.init(address: address, name: String(cString: cString), family: addrFamily))
 					}

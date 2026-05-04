@@ -7,7 +7,9 @@
 
 import Foundation
 
-public enum LoadingState<Value: Sendable>: Sendable { case idle, loading, empty, failed(Error), loaded(Value)
+public enum LoadingState<Value: Sendable>: Sendable, Equatable { case idle, loading, empty, failed(Error), loaded(Value)
+	/// Equality is by case only; associated `Error` and `Value` are not compared. Two `.failed` states
+	/// are equal regardless of error identity, and two `.loaded` states are never equal to each other.
 	public static func ==(lhs: LoadingState, rhs: LoadingState) -> Bool {
 		switch (lhs, rhs) {
 		case (.idle, .idle): return true

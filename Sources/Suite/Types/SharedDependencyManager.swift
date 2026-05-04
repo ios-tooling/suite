@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 
+/// `@unchecked Sendable` because all access to `dependencies` is gated by `_lock`.
 public final class SharedDependencyManager: @unchecked Sendable {
 	public static let instance = SharedDependencyManager()
 	
@@ -30,7 +31,7 @@ public final class SharedDependencyManager: @unchecked Sendable {
 		defer { os_unfair_lock_unlock(_lock) }
 		if let current = dependencies[key] as? StoredDependency<T> {
 			switch replace {
-			case .default: if replace == .default { fatalError("Trying to re-register a default dependency") }
+			case .default: fatalError("Trying to re-register a default dependency")
 			case .single: if !current.isDefault { fatalError("Trying to re-register a dependency") }
 			case .replaceable: break
 			case .ignoreLater: return

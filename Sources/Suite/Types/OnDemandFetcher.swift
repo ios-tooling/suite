@@ -27,17 +27,17 @@ public struct OnDemandFetcher {
 		let request = NSBundleResourceRequest(tags: [tag ?? name], bundle: .main)
 		request.loadingPriority = 1
 		try await request.beginAccessingResources()
-		
+		defer { request.endAccessingResources() }
+
 		guard let asset = NSDataAsset(name: name, bundle: request.bundle) else { throw OnDemandResourceError.resourceNotFound }
-		
+
 		let json = try JSONDecoder().decode([String: String].self, from: asset.data)
 		let cache = StoredDictionary(version: version, dictionary: json)
-		
+
 		if let cacheData = try? JSONEncoder().encode(cache) {
 			Keychain.set(cacheData, forKey: keychainKey)
 		}
-		
-		request.endAccessingResources()
+
 		return json
 	}
 }

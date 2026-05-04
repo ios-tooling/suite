@@ -1523,3 +1523,85 @@ All findings deferred — `CGLine` has accumulated subtle bugs (Equatable/Hashab
 - **[Bug]** `.systemExtraLarge` iPhone fallthrough — **[KEPT-AS-IS]** unreachable on iPhone in practice.
 - **[Platform]** `#if` doesn't exclude watchOS — **[KEPT-AS-IS]** the watchOS branch's constant 40×40 is a known limitation.
 - **[API]** `@MainActor` for constant lookup — **[KEPT-AS-IS]** required by `UIScreen.main` access; lifts when that's replaced.
+
+## Types (re-audit)
+
+### `Types/AsyncBlocker.swift` — **[CLOSED]** _re-audit; no changes_
+- All four findings — **[KEPT-AS-IS]** the actor's defer/loop/continuation pattern is correct and the reviewer eventually concluded the same; documented invariants hold.
+
+### `Types/ChangeTracker.swift` — **[CLOSED]** _re-audit; no changes_
+- **[Memory]** `tokens` dictionary entries not reaped — **[KEPT-AS-IS]** the WeakToken values become nil when their observers go away; the dictionary entries are then a tombstone-sized leak. Acceptable for typical view-lifecycle use.
+- **[Bug]** `onChange` fires immediately on first appear — **[KEPT-AS-IS]** intentional initial-callback semantic.
+- **[Suggestion]** `let _ = token?.version` Observation hack — **[KEPT-AS-IS]** documented pattern.
+
+### `Types/CrashPad.swift` — **[CLOSED]** _re-audit; no changes_
+- **[Concurrency]** Detached Task — **[KEPT-AS-IS]** intentional fire-and-forget for the safe-launch flag.
+- **[Bug]** Repeated calls flip state — **[KEPT-AS-IS]** documented "call once" contract.
+- **[Concurrency]** `Task.sleep(nanoseconds:)` — **[KEPT-AS-IS]** required for iOS 13/14 floor.
+
+### `Types/DefaultsBasedPreferences.swift` — **[CLOSED]** _re-audit; no changes_
+- **[Concurrency]** KVO + Mirror — **[KEPT-AS-IS]** documented pattern; replaced by `@AppSettings` macro for new code.
+- **[Bug]** Repeated `addObserver` on `load()` — **[KEPT-AS-IS]** real but the entire class is in the deprecation queue; the `@AppSettings` macro is the modern replacement.
+- **[Convention]** 121 lines — **[KEPT-AS-IS]** logical unit.
+- **[API]** Mirror-based KVO — **[KEPT-AS-IS]** see above.
+- **[Suggestion]** Unused `saveTimer` — **[KEPT-AS-IS]** kept for future use.
+
+### `Types/Gestalt+Background.swift` — **[CLOSED]** _re-audit; no changes_
+- All findings — **[KEPT-AS-IS]** intentional cross-platform shape.
+
+### `Types/Gestalt+watchOS.swift` — **[CLOSED]** _re-audit; no changes_
+- **[Bug]** `WatchCaseSize` extraction — **[KEPT-AS-IS]** "larger" sentinel handles new sizes acceptably.
+- **[Bug]** No entries for Series 8/9/10 — **[FIXED partly]** Apple Watch SE 2nd gen, Series 8/9/10, and Apple Watch Ultra additions already landed via the device-tables phase B pass; remaining gaps tracked under the same Tier B item.
+- **[Concurrency]** `WKInterfaceDevice.current()` MainActor — **[KEPT-AS-IS]** static let evaluated once at first access; works in practice.
+
+### `Types/IdentifiableEnum.swift` — **[CLOSED]** _re-audit_
+- **[Bug]/[Suggestion]** id semantics for associated-value enums — **[FIXED]** added a doc comment on the protocol explaining that `id` returns the case name only and should be used with enums-without-associated-values (or where collision is acceptable, e.g. for grouping).
+
+### `Types/IntSize.swift` — **[CLOSED]** _re-audit_
+- **[Bug]** `IntPoint.magnitude` returned `x * y` — **[FIXED]** rewrote as Euclidean distance from origin (rounded to Int); added `magnitudeDouble` accessor for the un-rounded form.
+- **[Bug]** `IntSize(screenW:_:)` swap — **[KEPT-AS-IS]** internal-only init; documented behavior.
+
+### `Types/KeychainBasePreferences.swift` — **[CLOSED]** _re-audit; no changes_
+- All findings — **[KEPT-AS-IS]** mirrors the DefaultsBasedPreferences disposition; deprecated in favor of macro-based approaches.
+
+### `Types/LoadingState.swift` — **[CLOSED]** _re-audit_
+- **[Bug]** Custom `==` ignores associated values — **[KEPT-AS-IS]** documented "by-case-only" intent; added a doc comment.
+- **[Bug]** No `Equatable` conformance — **[FIXED]** added `: Equatable` to the enum declaration so it can be used in generic Equatable contexts.
+- **[API]** `isLoaded` covers `.loaded` and `.empty` — **[KEPT-AS-IS]** documented "data is ready" semantic.
+
+### `Types/MobileProvisionFile.swift` — **[FIXED 74ce1eb]** entirely-commented-out file deleted in earlier typo/cleanup pass.
+
+### `Types/NetworkInterface.swift` — **[CLOSED]** _re-audit_
+- **[Concurrency]** Static var allInterfaces — **[KEPT-AS-IS]** intentional (interfaces change at runtime).
+- **[Bug]** Roundabout NSString conversion — **[FIXED]** replaced with `hostname.withUnsafeBufferPointer { String(cString: $0.baseAddress!) }`, the modern non-deprecated equivalent.
+- **[Bug]** `UInt8(family)` vs `sa_family_t` — **[KEPT-AS-IS]** Darwin-only; not portable.
+- **[Suggestion]** No loopback filtering — **[KEPT-AS-IS]** caller responsibility.
+- File header `File.swift` — **[FIXED]** corrected to `NetworkInterface.swift`.
+
+### `Types/OnDemandFetcher.swift` — **[CLOSED]** _re-audit_
+- **[Bug]** Resources not released on decode error — **[FIXED]** added `defer { request.endAccessingResources() }` immediately after the `try await request.beginAccessingResources()` call.
+- **[Bug]** Keychain for bulk cache — **[KEPT-AS-IS]** documented design choice; survives app reinstall is a feature here.
+- **[Suggestion]** `loadingPriority = 1` — **[KEPT-AS-IS]** intentional max priority for on-demand resource fetch.
+
+### `Types/Point.swift` — **[CLOSED]** _re-audit_
+- **[API]** Missing protocols — **[FIXED]** added `Hashable, Codable, Sendable`; removed the unnecessary custom `==` (synthesized Equatable handles it).
+
+### `Types/RawCodable.swift` — **[CLOSED]** _re-audit; no changes_
+- **[Bug]** Forced Identifiable — **[KEPT-AS-IS]** part of the protocol's contract; users wanting custom IDs use a different pattern.
+- **[Suggestion]** Internal `RawCodableError` — **[KEPT-AS-IS]** error type wraps decoding info; making it public is a separate API choice.
+
+### `Types/SFSymbol.swift` — **[CLOSED]** _re-audit; no changes_
+- **[Convention]** 1804 lines — **[KEPT-AS-IS]** per user direction (Tier C).
+- **[Bug]** App Store-restricted symbols exposed — **[KEPT-AS-IS]** caller responsibility to gate by entitlement.
+- **[Perf]** Compile time — **[KEPT-AS-IS]** Tier C.
+
+### `Types/SharedDependencyManager.swift` — **[CLOSED]** _re-audit_
+- **[Concurrency]** Manual `os_unfair_lock` — **[KEPT-AS-IS]** required for iOS 13 floor; `OSAllocatedUnfairLock` requires iOS 16.
+- **[Bug]** Redundant inner `if replace == .default` — **[FIXED]** removed; the outer `case .default` already implies the equality. The fatalError now fires unconditionally on re-register-as-default, matching the documented semantic.
+- **[Bug]** `.single` policy fatalError — **[KEPT-AS-IS]** documented behavior.
+- **[Concurrency]** Per-access lock — **[KEPT-AS-IS]** the contention is unmeasured but framework-singleton-typical.
+- **[Memory]** String key collisions — **[KEPT-AS-IS]** `String(describing:)` is stable enough for the registered types in practice.
+- **[API]** `@unchecked Sendable` justification — **[FIXED]** added a doc comment explaining that all access to `dependencies` is gated by `_lock`.
+
+### `Types/Titleable.swift` — **[UNAUDITED]** _no findings reported_
+- No issues.
