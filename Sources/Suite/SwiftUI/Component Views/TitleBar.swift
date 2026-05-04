@@ -8,7 +8,7 @@
 import SwiftUI
 
 public struct TitleBarFontKey: EnvironmentKey {
-	nonisolated(unsafe) public static var defaultValue = Font.title
+	public static let defaultValue = Font.title
 }
 
 public extension EnvironmentValues {

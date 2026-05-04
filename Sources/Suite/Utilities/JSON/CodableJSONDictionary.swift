@@ -13,7 +13,21 @@ public struct CodableJSONDictionary: Codable, Equatable, Hashable, Sendable {
 	}
 	
 	public var dictionary: [String: Sendable] { backing }
-	nonisolated(unsafe) public static var dataKeyNames: [String] = []
+
+	private static let dataKeyNamesLock = NSLock()
+	nonisolated(unsafe) private static var _dataKeyNames: [String] = []
+	public static var dataKeyNames: [String] {
+		get {
+			dataKeyNamesLock.lock()
+			defer { dataKeyNamesLock.unlock() }
+			return _dataKeyNames
+		}
+		set {
+			dataKeyNamesLock.lock()
+			defer { dataKeyNamesLock.unlock() }
+			_dataKeyNames = newValue
+		}
+	}
 	
 	public init() { backing = [:] }
 	public static let empty = CodableJSONDictionary()

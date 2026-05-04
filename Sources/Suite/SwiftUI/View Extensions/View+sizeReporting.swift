@@ -26,13 +26,13 @@ public struct SizeViewModifier: ViewModifier {
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
 fileprivate struct SizePreferenceKey: PreferenceKey {
-	nonisolated(unsafe) static var defaultValue: CGSize = .zero
+	static let defaultValue: CGSize = .zero
 	static func reduce(value: inout CGSize, nextValue: () -> CGSize) { }
 }
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
 fileprivate struct FramePreferenceKey: PreferenceKey {
-	nonisolated(unsafe) static var defaultValue: CGRect = .zero
+	static let defaultValue: CGRect = .zero
 	static func reduce(value: inout CGRect, nextValue: () -> CGRect) { }
 }
 

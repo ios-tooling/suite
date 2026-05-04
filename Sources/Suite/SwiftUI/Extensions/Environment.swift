@@ -8,20 +8,20 @@
 import SwiftUI
 
 public struct IsEditingEnvironmentKey: EnvironmentKey {
-	nonisolated(unsafe) public static var defaultValue = false
+	public static let defaultValue = false
 }
 
 @available(iOS 16.0, macOS 13, watchOS 9, tvOS 16, *)
 public struct NavigationPathEnvironmentKey: EnvironmentKey {
-	nonisolated(unsafe) public static var defaultValue = Binding.constant(NavigationPath())
+	nonisolated(unsafe) public static let defaultValue = Binding.constant(NavigationPath())
 }
 
 public struct IsScrollingEnvironmentKey: EnvironmentKey {
-	nonisolated(unsafe) public static var defaultValue = false
+	public static let defaultValue = false
 }
 
 public struct DismissParentEnvironmentKey: EnvironmentKey {
-	nonisolated(unsafe) public static var defaultValue = { }
+	nonisolated(unsafe) public static let defaultValue: () -> Void = { }
 }
 
 @available(iOS 14, macOS 11, watchOS 7, tvOS 16, *)

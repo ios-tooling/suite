@@ -37,7 +37,7 @@ public class EnclosingViewControllerContainer: CustomStringConvertible {
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
 @available(iOSApplicationExtension, unavailable)
 public struct EnclosingViewControllerKey: EnvironmentKey {
-    nonisolated(unsafe) public static var defaultValue = EnclosingViewControllerContainer()
+    public static var defaultValue: EnclosingViewControllerContainer { EnclosingViewControllerContainer() }
 }
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
