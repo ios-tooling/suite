@@ -9,34 +9,38 @@ import SwiftUI
 
 @MainActor public class Console: ObservableObject {
 	public static let instance = Console()
+	public static let messageCap = 500
+
 	@Published public var isVisible = false
 	@Published public var hasUnseenMessages = false
 	@Published public var messages: [Message] = []
-	
+
 	public static func print(_ content: String) {
 		instance.print(content)
 	}
-	
+
 	public struct Message: Identifiable {
 		public let id = UUID()
 		public let body: String
 		public let error: Error?
 	}
-	
+
 	public func print(_ content: String) {
-		messages.append(.init(body: content, error: nil))
-		if !isVisible { hasUnseenMessages = true }
+		append(.init(body: content, error: nil))
 	}
-	
+
 	public func print(_ content: String, error: (any Error)?) {
-		messages.append(.init(body: content, error: error))
+		append(.init(body: content, error: error))
+	}
+
+	private func append(_ message: Message) {
+		messages.append(message)
+		if messages.count > Self.messageCap {
+			messages.removeFirst(messages.count - Self.messageCap)
+		}
 		if !isVisible { hasUnseenMessages = true }
 	}
-	
-	public func writeToFile() {
-		
-	}
-	
+
 	public func clear() {
 		messages = []
 	}

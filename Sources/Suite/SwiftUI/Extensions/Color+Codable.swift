@@ -10,9 +10,10 @@ import SwiftUI
 @available(iOS 14.0, tvOS 14, macOS 11, watchOS 7, *)
 extension Color: @retroactive Codable {
 	enum ColorDecodeError: Error, Sendable { case unableToExtractColor }
+	enum ColorEncodeError: Error, Sendable { case unableToExtractHex }
 	public init(from decoder: Decoder) throws {
 		let container = try decoder.singleValueContainer()
-		
+
 		let hex = try container.decode(String.self)
 		if let color = Color(hex: hex) {
 			self = color
@@ -20,12 +21,13 @@ extension Color: @retroactive Codable {
 			throw ColorDecodeError.unableToExtractColor
 		}
 	}
-	
+
 	public func encode(to encoder: Encoder) throws {
 		var container = encoder.singleValueContainer()
-		
-		if let hex {
-			try container.encode(hex)
+
+		guard let hex else {
+			throw ColorEncodeError.unableToExtractHex
 		}
+		try container.encode(hex)
 	}
 }

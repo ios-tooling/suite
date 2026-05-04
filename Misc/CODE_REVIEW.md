@@ -165,9 +165,9 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 
 # Detailed Findings (file-by-file) — Open Work
 
-> **Status:** 123 file sections still labeled `[UNAUDITED]` here — the original review snapshot, not yet re-verified against current code. The other ~187 file sections have been resolved (fixed, false positives, kept-as-is with reasoning, or rendered moot by other refactors) and moved to **`CODE_REVIEW_RESOLVED.md`** in this directory.
+> **Status:** 105 file sections still labeled `[UNAUDITED]` here — the original review snapshot, not yet re-verified against current code. The other ~196 file sections have been resolved (fixed, false positives, kept-as-is with reasoning, or rendered moot by other refactors) and moved to **`CODE_REVIEW_RESOLVED.md`** in this directory.
 >
-> Re-audit passes that have produced finding-level tags so far: macros, Foundation M-Z, Utilities, Foundation A-K, SwiftUI batch C, SwiftUI batch B, SwiftUI batch A.
+> Re-audit passes that have produced finding-level tags so far: macros, Foundation M-Z, Utilities, Foundation A-K, SwiftUI batch C, SwiftUI batch B, SwiftUI batch A, SwiftUI batch D.
 
 
 ## Package
@@ -353,96 +353,6 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 
 ### `SwiftUI/Other Views/CalendarMonthView/CalendarWeekDayLabel.swift` — **[UNAUDITED]** _no findings reported_
 - No issues.
-
-## SwiftUI / Extensions
-
-
-### `SwiftUI/EnviromentEchoingView.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Convention]** Filename typo: `EnviromentEchoingView` should be `EnvironmentEchoingView` — and per project conventions, the type itself also has the typo throughout (line 15). The struct name should be renamed too.
-- **[Convention]** Imports `Foundation` instead of `SwiftUI` (line 8) — works only because SwiftUI is re-exported elsewhere; should explicitly `import SwiftUI`.
-- **[API]** Public type but no module-level doc comment for the purpose of echoing environment values.
-- **[Concurrency]** `content: () -> Content` closure stored without `@escaping` and not `@Sendable`; the trailing-closure init takes `@escaping` but the stored property's type doesn't reflect that — works at compile time but is sloppy.
-- **[Suggestion]** No availability annotation on the `@Entry` extension at line 10–12 — `@Entry` requires iOS 18 / macOS 15 etc., which mismatches the struct's own `iOS 15` availability (line 14).
-
-### `SwiftUI/Extensions/ToolbarItem.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** `static var default` is mutable on a value type extension and `@MainActor`-annotated (lines 13, 15). Mutable static state is a footgun — should be `let` if it's meant as a default constant. Mutating it from one place affects everything in the process.
-- **[API]** Using a mutable global default for `ToolbarItemPlacement` is surprising; consider a function returning the platform default instead.
-
-### `SwiftUI/Extensions/Closure.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `body` performs side effects during view evaluation (line 26) — SwiftUI may invoke `body` arbitrarily many times, so the closure runs unpredictably. This is a known anti-pattern; recommend `.onAppear { closure() }` instead, or rename to make the side-effect intent clear.
-- **[API]** `init(_ closure: @escaping @autoclosure () -> Void)` (line 21) is duplicate-overload-prone; calling `Closure(foo())` is ambiguous-ish and surprising.
-
-### `SwiftUI/Extensions/NavigationPath.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- No issues.
-
-### `SwiftUI/Extensions/App+Extensions.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Convention]** File contains only a single small enum; could collapse with related platform enums.
-- No real issues.
-
-### `SwiftUI/Extensions/Gradient.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- No issues.
-
-### `SwiftUI/Extensions/Color+Codable.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `encode(to:)` silently encodes nothing if `hex` is nil (lines 27–29) — produces invalid container state and downstream decode errors. Should throw an `EncodingError`.
-- **[Concurrency]** `@retroactive Codable` on `Color` (line 11) — fine, but Color is Sendable already; just note the cross-module retro-conformance.
-
-### `SwiftUI/Extensions/NavigationView.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Deprecated]** Uses `NavigationLink(isActive:)` throughout (lines 32, 56, 77) — deprecated in iOS 16. The whole API surface predates `NavigationStack`.
-- **[Bug]** `OptionalNavigationLink` uses `$check.bool` (line 32) — if a binding extension returns `Binding<Bool>` from `Binding<Check?>` whose setter sets to nil on false, dismissing the link will null out `check`; on true with nil it does what? Verify behavior of the `bool` Binding extension.
-- **[API]** `ContainedContentNavigationLink.onChange(of:)` (lines 85–87) uses old single-argument closure; iOS 17 deprecates this signature.
-- **[Convention]** File approaching 92 lines — fine, but mixing several types together.
-
-### `SwiftUI/Extensions/Font.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Convention]** Hard-coded dimension `size: 32` (line 11) — violates "avoid hard-coded dimensions" rule. Should derive from `.title`/`.largeTitle` or use a Dynamic Type relative size.
-- **[Convention]** File header says "File.swift" (line 2).
-
-### `SwiftUI/Compatibility/Compatibility.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[API]** Stub that silently no-ops `navigationBarItems`/`navigationBarHidden` on macOS (lines 15–16) — accepts `Any?` for type erasure but doesn't actually warn callers their args are dropped. A logg() warning would help.
-- **[Convention]** Uses `os(OSX)` instead of `os(macOS)` (line 12).
-
-### `SwiftUI/Compatibility/iOS14Shims.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Deprecated]** Targeting iOS 14/15 shims; Suite already requires iOS 15+ per the iOS 15 deployment in package — these may be dead code, candidate for removal.
-- **[API]** `alignedOverlay` fallback uses `HStack`/`VStack`/`Spacer` chains (lines 24–35) which is heavyweight; consider gating the whole API to iOS 15+ and dropping the fallback.
-
-### `SwiftUI/Compatibility/NavigationTitle.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- No issues.
-
-### `SwiftUI/Utilities/TapGestures.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Convention]** File header lowercases the name "tapGestures.swift" (line 2).
-- No real issues.
-
-### `SwiftUI/Utilities/PositionedLongPress.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Suggestion]** Entire file (lines 10–69) is commented-out deprecated code; should be deleted from version control rather than left in source.
-- **[Convention]** File header references `PositionedLongPressGesture.swift` (line 2).
-
-### `SwiftUI/Utilities/Tooltips.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** iOS overload calls `logg("Tooltips not supported on iOS")` *every time the modifier is applied* (line 15) — happens during view evaluation, so it logs on every recompose. Should be silent.
-- **[Concurrency]** `TooltipView`/`Tooltip` are not `@MainActor` annotated; on macOS 14+ the strict concurrency may flag.
-- **[Convention]** UIKit fallback present in tooltip pattern but acceptable since `NSHostingView`/`NSViewRepresentable` is the only way to bridge `toolTip:`.
-
-### `SwiftUI/Utilities/Console.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[API]** `Message` struct includes `error: Error?` but `Error` is not Sendable here (line 23) — `Message` will not be Sendable, which constrains use.
-- **[API]** `writeToFile()` is a public empty stub (line 36) — half-implemented public API; either implement or hide.
-- **[Concurrency]** `@Published var messages: [Message]` may grow unboundedly; no cap. Memory leak risk for long-running sessions.
-- **[Convention]** Uses ObservableObject + @Published instead of `@Observable` (iOS 17+) — acceptable for back-compat.
-- **[API]** `Console.print` shadows `Swift.print`, leading to confusing call sites.
-- **[Convention]** `ConsoleView` uses hard-coded padding numbers (`padding(2)`, `width: 2`) on lines 60–61 — borderline.
-
-### `SwiftUI/Utilities/SwipeActions.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** `MainActor.run(after: 0.01)` used to defer mutations (lines 41, 46, 58, 106) — this looks like GCD/delay usage hidden in a helper; violates "no GCD/queues" rule. Use `Task { try await Task.sleep(...); ... }` instead.
-- **[Concurrency]** Three top-level `@MainActor private var` globals (lines 18–20): `currentCellCollapseBlock`, `currentCellID`, `activeCellID` — global mutable state used to coordinate between cells. Hard to reason about; should be wrapped in an actor or coordinator object.
-- **[Bug]** `buildContent(in:)` (line 39) mutates `screenWidth` from inside a sync code path passed to `MainActor.run(after:)`; SwiftUI views are evaluated frequently, so this schedules work on every frame.
-- **[Bug]** `buildContent` mutates state during body evaluation (line 41–50), which is the classic SwiftUI anti-pattern. Should be in `.onAppear`/`.onChange`.
-- **[Convention]** File is ~158 lines; over guideline.
-- **[Convention]** Mixed indentation — tabs and spaces inconsistent (lines 41, 46, 106).
-- **[Deprecated]** `currentCellCollapseBlock`-based gestures: should consider native `.swipeActions` (iOS 15+).
-- **[API]** Public extension method only exposes `addSwipeActions(trailing:id:)`; no leading variant despite the implementation supporting it (line 13).
-
-### `SwiftUI/Utilities/ViewStorage.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** `@MainActor public class ViewStorage: ObservableObject` (line 14) but stores `AnyView`s (line 36, 50) — AnyView retention can capture closures and create retain issues.
-- **[API]** `views` dictionary keyed by `String` rawValue, but a `[ViewKey: StoredView]` (Hashable rawRepresentable) would be more type-safe.
-- **[API]** `lastStoredView` does `.values.sorted().last` (line 60) — O(n log n) when O(n) max would do. Minor perf nit.
-- **[Suggestion]** `clear` and `store` manually invoke `objectWillChange.send()` (lines 46, 51) instead of marking `views` `@Published`.
 
 ## UIKit
 

@@ -1184,3 +1184,96 @@ Entries are grouped by directory and tagged at finding-level: `[FIXED]`, `[FIXED
 - **[Bug]** `CGPoint.quadrant` vs `Angle.quadrant` system mismatch — **[FIXED via rewrite]** rewrote `CGRect.point(for:radius:)` to use the direct parametric form (`midX + r·sin(θ)`, `midY − r·cos(θ)`) instead of going through the broken quadrant adjustment. Now correct for all clock-style angles 0..360. (The Quadrant enum itself stays public but `point(for:)` no longer depends on it.) Reversal of the earlier "DISPUTED" disposition: the old `.iv` math actually placed angle=180 at top-center (wrong); the rewrite fixes it.
 - **[API]** Inline enum cases — **[KEPT-AS-IS]** stylistic.
 - **[Suggestion]** No tests — **[KEPT-AS-IS]** flagged for follow-up.
+
+## SwiftUI / Extensions (batch D)
+
+### `SwiftUI/EnvironmentEchoingView.swift` — **[CLOSED]** _batch D re-audit_
+- **[Convention]** Filename + type typo `EnviromentEchoingView` — **[FIXED 74ce1eb]** corrected in earlier typos pass.
+- **[Convention]** `import Foundation` should be `import SwiftUI` — **[FIXED]** changed.
+- **[API]** No doc comment — **[FIXED]** added a doc comment explaining the EnvironmentValues-snapshot pattern.
+- **[Concurrency]** Closure not `@Sendable` — **[KEPT-AS-IS]** breaking signature change.
+- **[Suggestion]** `@Entry` availability mismatch — **[FALSE-POSITIVE]** `@Entry` is a Swift macro that generates standard `EnvironmentKey` machinery (iOS 13+); the macro itself doesn't impose newer-OS runtime requirements.
+- Also tightened `var content` → `let content`.
+
+### `SwiftUI/Extensions/ToolbarItem.swift` — **[CLOSED]** _batch D re-audit; no changes_
+- **[Concurrency]** Mutable `static var default` — **[KEPT-AS-IS]** changing to `let` is a public API break for any caller that mutates it; the surprising mutability is part of the documented contract.
+- **[API]** Function-returning-default alternative — **[KEPT-AS-IS]** breaking redesign.
+
+### `SwiftUI/Extensions/Closure.swift` — **[CLOSED]** _batch D re-audit; no changes_
+- **[Bug]** Side effects during body — **[KEPT-AS-IS]** the type's entire purpose is to run a closure during body. Documented intent.
+- **[API]** Two `@autoclosure`/non-`@autoclosure` inits — **[KEPT-AS-IS]** breaking removal.
+
+### `SwiftUI/Extensions/NavigationPath.swift` — **[UNAUDITED]** _no findings reported_
+- No issues.
+
+### `SwiftUI/Extensions/App+Extensions.swift` — **[CLOSED]** _batch D re-audit_
+- **[Convention]** Single-enum file — **[KEPT-AS-IS]** acceptable shape.
+- File header `App+Extension.swift` (singular) — **[FIXED]** corrected to `App+Extensions.swift`.
+
+### `SwiftUI/Extensions/Gradient.swift` — **[UNAUDITED]** _no findings reported_
+- No issues.
+
+### `SwiftUI/Extensions/Color+Codable.swift` — **[CLOSED]** _batch D re-audit_
+- **[Bug]** `encode(to:)` silent on nil hex — **[FIXED]** now throws `ColorEncodeError.unableToExtractHex` instead of producing an empty container.
+- **[Concurrency]** `@retroactive Codable` — **[KEPT-AS-IS]** intentional cross-module conformance.
+
+### `SwiftUI/Extensions/NavigationView.swift` — **[CLOSED]** _batch D re-audit; no changes_
+- **[Deprecated]** `NavigationLink(isActive:)` — **[KEPT-AS-IS]** Tier B-tracked: replacement requires `NavigationStack` / dropping iOS 15.
+- **[Bug]** `$check.bool` binding behavior — **[KEPT-AS-IS]** depends on a project Binding extension; works for the documented use.
+- **[API]** `onChange` single-arg — **[KEPT-AS-IS]** intentional back-compat.
+- **[Convention]** 92 lines — **[KEPT-AS-IS]** logical unit.
+
+### `SwiftUI/Extensions/Font.swift` — **[CLOSED]** _batch D re-audit_
+- **[Convention]** Hard-coded `size: 32` — **[KEPT-AS-IS]** Tier B item; deliberate constant for icon-button glyphs.
+- **[Convention]** File header `File.swift` — **[FIXED]** corrected to `Font.swift`.
+
+## SwiftUI / Compatibility
+
+### `SwiftUI/Compatibility/Compatibility.swift` — **[CLOSED]** _batch D re-audit_
+- **[API]** Silent no-ops on macOS — **[KEPT-AS-IS]** intentional cross-platform shim; logging would be noisy for legitimate cross-platform code.
+- **[Convention]** `os(OSX)` — **[FIXED]** changed to `os(macOS)`.
+- File header `SwiftUIView.swift` — **[FIXED]** corrected to `Compatibility.swift`.
+
+### `SwiftUI/Compatibility/iOS14Shims.swift` — **[CLOSED]** _batch D re-audit; no changes_
+- **[Deprecated]** iOS 14/15 shims — **[KEPT-AS-IS]** Suite still targets iOS 13 (per Package.swift); the shims are required.
+- **[API]** `alignedOverlay` heavyweight fallback — **[KEPT-AS-IS]** required for iOS 13/14 back-compat.
+
+### `SwiftUI/Compatibility/NavigationTitle.swift` — **[UNAUDITED]** _no findings reported_
+- No issues.
+
+## SwiftUI / Utilities (batch D)
+
+### `SwiftUI/Utilities/TapGestures.swift` — **[CLOSED]** _batch D re-audit_
+- **[Convention]** Lowercase header `tapGestures.swift` — **[FIXED 74ce1eb]** corrected in the earlier typo pass.
+
+### `SwiftUI/Utilities/PositionedLongPress.swift` — **[FIXED 74ce1eb]** entirely-commented-out file deleted in earlier typo/cleanup pass.
+
+### `SwiftUI/Utilities/Tooltips.swift` — **[CLOSED]** _batch D re-audit_
+- **[Bug]** iOS overload logs on every recompose — **[FIXED]** dropped the `logg(...)` call; the iOS overload is now a silent no-op (with a doc comment).
+- **[Concurrency]** TooltipView/Tooltip not `@MainActor` — **[KEPT-AS-IS]** they're SwiftUI Views/NSViewRepresentables, implicitly main-actor when used.
+- **[Convention]** UIKit fallback acceptable per reviewer.
+
+### `SwiftUI/Utilities/Console.swift` — **[CLOSED]** _batch D re-audit_
+- **[API]** `Message.error: Error?` non-Sendable — **[KEPT-AS-IS]** Error protocol can't be made Sendable easily.
+- **[API]** Empty `writeToFile()` stub — **[FIXED]** removed; the half-implemented public no-op was misleading. Callers using it lose nothing functionally.
+- **[Concurrency]** Unbounded `messages` growth — **[FIXED]** added `messageCap = 500`; older messages are removed when the cap is exceeded.
+- **[Convention]** ObservableObject vs @Observable — **[KEPT-AS-IS]** iOS 13 floor.
+- **[API]** `Console.print` shadows `Swift.print` — **[KEPT-AS-IS]** documented call-site convention.
+- **[Convention]** Hard-coded `padding(2)` etc. — **[KEPT-AS-IS]** Tier B.
+
+### `SwiftUI/Utilities/SwipeActions.swift` — **[CLOSED]** _batch D re-audit; no changes_
+- **[Concurrency]** `MainActor.run(after:)` — **[FALSE-POSITIVE]** the project shim is async/await-based, not GCD.
+- **[Concurrency]** Top-level `@MainActor private var` globals — **[KEPT-AS-IS]** the cross-cell coordination protocol is awkward but functional; refactoring would be Tier C.
+- **[Bug]** `buildContent` mutates state during body — **[KEPT-AS-IS]** the project's `MainActor.run(after:)` shim defers via Task; the mutation lands after body returns.
+- **[Bug]** Same — same disposition.
+- **[Convention]** ~158 lines — **[KEPT-AS-IS]** logical unit.
+- **[Convention]** Mixed indentation — **[KEPT-AS-IS]** cosmetic.
+- **[Deprecated]** Native `.swipeActions` available — **[KEPT-AS-IS]** the custom gesture supports leading + trailing simultaneously, which native doesn't.
+- **[API]** No leading variant — **[KEPT-AS-IS]** the public surface accepts the trailing-only path; refactor is breaking.
+
+### `SwiftUI/Utilities/ViewStorage.swift` — **[CLOSED]** _batch D re-audit_
+- **[Concurrency]** AnyView retention — **[KEPT-AS-IS]** intentional type erasure for the storage shape.
+- **[API]** String-keyed views — **[KEPT-AS-IS]** matches the `ViewKey.rawValue` pattern.
+- **[API]** `lastStoredView` O(n log n) — **[FIXED]** changed `views.values.sorted().last` to `views.values.max()` (still O(n) but no allocation).
+- **[Suggestion]** Manual `objectWillChange.send` vs `@Published` — **[KEPT-AS-IS]** equivalent behavior; manual control is fine.
+- File header `SwiftUIView.swift` — **[FIXED]** corrected to `ViewStorage.swift`.

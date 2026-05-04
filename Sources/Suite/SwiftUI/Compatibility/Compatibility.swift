@@ -1,6 +1,6 @@
 //
-//  SwiftUIView.swift
-//  
+//  Compatibility.swift
+//
 //
 //  Created by Ben Gottlieb on 6/21/21.
 //
@@ -9,7 +9,7 @@
 import SwiftUI
 #endif
 
-#if os(OSX)
+#if os(macOS)
 @available(macOS 10.15, *)
 public extension View {
     func navigationBarItems(leading: Any? = nil, trailing: Any? = nil) -> some View { self }

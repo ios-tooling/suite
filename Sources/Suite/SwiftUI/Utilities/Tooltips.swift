@@ -11,10 +11,8 @@ import SwiftUI
 
 #if os(iOS)
 public extension View {
-	func tooltip(_ tip: String) -> some View {
-		logg("Tooltips not supported on iOS")
-		return self
-	}
+	/// No-op on iOS; tooltips are macOS-only.
+	func tooltip(_ tip: String) -> some View { self }
 }
 #endif
 

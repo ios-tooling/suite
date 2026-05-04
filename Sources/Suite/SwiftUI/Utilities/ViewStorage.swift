@@ -1,6 +1,6 @@
 //
-//  SwiftUIView.swift
-//  
+//  ViewStorage.swift
+//
 //
 //  Created by Ben Gottlieb on 10/9/20.
 //
@@ -58,7 +58,7 @@ import SwiftUI
 	public func isViewStored(for key: ViewKey) -> Bool { view(for: key) != nil }
 	
 	public var lastStoredView: AnyView? {
-		views.values.sorted().last?.view
+		views.values.max()?.view
 	}
 }
 
