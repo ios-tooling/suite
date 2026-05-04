@@ -11,8 +11,9 @@ public struct PreferenceValues: Sendable {
 	public static let instance = PreferenceValues()
 }
 
-public func preferenceReduce<V>(value: inout V, nextValue: () -> V) {
-}
+/// "First wins" reducer for non-Optional preference values: the initial value is kept and subsequent
+/// nested values are ignored. (PreferenceKey.reduce is called with the topmost value already in `value`.)
+public func preferenceReduce<V>(value: inout V, nextValue: () -> V) { }
 
 public func preferenceReduce<V>(value: inout V?, nextValue: () -> V?) {
 	value = value ?? nextValue()

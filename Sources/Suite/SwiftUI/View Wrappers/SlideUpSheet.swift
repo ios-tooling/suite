@@ -34,11 +34,8 @@ import Combine
 	
 	public func show(_ view: AnyView) {
 		self.currentSheet = view
-		
-		Task { @MainActor in
-			withAnimation {
-				self.isSheetVisible = true
-			}
+		withAnimation {
+			self.isSheetVisible = true
 		}
 	}
 }

@@ -1,5 +1,5 @@
 //
-//  SwiftUIView.swift
+//  PublisherView.swift
 //  
 //
 //  Created by Ben Gottlieb on 3/16/21.

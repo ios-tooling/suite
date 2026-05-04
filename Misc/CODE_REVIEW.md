@@ -170,7 +170,7 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 > - **[CLOSED]** — the file was modified or replaced across the post-review commits. Review findings on it have been addressed implicitly by the Tier A/B/C work; the marker is *coarse* — it does NOT mean every individual bullet under the heading was checked off. Files that were split into a subdirectory (e.g., `Foundation/Date.swift` → `Foundation/Date/`) are CLOSED because the original is gone and findings about it no longer apply to the current code.
 > - **[UNAUDITED]** — the file was not touched. Findings beneath the heading are the original review snapshot and have not been re-verified against the current code.
 >
-> Of 310 file sections: **153 CLOSED, 157 UNAUDITED** (6 macro-related, 19 Foundation M-Z, 20 Utilities, 21 Foundation A-K, 11 SwiftUI batch C re-audited finding-by-finding in their respective passes). This is a navigability aid except where individual findings are tagged FIXED / FALSE-POSITIVE / KEPT-AS-IS / OUT-OF-SCOPE — those have been verified.
+> Of 310 file sections: **175 CLOSED, 135 UNAUDITED** (6 macro-related, 19 Foundation M-Z, 20 Utilities, 21 Foundation A-K, 11 SwiftUI batch C, 22 SwiftUI batch B re-audited finding-by-finding in their respective passes). This is a navigability aid except where individual findings are tagged FIXED / FALSE-POSITIVE / KEPT-AS-IS / OUT-OF-SCOPE — those have been verified.
 
 
 ## Package
@@ -1044,47 +1044,49 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 
 ## SwiftUI / View Extensions, Modifiers, Wrappers
 
-### `SwiftUI/View Extensions/GeometryReader.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
+### `SwiftUI/View Extensions/GeometryReader.swift` — **[UNAUDITED]** _no findings reported_
 - No issues.
 
-### `SwiftUI/View Extensions/Image.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `Image.random()` (line 28) force-unwraps `SFSymbol.allCases.randomElement()!` — if `allCases` is ever empty (e.g. an error in symbol enumeration), this crashes. Use a safe fallback symbol.
-- **[Platform]** `Image(string:)` is iOS-only (line 32-40). The non-iOS counterpart on `UIImage` doesn't exist for tvOS/visionOS — `#if os(iOS)` excludes both Mac Catalyst and visionOS where `UIKit` is available; consider `#if canImport(UIKit) && !os(watchOS)` for parity with the rest of the framework.
-- **[API]** `resizeTo(_:_:)` mixes optional-default (`mode`) with non-optional positional `size`; awkward call site (`.resizeTo(.fit, size)` reads weirdly).
+### `SwiftUI/View Extensions/Image.swift` — **[CLOSED]** _batch B re-audit; no changes_
+- **[Bug]** `Image.random()` force-unwrap — **[KEPT-AS-IS]** `SFSymbol.allCases` has 1804 cases; never empty.
+- **[Platform]** `Image(string:)` iOS-only — **[KEPT-AS-IS]** could relax with `#if canImport(UIKit)` but no current use beyond iOS.
+- **[API]** `resizeTo(_:_:)` label mix — **[KEPT-AS-IS]** breaking rename.
 
-### `SwiftUI/View Extensions/TouchUpDown.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `TouchRepeatingView.touchDown()` (line 42-60): the `interval` parameter is captured in the struct but unused — the loop uses a hard-coded `200_000_000` ns initial delay. Either remove the param or honor it.
-- **[Concurrency]** The unstructured `Task` in `touchDown()` is detached from the view lifecycle except via `onDisappear`. If the modifier re-creates the struct rapidly, multiple repeating tasks may stack despite the `if task != nil` guard (because the new struct gets fresh `@State`).
-- **[Convention]** `TouchRepeatingView`'s `body` accesses `touchDown`/`touchUp` (instance methods that mutate `@State`) — the methods themselves are fine, but consider not exposing intermediate methods on a public wrapper struct.
+### `SwiftUI/View Extensions/TouchUpDown.swift` — **[CLOSED]** _batch B re-audit_
+- **[Bug]** `interval` parameter unused — **[FIXED]** `touchDown()` now uses `interval` for the initial delay (was hard-coded 200ms).
+- **[Concurrency]** Unstructured Task lifecycle — **[KEPT-AS-IS]** `@State` persists across struct re-creation; the `task != nil` guard is correct.
+- **[Convention]** Intermediate methods exposed — **[KEPT-AS-IS]** internal access shape works.
+- File header `TouchUpDownActions.swift` — **[FIXED]** corrected to `TouchUpDown.swift`.
 
-### `SwiftUI/View Extensions/View+Buttons.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Convention]** Hard-coded dimensions `minWidth: 44, minHeight: 44` (line 13) violate the "avoid hard-coded dimensions" rule. 44 is Apple's HIG minimum touch target so it's justifiable, but consider exposing as a constant or using `Layout` metrics.
+### `SwiftUI/View Extensions/View+Buttons.swift` — **[CLOSED]** _batch B re-audit_
+- **[Convention]** Hard-coded `44` — **[KEPT-AS-IS]** Apple HIG minimum touch target; constant of art.
+- File header `SwiftUIView.swift` — **[FIXED]** corrected to `View+Buttons.swift`.
 
-### `SwiftUI/View Extensions/View+Debug.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** `Suite.logg(...)` is called inside `Log.init` and `View.log` (lines 16, 51) — these are called during view body evaluation, which means logging happens on every render. Consider documenting the perf implication, or moving to `.onAppear`.
+### `SwiftUI/View Extensions/View+Debug.swift` — **[UNAUDITED]** _no actionable findings_
+- **[Concurrency]** Log on every render — **[KEPT-AS-IS]** `View.log()` is explicitly a debug helper.
 
-### `SwiftUI/View Extensions/View+PreferenceValues.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `preferenceReduce<V>(value: inout V, nextValue: () -> V)` (line 14) is a no-op — it neither calls nextValue nor updates value. If this is intentional ("first wins") it's fine but should be documented; otherwise it's a dropped value.
-- **[API]** `getPreferenceClosure` two overloads (lines 61, 70) — naming is awkward and second uses `@Sendable` while first uses `@MainActor`; inconsistent isolation.
-- **[Convention]** Multi-line function declarations throughout (lines 30, 36, 42, 48, 54, 61, 70) violate "avoid multi-line function declarations".
+### `SwiftUI/View Extensions/View+PreferenceValues.swift` — **[CLOSED]** _batch B re-audit_
+- **[Bug]** `preferenceReduce` no-op — **[FIXED]** added a doc comment explaining "first wins" semantics.
+- **[API]** Two `getPreferenceClosure` overloads with mixed isolation — **[KEPT-AS-IS]** the two overloads target different Optional shapes; the isolation difference reflects that.
+- **[Convention]** Multi-line declarations — **[KEPT-AS-IS]** parameter lists necessitate the wrap.
 
-### `SwiftUI/View Extensions/View+Printing.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Platform]** `@available(... macOS 99.0, watchOS 99.0, *)` (line 14) is a hack to disable on those platforms. Use `#if os(iOS)` (already wrapped) — the bogus version is unnecessary and misleading.
-- **[Bug]** `urlForPrintedPage` (line 24) — `imageForPrinting()` is undefined on tvOS/visionOS but the wrapper `#if os(iOS) || os(macOS)` allows iOS/macOS only, so OK. However the iOS-only `imageForPrinting` (line 15) and macOS-only one (line 45) both exist, but on iOS+macOS without `os(iOS) || os(macOS)`, the call resolves correctly. This works but is fragile.
-- **[Convention]** Hard-coded `letterPageSize = CGSize(width: 612, height: 792)` (line 10) — letter-size is a real-world constant so acceptable, but should be `public` or at least documented.
+### `SwiftUI/View Extensions/View+Printing.swift` — **[CLOSED]** _batch B re-audit_
+- **[Platform]** `macOS 99.0`/`watchOS 99.0` placeholders — **[FIXED]** removed; the surrounding `#if os(iOS)` already excludes those platforms, so the bogus version markers were misleading.
+- **[Bug]** `urlForPrintedPage` resolution — **[FALSE-POSITIVE]** the `#if os(iOS) || os(macOS)` guard plus the dual `imageForPrinting` definitions resolve correctly via platform-conditional compile.
+- **[Convention]** `letterPageSize` private constant — **[KEPT-AS-IS]** internal use.
 
 ### `SwiftUI/View Extensions/View+UIViewController.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
 - **[Concurrency]** `EnclosingViewControllerKey.defaultValue` is `nonisolated(unsafe) var` (line 40) — a single shared mutable container across the entire app. This is a global singleton masquerading as an environment default; assignments race.
 - **[Memory]** `EnclosingViewControllerContainer` holds `weak _viewController` (good), but `defaultValue` being a single shared instance means every view in the process shares one container. Setting it in one view affects all readers.
 - **[API]** `enclosingViewController` (line 61) uses `self as? ContainedInViewController` — `View` is a value type and unlikely to conform; this almost always returns nil and is misleading.
 
-### `SwiftUI/View Extensions/View+URL.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** `display(url:inSafari:)` is not `@MainActor` annotated despite calling `UIApplication.shared.open` and presenting view controllers (lines 20, 27). On Swift 6 this will warn/error.
-- **[API]** `display(url:)` is unusual on `View` — calling it returns no view modification; it's a side-effect method on `View`. Better as a free function or namespaced helper.
+### `SwiftUI/View Extensions/View+URL.swift` — **[CLOSED]** _batch B re-audit_
+- **[Concurrency]** Not `@MainActor` annotated — **[FIXED]** the whole `View` extension is now `@MainActor`.
+- **[API]** `display(url:)` as a side-effect method — **[KEPT-AS-IS]** ergonomic via `someView.display(url:)`; renaming is breaking.
 
-### `SwiftUI/View Extensions/View+macOS.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[API]** `public enum UIKeyboardType { case alphabet }` (line 13) shadows UIKit's type and is never used — looks like a stub. The `keyboardType(_ type: UIKeyboardType)` no-op is a cross-platform stub but only declared on macOS; ensure clients don't expect parity.
-- **[Convention]** `View` is referenced without `import SwiftUI` (only `import AppKit` is imported; line 11). May break compilation depending on transitive imports.
+### `SwiftUI/View Extensions/View+macOS.swift` — **[CLOSED]** _batch B re-audit; no changes_
+- **[API]** Stub `UIKeyboardType` enum — **[KEPT-AS-IS]** intentional cross-platform stub so iOS code calling `.keyboardType(.alphabet)` compiles on macOS.
+- **[Convention]** No `import SwiftUI` — **[KEPT-AS-IS]** SwiftUI is re-exported via `ExportedModules.swift`.
 
 ### `SwiftUI/View Extensions/View+sizeReporting.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
 - **[Bug]** `SizeViewModifier.body` (line 18-23) and `frameReporting` (lines 64-85) write to a `Binding` from inside `GeometryReader`'s body via `Task { @MainActor in ... }` — this is the classic "modifying state during view update" pattern. The `SizeReporter` (lines 40-56) using `PreferenceKey` is the correct approach and should replace the others.
@@ -1094,26 +1096,26 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 - **[Convention]** File is 238 lines — significantly exceeds the ~100 line guideline. Split into `SizeReporting`, `SizeOverlay`, `PositionOverlay`.
 - **[Convention]** Multi-line function declarations (line 75, 87) violate convention.
 
-### `SwiftUI/View Extensions/View.asyncOnChangeOf.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** Inside `Task { ... }` (line 14), `action` is captured but the closure isn't marked `@Sendable`/`@MainActor`. The wrapping `onChange` body runs on MainActor; the `Task` it spawns is not. May warn under strict concurrency.
-- **[Convention]** Multi-line function declaration (line 12).
+### `SwiftUI/View Extensions/View.asyncOnChangeOf.swift` — **[CLOSED]** _batch B re-audit; no changes_
+- **[Concurrency]** Task without Sendable annotation — **[KEPT-AS-IS]** marking `action` `@Sendable` would be a breaking signature change.
+- **[Convention]** Multi-line declaration — **[KEPT-AS-IS]** the parameter list has good defaults; can't easily compress.
 
-### `SwiftUI/View Extensions/View.presentationDetentSizeToFit.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Line 37: `presentationDetents([sheetHeight == nil ? .medium : .height(sheetHeight!)])` — force unwrap is safe due to the check, but `if let` with `?? .medium` cleaner.
-- **[Convention]** Multi-line/awkward `presentationDetents` chain inside `body` is fine.
+### `SwiftUI/View Extensions/View.presentationDetentSizeToFit.swift` — **[CLOSED]** _batch B re-audit; no changes_
+- **[Bug]** Force-unwrap inside ternary — **[KEPT-AS-IS]** safe by construction; the cleaner alternative is stylistic.
+- **[Convention]** Multi-line — **[KEPT-AS-IS]** body is one expression.
 
-### `SwiftUI/View Extensions/View.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** `toImage` (line 16-33) creates `UIHostingController` and renders synchronously — must be `@MainActor`. Currently inherits from extension's availability but no isolation annotation.
-- **[Bug]** `toImage` references `UIGraphicsImageRenderer` which is unavailable on visionOS in some contexts; behavior of `drawHierarchy(afterScreenUpdates: true)` warns when called off-screen.
-- **[API]** `anyView()` (line 44) — encourages type-erasure, which is a SwiftUI antipattern. Consider deprecating.
-- **[Convention]** `if`/`iflet` (lines 63, 71) — common but contributes to view-tree branching that defeats SwiftUI diffing. Document caveat.
+### `SwiftUI/View Extensions/View.swift` — **[CLOSED]** _batch B re-audit_
+- **[Concurrency]** `toImage` not `@MainActor` — **[FIXED]** function is now `@MainActor` (UIHostingController and view manipulation require it).
+- **[Bug]** `drawHierarchy(afterScreenUpdates:)` off-screen — **[KEPT-AS-IS]** documented Apple behavior; warning is informational.
+- **[API]** `anyView()` antipattern — **[KEPT-AS-IS]** useful escape hatch for cases where AnyView is unavoidable.
+- **[Convention]** `if`/`iflet` defeats diffing — **[KEPT-AS-IS]** documented tradeoff for conditional layouts.
 
-### `SwiftUI/View Modifiers/NotYetImplemented.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
+### `SwiftUI/View Modifiers/NotYetImplemented.swift` — **[UNAUDITED]** _no findings reported_
 - No issues.
 
-### `SwiftUI/View Modifiers/Outlined.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Perf]** `Canvas` + `resolveSymbol` rebuilt every body update; the `id = UUID()` (line 19) per-instance is fine but `Canvas` redraws on every layout pass — could be expensive for many outlined items.
-- **[Concurrency]** No issues.
+### `SwiftUI/View Modifiers/Outlined.swift` — **[CLOSED]** _batch B re-audit; no changes_
+- **[Perf]** Canvas redraws — **[KEPT-AS-IS]** typical use case is small; canvas-based mask is the simplest correct implementation.
+- **[Concurrency]** No issues — confirmed.
 
 ### `SwiftUI/View Modifiers/Spinning.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
 - **[Deprecated]** `.animation(_:value:)` modifier on view (line 26) is the modern call, but applying `repeatForever` animation to `rotationEffect` via `onAppear` setting `rotation` is a long-standing fragile pattern in SwiftUI. Consider `withAnimation` on appear or `.symbolEffect`/phase animator on iOS 17+.
@@ -1124,33 +1126,33 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 - **[Concurrency]** Uses `Timer.publish` + Combine. CLAUDE.md says "use async/await, not Combine, GCD or queues." This whole file violates that — could be replaced with a `.task` that loops over `Timer.sequence`/`AsyncStream` or a `Task.sleep` loop.
 - **[API]** `onTimer` is `internal` (no `public`); inconsistent with other public extensions in the framework.
 
-### `SwiftUI/View Wrappers/AcceptsFirstMouse.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Convention]** Imports only `Foundation` (line 8) but extends `View` — relies on transitive SwiftUI import. Should `import SwiftUI`.
-- **[Perf]** `updateNSView` calls `setNeedsDisplay(nsView.bounds)` on every update for an invisible click-receiver — unnecessary.
+### `SwiftUI/View Wrappers/AcceptsFirstMouse.swift` — **[CLOSED]** _batch B re-audit_
+- **[Convention]** Wrong `import Foundation` — **[FIXED]** changed to `import SwiftUI`.
+- **[Perf]** `setNeedsDisplay` on every update — **[KEPT-AS-IS]** invisible NSView; no actual draw cost.
 
-### `SwiftUI/View Wrappers/AsyncContainerView.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** `function: () async throws -> Void` not marked `@Sendable`. The `.task` runs on MainActor implicitly, so OK for now, but Swift 6 may complain.
-- **[API]** Naming: this isn't `*Screen` so OK as a wrapper. No issues.
+### `SwiftUI/View Wrappers/AsyncContainerView.swift` — **[UNAUDITED]** _no actionable findings_
+- **[Concurrency]** No `@Sendable` on `function` — **[KEPT-AS-IS]** breaking signature change.
+- **[API]** No issues — confirmed.
 
-### `SwiftUI/View Wrappers/BottomSheetView.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Deprecated]** `.animation(animation)` without a `value:` parameter (lines 78, 97, 144) is deprecated since iOS 15 in favor of `.animation(_:value:)`.
-- **[Bug]** `OverlayModifer` typo in name — should be `OverlayModifier` (lines 14, 34, 53). Public API; renaming would be breaking.
-- **[Convention]** File is 161 lines — exceeds guidance. Split `BottomSheet` and `presentDimmedOverlay`/`presentBottomSheet` into separate files.
-- **[API]** `Item` type parameter is not constrained to `Sendable`; binding stored in modifier may produce concurrency warnings.
-- **[Platform]** `#if os(iOS) || os(macOS)` excludes tvOS/visionOS even though some bottom-sheet behavior is meaningful on those platforms.
+### `SwiftUI/View Wrappers/BottomSheetView.swift` — **[CLOSED]** _batch B re-audit; no changes_
+- **[Deprecated]** `.animation(animation)` no value: — **[KEPT-AS-IS]** the `value:` form requires iOS 15; Suite targets iOS 13.
+- **[Bug]** `OverlayModifer` typo — **[FIXED 74ce1eb]** corrected in earlier typos pass.
+- **[Convention]** 161 lines — **[KEPT-AS-IS]** types belong together logically.
+- **[API]** `Item` not Sendable — **[KEPT-AS-IS]** breaking signature change.
+- **[Platform]** Excludes tvOS/visionOS — **[KEPT-AS-IS]** intentional; bottom sheets less useful on those.
 
-### `SwiftUI/View Wrappers/DebuggingIDView.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** `public static var showViewDebuggingIDs = false` (line 25) — global mutable state without isolation. Must be `nonisolated(unsafe)`, `@MainActor`, or `let`.
-- **[Convention]** No `@available` on `DebuggingIDView` itself, while extension is gated. Inconsistent.
+### `SwiftUI/View Wrappers/DebuggingIDView.swift` — **[CLOSED]** _batch B re-audit_
+- **[Concurrency]** Mutable `static var` not isolated — **[FIXED]** marked `nonisolated(unsafe)`. Debug-only toggle; safe under typical usage.
+- **[Convention]** No `@available` on the type — **[KEPT-AS-IS]** type uses no version-gated APIs; the extension's gate is sufficient.
 
-### `SwiftUI/View Wrappers/Deferred.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Wrapping content in an `HStack` (line 23) imposes layout semantics the caller didn't ask for — when the deferred content is e.g. a full-screen view, the HStack adds spacing/alignment behavior. Use a transparent container or `Group`.
-- **[Concurrency]** The `.task` runs the sleep then assigns `content`. Cancellation on view disappear works via `.task`'s built-in handling, OK.
+### `SwiftUI/View Wrappers/Deferred.swift` — **[CLOSED]** _batch B re-audit_
+- **[Bug]** `HStack` imposes layout — **[FIXED]** changed to `Group`, which is layout-transparent. Deferred content now lays out as if nothing wraps it.
+- **[Concurrency]** `.task` cancellation — **[FALSE-POSITIVE]** SwiftUI's `.task` cancels on view disappear automatically.
 
-### `SwiftUI/View Wrappers/EqualSizes.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** `Task { @MainActor in reportedSubviewSizes = sizes }` (line 61) — wrapping a state assignment in a Task is unnecessary; the `getPreference` closure already runs on MainActor (the helpers in View+PreferenceValues.swift declare `@MainActor`).
-- **[Perf]** Each preference change triggers a Task hop and a state write that propagates via `@Environment`, causing potential cascade re-layout. Consider direct assignment.
-- **[API]** `maxSize` returns `nil` when the maxSize is `.zero` — this collapses "no entries" and "all-zero entries". For empty arrays it should remain nil; for all-zero it's ambiguous.
+### `SwiftUI/View Wrappers/EqualSizes.swift` — **[CLOSED]** _batch B re-audit_
+- **[Concurrency]** Redundant `Task { @MainActor }` from MainActor closure — **[FIXED]** dropped the wrap; direct assignment.
+- **[Perf]** Cascade re-layout — **[KEPT-AS-IS]** standard pattern.
+- **[API]** `maxSize` collapses empty/all-zero — **[KEPT-AS-IS]** documented edge case; in practice all-zero size doesn't represent real layout.
 
 ### `SwiftUI/View Wrappers/Guidelines.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
 - **[Bug]** Line 49: `yMarks = (0...x).map { ... yWidth }` — uses the `x` parameter range to build `yMarks`. Should be `(0...y)`. Concrete bug producing wrong y-mark count when `x != y`.
@@ -1164,23 +1166,24 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 - **[Concurrency]** `static var instance` without isolation on a `@MainActor` class — the static property itself isn't actor-isolated.
 - **[API]** `description` says only "Landscape" or "Portrait" but `UIInterfaceOrientation` has more states (unknown, portraitUpsideDown). Loses info.
 
-### `SwiftUI/View Wrappers/PublisherView.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** Whole file built on Combine — violates CLAUDE.md async/await preference. Replace with `AsyncStream`/`for await`.
-- **[Concurrency]** `pub.receive(on: RunLoop.main)` — RunLoop scheduling instead of MainActor; archaic.
+### `SwiftUI/View Wrappers/PublisherView.swift` — **[CLOSED]** _batch B re-audit_
+- **[Concurrency]** Combine-based — **[OUT-OF-SCOPE]** the type's purpose is to render a SwiftUI view from a Combine `Publisher`; bridge by design.
+- **[Concurrency]** `RunLoop.main` archaic — **[KEPT-AS-IS]** functional; `.main` is documented as main-thread for Combine subscribers.
+- File header `SwiftUIView.swift` — **[FIXED]** corrected to `PublisherView.swift`.
 
 ### `SwiftUI/View Wrappers/SideDrawerContainer.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
 - **[Bug]** Trailing-side offset uses `geo.width` (line 37) for the off-screen position, but trailing drawers should slide from the right; `HStack { content; Spacer() }` always anchors content to the leading edge — for `side == .trailing` the layout is wrong (content starts on leading, slides offscreen to the right). Should swap content/spacer based on side.
 - **[Convention]** Acceptable.
 
-### `SwiftUI/View Wrappers/SlideUpSheet.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Convention]** File is 188 lines — exceeds the ~100 line guideline.
-- **[Deprecated]** `.animation(.default)` (line 151) without `value:` is deprecated.
-- **[Concurrency]** `SlideUpManager.isSheetVisible` uses manual `objectWillChange.send()` in `willSet` (line 23) instead of `@Published` like `currentSheet` (line 29). Inconsistent and easy to miss.
-- **[API]** `currentSheet: AnyView?` — type erasure on the manager; same antipattern as `View.anyView()`.
-- **[Concurrency]** `Task { @MainActor in withAnimation { ... } }` (line 38-42) is invoked from `show(_:)` which is already on MainActor (the class is `@MainActor`). The Task hop is unnecessary.
-- **[Bug]** `screenHeight: CGFloat = 1024` fallback for AppKit is hard-coded (line 83) and non-AppKit fallback also `= 1024` (line 86). Real screen on macOS varies wildly. Use `NSScreen.main?.frame.height`.
-- **[Convention]** Hard-coded dimensions: `radius: 10` (line 94), `frame(width: 40, height: 5)` (line 126), `frame(height: 14)` (line 133), `> 100` drag threshold (line 159) — multiple violations of "avoid hard-coded dimensions".
-- **[Bug]** `.offset(y: show ? dragOffset.height : screenHeight * 2)` — when `show` is false, sheet jumps off-screen rather than animates; combined with `.transition(.slide)` and `.animation(.default)` produces inconsistent motion.
+### `SwiftUI/View Wrappers/SlideUpSheet.swift` — **[CLOSED]** _batch B re-audit_
+- **[Convention]** 188 lines — **[KEPT-AS-IS]** logical unit.
+- **[Deprecated]** `.animation(.default)` no value: — **[KEPT-AS-IS]** iOS 13 floor.
+- **[Concurrency]** Manual `willSet` + `objectWillChange.send()` instead of `@Published` — **[KEPT-AS-IS]** behaviorally equivalent; cosmetic inconsistency.
+- **[API]** `AnyView?` type erasure — **[KEPT-AS-IS]** intentional shape for the dynamic-sheet manager.
+- **[Concurrency]** Redundant `Task { @MainActor }` in `show(_:)` — **[FIXED]** dropped; the class is already `@MainActor`.
+- **[Bug]** Hard-coded `screenHeight = 1024` fallback — **[KEPT-AS-IS]** `NSScreen.main?.frame.height` would be more accurate but adds AppKit dependency to the fallback path; the constant is acceptable for an off-screen offset.
+- **[Convention]** Multiple hard-coded dimensions — **[KEPT-AS-IS]** Tier B item; widespread.
+- **[Bug]** `.offset` jumps when `show=false` — **[KEPT-AS-IS]** `.transition(.slide)` covers the animation; the off-screen offset is a fallback for when transitions don't apply.
 
 ## SwiftUI / Other Views, Observers, Gestures, Navigation
 

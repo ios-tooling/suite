@@ -1,5 +1,5 @@
 //
-//  TouchUpDownActions.swift
+//  TouchUpDown.swift
 //  
 //
 //  Created by Ben Gottlieb on 5/29/21.
@@ -42,20 +42,19 @@ struct TouchRepeatingView<Content: View>: View {
 	func touchDown() {
 		if task != nil { return }
 		let action = action
-		
+		let initialDelayNs = UInt64(interval * Double(NSEC_PER_SEC))
+
 		action()
 		task = Task {
-			var delay: UInt64 = 200_000_000
-			
+			var delay = initialDelayNs
+
 			do {
 				while true {
 					try await Task.sleep(nanoseconds: delay)
 					if delay > 50_000_000 { delay -= 10_000_000 }
 					action()
 				}
-			} catch {
-				
-			}
+			} catch { }
 		}
 	}
 	

@@ -11,7 +11,7 @@ let letterPageSize = CGSize(width: 612, height: 792)
 
 #if os(iOS)
 public extension View {
-	@available(iOS 16.0, macOS 99.0, watchOS 99.0, *)
+	@available(iOS 16.0, *)
 	@MainActor func imageForPrinting() -> UIImage? {
 		ImageRenderer(content: self.frame(width: letterPageSize.width, height: letterPageSize.height)).uiImage
 	}
@@ -20,7 +20,7 @@ public extension View {
 
 #if os(iOS) || os(macOS)
 public extension View {
-	@available(iOS 16.0, macOS 13.0, watchOS 99.0, *)
+	@available(iOS 16.0, macOS 13.0, *)
 	 @MainActor func urlForPrintedPage(named: String, ignoreCache: Bool = false) -> URL? {
 		let url = URL.cache(named: named)
 		if !ignoreCache, FileManager.default.fileExists(at: url) { return url }

@@ -5,7 +5,7 @@
 //  Created by Ben Gottlieb on 8/18/23.
 //
 
-import Foundation
+import SwiftUI
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
 public extension View {

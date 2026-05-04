@@ -22,8 +22,8 @@ public extension View {
 }
 
 public struct DebuggingIDView: View {
-	public static var showViewDebuggingIDs = false
-	
+	nonisolated(unsafe) public static var showViewDebuggingIDs = false
+
 	let id: String
 	public var body: some View {
 		Text(id)

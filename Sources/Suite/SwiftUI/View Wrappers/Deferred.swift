@@ -20,7 +20,7 @@ public struct Deferred<Content: View>: View {
 	}
 	
 	public var body: some View {
-		HStack() {
+		Group {
 			if let content = content { content }
 		}
 		.task {

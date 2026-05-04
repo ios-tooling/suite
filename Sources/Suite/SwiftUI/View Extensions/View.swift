@@ -13,7 +13,7 @@ import SwiftUI
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
 public extension View {
     #if os(iOS) || os(visionOS)
-	func toImage(scale: CGFloat? = nil) -> UIImage? {
+	@MainActor func toImage(scale: CGFloat? = nil) -> UIImage? {
 		let controller = UIHostingController(rootView: self.edgesIgnoringSafeArea(.all))
 		let view = controller.view
 
