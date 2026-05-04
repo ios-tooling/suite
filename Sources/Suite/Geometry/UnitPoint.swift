@@ -5,7 +5,7 @@
 //  Created by Ben Gottlieb on 9/30/25.
 //
 
-import Foundation
+import SwiftUI
 
 public extension UnitPoint {
 	static var random: UnitPoint {

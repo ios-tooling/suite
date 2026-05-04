@@ -17,6 +17,6 @@ public let AppLogger = Logger(subsystem: .appLoggerSubsystem, category: "applica
 
 
 public extension String {
-	static let suiteLoggerSubsystem = Bundle.main.bundleIdentifier! + ".suite"
-	static let appLoggerSubsystem = Bundle.main.bundleIdentifier!
+	static let suiteLoggerSubsystem = (Bundle.main.bundleIdentifier ?? "Suite") + ".suite"
+	static let appLoggerSubsystem = Bundle.main.bundleIdentifier ?? "Suite"
 }

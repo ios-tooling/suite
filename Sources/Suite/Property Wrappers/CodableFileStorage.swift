@@ -31,13 +31,16 @@ fileprivate let logger = Logger(subsystem: "suite", category: "codableFileStorag
 		get { value }
 		nonmutating set {
 			if equal(newValue, value) { return }
-			
+
 			do {
 				let data = try JSONEncoder().encode(newValue)
 				if data == "null".data(using: .utf8) {
 					try? FileManager.default.removeItem(at: url)
 				} else {
-					try? data.write(to: url)
+					// Make sure the parent directory exists; .atomic for crash-safety.
+					let parent = url.deletingLastPathComponent()
+					try? FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
+					try data.write(to: url, options: .atomic)
 				}
 			} catch {
 				logger.error("Failed to save \(String(describing: StoredValue.self)): \(error)")

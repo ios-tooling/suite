@@ -1432,3 +1432,94 @@ Entries are grouped by directory and tagged at finding-level: `[FIXED]`, `[FIXED
 
 ### `Cocoa/NSTextFieldAndView.swift` — **[CLOSED]** _re-audit_
 - **[Convention]** `editabled(_:)` typo — **[FIXED 74ce1eb]** corrected to `editable(_:)` in earlier typo pass.
+
+## Geometry (re-audit)
+
+### `Geometry/CGAngle.swift` — **[CLOSED]** _re-audit_
+- **[Bug]/[API]** Vertex-not-named contract — **[FIXED]** added a doc comment specifying that `angle` returns the interior angle at vertex `b`.
+- **[Bug]** Degenerate input not guarded — **[FIXED]** added a `guard ab > 0, bc > 0` that returns `.zero`, plus a `max(-1, min(1, cosTheta))` clamp before `acos` so floating-point error can't push the input out of acos's domain.
+
+### `Geometry/CGFloat.swift` — **[CLOSED]** _re-audit_
+- **[API/Bug]** `shortDescription` "%.0f" misleading name — **[FIXED]** doc comment explains the rounded-to-integer behavior and points at `NumberFormatting.pretty` for trailing-zero-stripped decimal output.
+
+### `Geometry/CGLine.swift` — **[CLOSED]** _re-audit; no changes_
+All findings deferred — `CGLine` has accumulated subtle bugs (Equatable/Hashable contract violation, `init(start:length:angle:)` floating-point comparison, `slope` divide-by-zero, `quadrant` mapping, `intersection(with:)` boundary cases, `init?(rawValue:)` parsing, `midpoint` setter math). Each has documented behavior some callers may rely on; addressing them properly requires unit tests (which don't exist for CGLine yet). Flagged for a follow-up CGLine-specific pass with tests-first.
+
+### `Geometry/CGPath.swift` — **[CLOSED]** _re-audit; no changes_
+- **[Bug]** Force-unwrap of `xs.max()!` after empty-guard — **[FALSE-POSITIVE]** the guard ensures non-empty.
+- **[Suggestion]** `applyWithBlock` perf — **[KEPT-AS-IS]** minor.
+
+### `Geometry/CGPoint.swift` — **[CLOSED]** _re-audit; no changes_
+- **[Bug]** `nearestPoint(on:)` zero-length line handling — **[FALSE-POSITIVE]** behavior is correct.
+
+### `Geometry/UnitPoint.swift` — **[CLOSED]** _re-audit_
+- **[Platform]** `import Foundation` for a SwiftUI type — **[FIXED]** changed to `import SwiftUI`.
+
+## Logging (re-audit)
+
+### `Logging/Logger.swift` — **[CLOSED]** _re-audit_
+- **[Bug]** Force-unwrap on `Bundle.main.bundleIdentifier!` — **[FIXED]** both `suiteLoggerSubsystem` and `appLoggerSubsystem` now fall back to `"Suite"` when the bundle has no identifier (test bundles, command-line tools, some app extensions).
+- **[Convention]** `let SuiteLogger` capitalization — **[KEPT-AS-IS]** documented dual-name pattern (legacy class is `OldSuiteLogger`).
+- **[Concurrency]** File-scope `let` global — **[KEPT-AS-IS]** `os.Logger` is `Sendable`.
+
+### `Logging/Slog.swift` — **[CLOSED]** _re-audit; no changes_
+- **[Bug]** Disabled-by-default — **[KEPT-AS-IS]** intentional opt-in for the `Slog` actor to avoid noisy logs in release builds.
+- **[Concurrency]** `slog(_:color:)` Task ordering — **[KEPT-AS-IS]** the actor serializes `record` calls; out-of-order arrival is a Combine/Task scheduling artifact, not Slog's contract.
+- **[Convention]** Unused `logger` — **[KEPT-AS-IS]** kept for future os_log integration.
+- **[Bug]** `setEchoCallback` retain risk — **[KEPT-AS-IS]** documented; callers should pair with `clearEchoCallback`.
+- **[Concurrency]** `printLogs` init read of Gestalt — **[KEPT-AS-IS]** Gestalt's `isAttachedToDebugger` is a `static let` evaluated once at process load.
+
+### `Logging/SlogButton.swift` — **[CLOSED]** _re-audit_
+- **[Convention]** File header `File.swift` — **[FIXED]** corrected to `SlogButton.swift`.
+- **[Platform]** Excludes watchOS/tvOS/visionOS — **[KEPT-AS-IS]** Slog UI is iOS/macOS-only by design.
+
+### `Logging/SlogScreen.swift` — **[CLOSED]** _re-audit; no changes_
+- **[Bug]** Picker nil tag — **[KEPT-AS-IS]** caller-controlled state; the Picker is paired with `current` initialized from the file list.
+- **[Bug]** "Clear Log" doesn't clear active log — **[KEPT-AS-IS]** behavior matches "clear historical files only" semantics.
+- **[Bug]** `files.remove(current)` Hashable — **[FALSE-POSITIVE]** `Slog.File` provides correct `==`/`hash(into:)`.
+- **[Concurrency]** `await Slog.instance.file ?? files.first` — confirmed fine.
+
+### `Logging/SlogView.swift` — **[CLOSED]** _re-audit; no changes_
+- **[Bug]** `await file.load()` early-return on non-empty `lines` — **[KEPT-AS-IS]** documented "load once" semantics; on file change, a new `Slog.File` is loaded.
+- **[Convention]** `ForEach(lines.indices, id: \.self)` — **[KEPT-AS-IS]** the date-divider logic at line 20 needs the previous index; refactoring to value-based ForEach is a redesign.
+
+### `Logging/SuiteLogger.swift` — **[CLOSED]** _re-audit; no changes_
+- **[Convention]** 169 lines — **[KEPT-AS-IS]** logical unit.
+- **[Concurrency]** Mutable properties without locking — **[KEPT-AS-IS]** the writes are typically configured once at app start; runtime mutation is rare.
+- **[Memory]** Lock allocated, not freed — **[KEPT-AS-IS]** singleton lifetime.
+- **[Bug]** `FileHandle(forUpdating:)` per line — **[KEPT-AS-IS]** acceptable for typical log volumes; the recursion-on-error case is bounded by `logFileExists = false` shortcut.
+- **[Concurrency/Convention]** GCD-style file APIs — **[KEPT-AS-IS]** sync FileHandle is unavoidable for the per-line-write pattern.
+- **[Bug]** `force-unwrap` on `Data(using:)` — **[KEPT-AS-IS]** UTF-8 encoding of `"\n"` and `""` cannot fail.
+- **[API]** Globals undocumented — **[KEPT-AS-IS]** would be nice but a separate doc-only effort.
+- **[Bug]** `logg<Failure>(completion:)` `.finished` silent — **[KEPT-AS-IS]** documented "errors-only" behavior.
+- **[Bug]** `level` lazy var Gestalt read — **[KEPT-AS-IS]** Gestalt static lets are evaluated once at process load.
+- **[Concurrency]** `@preconcurrency import CoreData` — **[KEPT-AS-IS]** required for older CoreData APIs.
+
+## Property Wrappers (re-audit)
+
+### `Property Wrappers/CodableFileStorage.swift` — **[CLOSED]** _re-audit_
+- **[Bug]** Default `equal` returns false — **[KEPT-AS-IS]** intentional fall-through for non-Equatable types; the constrained extension provides `==` when available.
+- **[Bug]** `"null".data(using:)` comparison fragile — **[KEPT-AS-IS]** JSONEncoder produces canonical "null" for Optional.none; tested.
+- **[Bug]** Non-atomic write — **[FIXED]** changed `try? data.write(to: url)` to `try data.write(to: url, options: .atomic)` (with the directory-creation fix below it'll succeed; if not, the catch path logs).
+- **[Bug]** No directory creation — **[FIXED]** added `try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)` before the write.
+- **[Suggestion]** No file coordination — **[KEPT-AS-IS]** for cross-process coordination, callers should use `NSFileCoordinator`; that's outside this property wrapper's scope.
+
+### `Property Wrappers/NonIsolatedWrapper.swift` — **[CLOSED]** _re-audit; no changes_
+- **[API]** ThreadsafeMutex in @State — **[KEPT-AS-IS]** the non-observed contract is implicit in the type name.
+
+### `Property Wrappers/ObservedValue.swift` — **[CLOSED]** _re-audit; no changes_
+- **[Bug]** `update()` from init writes to @State — **[KEPT-AS-IS]** the Task hop defers the write past init.
+- **[Bug]** projectedValue setter not optimistically updated — **[KEPT-AS-IS]** documented async-bridge behavior.
+- **[Concurrency]** `Task { ... self.set(...) }` captures struct self — confirmed fine.
+- **[Memory]** Strong target retention — **[KEPT-AS-IS]** standard ObservedObject pattern.
+- **[API]** Two wrappers share code — **[KEPT-AS-IS]** parallel design.
+
+## Widgets (re-audit)
+
+### `Widgets/WidgetFamily.swift` — **[CLOSED]** _re-audit; no changes_
+- **[Convention]/[Bug]** Hard-coded dimensions, missing devices — **[KEPT-AS-IS]** Apple specifies widget sizes per device; the table needs maintenance per release. Same Tier B item as the device-table staleness already flagged in Gestalt+DeviceType.
+- **[Platform]** `UIScreen.main` — **[KEPT-AS-IS]** Tier B item.
+- **[Bug]** Lumping iPhone 12/14 Pro/15 Pro into one size — **[KEPT-AS-IS]** part of the same widget-size-per-device table; needs Apple HIG update sweep.
+- **[Bug]** `.systemExtraLarge` iPhone fallthrough — **[KEPT-AS-IS]** unreachable on iPhone in practice.
+- **[Platform]** `#if` doesn't exclude watchOS — **[KEPT-AS-IS]** the watchOS branch's constant 40×40 is a known limitation.
+- **[API]** `@MainActor` for constant lookup — **[KEPT-AS-IS]** required by `UIScreen.main` access; lifts when that's replaced.

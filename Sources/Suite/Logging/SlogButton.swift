@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  SlogButton.swift
 //  Suite
 //
 //  Created by Ben Gottlieb on 10/28/24.

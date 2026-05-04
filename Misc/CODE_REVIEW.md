@@ -165,9 +165,9 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 
 # Detailed Findings (file-by-file) — Open Work
 
-> **Status:** 73 file sections still labeled `[UNAUDITED]` here — the original review snapshot, not yet re-verified against current code. The other ~228 file sections have been resolved (fixed, false positives, kept-as-is with reasoning, or rendered moot by other refactors) and moved to **`CODE_REVIEW_RESOLVED.md`** in this directory.
+> **Status:** 57 file sections still labeled `[UNAUDITED]` here — the original review snapshot, not yet re-verified against current code. The other ~244 file sections have been resolved (fixed, false positives, kept-as-is with reasoning, or rendered moot by other refactors) and moved to **`CODE_REVIEW_RESOLVED.md`** in this directory.
 >
-> Re-audit passes that have produced finding-level tags so far: macros, Foundation M-Z, Utilities, Foundation A-K, SwiftUI batch C, SwiftUI batch B, SwiftUI batch A, SwiftUI batch D, UIKit, Combine/AppKit/Cocoa.
+> Re-audit passes that have produced finding-level tags so far: macros, Foundation M-Z, Utilities, Foundation A-K, SwiftUI batch C, SwiftUI batch B, SwiftUI batch A, SwiftUI batch D, UIKit, Combine/AppKit/Cocoa, Geometry/Logging/PropertyWrappers/Widgets.
 
 
 ## Package
@@ -353,111 +353,6 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 
 ### `SwiftUI/Other Views/CalendarMonthView/CalendarWeekDayLabel.swift` — **[UNAUDITED]** _no findings reported_
 - No issues.
-
-## Geometry
-
-
-### `Geometry/CGAngle.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `angle` formula uses sides `ab`, `bc`, `ac` and computes the angle at vertex `B` via `acos((ab^2 + bc^2 - ac^2) / (2*ab*bc))`. That is the law of cosines for angle at B (opposite side `ac`) — correct math, but the type is named `CGAngle` with three points `a, b, c`, and there is no doc clarifying which vertex's angle is computed. **[API]** Misleading: a consumer could reasonably expect the angle at `a` or `c`. Add documentation or rename.
-- **[Bug]** No protection for degenerate cases: if `a == b` (`ab == 0`) or `b == c` (`bc == 0`), denominator is 0 → NaN/inf. If the law-of-cosines argument falls outside `[-1, 1]` (floating point), `acos` returns NaN. Should clamp or guard.
-
-### `Geometry/CGFloat.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[API/Bug]** `shortDescription` uses `"%.0f"` which truncates everything to integers (e.g. 3.7 → "4", 0.001 → "0"). Name suggests "short" rather than "integer rounded"; misleading.
-
-### `Geometry/CGLine.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Convention]** 229 lines — exceeds the ~100 LOC guideline. Could split (StringInitializable, Hashable, intersection helpers).
-- **[Bug]** `Equatable`'s `==` uses approximate equality (`≈≈`) but `hash(into:)` hashes exact `start` and `end`. Two equal-by-`==` lines can have different hashes — violates `Hashable` contract.
-- **[Bug]** `init(start:length:angle:)`: the `while degrees > 360` loop will not handle `degrees == 360` correctly (loop runs once, becoming 0), and the comparisons against `90/180/270/360` use exact float equality on a value that may have been produced by repeated subtraction — small floating point errors will fall into the trig branch instead. Use `truncatingRemainder(dividingBy: 360)` and tolerance comparisons.
-- **[Bug]** `slope` divides by `vector.x`; will be `inf`/NaN for vertical lines — no guard. Caller must know.
-- **[Bug]** `quadrant` returns 1 when `dy <= 0`, 2 when `dy > 0`, etc. — but lines exactly on an axis (dx == 0 or dy == 0) are mapped silently into one of the four quadrants, which then feeds `angle`. That branch is reached only after the early-return for `vector.x == 0` / `vector.y == 0` in `angle`, so okay there, but `quadrant` itself is misleading on its own.
-- **[Bug]** In `angle`: `case 1: return .degrees(360) - .radians(basis.radians * -1)` simplifies to `360° - (-basis)` = `360° + basis`. This goes outside `[0, 360)` whenever basis is positive, and in quadrant 1 (dx>0, dy<0 in this code's flipped Y) the expected angle is `360° - |basis|`, which is `.degrees(360) + basis` only if `basis` is negative — fragile and confusing. Verify and add tests.
-- **[Bug]** `linesCross`: uses `> 0 && < 1` (strict) which excludes intersections exactly at endpoints. The pre-checks at the top of `intersection(with:)` only handle pairwise endpoint equality, not "line A endpoint sitting on line B's interior." Edge cases will return `nil`.
-- **[Bug]** `init?(rawValue:)` calls `rawValue.trimmingCharacters(in: .decimalDigits.inverted)` — this strips commas, parentheses and minus signs, breaking negative coordinates and the `(...,...)` separator. Likely doesn't actually parse the format produced by `stringValue`.
-- **[Bug]** `midpoint` setter uses old `midpoint` after computing `startDelta`/`endDelta`; reads `midpoint` again to compute `endDelta`. The math: `start = newValue + (midpoint - start)` translates start to `newValue + (midpoint - start)` rather than `start + (newValue - midpoint)`. End up shifting both points by the wrong delta unless the line is symmetric about midpoint. Rewrite as `let delta = newValue - midpoint; start += delta; end += delta`.
-
-### `Geometry/CGPath.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `boundingSize` force-unwraps `xs.max()!` / `ys.max()!` after checking `points.isEmpty`. Safe given the guard, but minor.
-- **[Suggestion]** Could use `applyWithBlock` to compute bounds without materializing a `[CGPoint]`.
-
-### `Geometry/CGPoint.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `nearestPoint(on:)` sets `distanceFactor = -1` for zero-length lines, then early-returns `line.start` — which is correct (line.start == line.end here). But the `< 0` and `> 1` clamps for non-degenerate lines correctly clamp to endpoints. Looks ok.
-- No major issues.
-
-### `Geometry/UnitPoint.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Platform]** `UnitPoint` is a SwiftUI type but the file imports only Foundation. Likely compiles via implicit re-export, but should `import SwiftUI` for clarity.
-
-## Logging
-
-
-### `Logging/Logger.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `static let suiteLoggerSubsystem = Bundle.main.bundleIdentifier! + ".suite"` force-unwraps `bundleIdentifier`. In test bundles, command-line tools, and some app extensions this is `nil` and crashes at module load.
-- **[Convention]** Top-level `let SuiteLogger` capitalized as if a type; might shadow the legacy `SuiteLogger` class in `SuiteLogger.swift` — confusing dual naming. Actually the legacy one is named `OldSuiteLogger`, so no shadow, but the global variable named `SuiteLogger` is then referenced from `ModelContext.swift` (`SuiteLogger.error(...)`) — works only if iOS 14 / macOS 12 are available. Add doc comment.
-- **[Concurrency]** `let SuiteLogger = Logger(...)` at file scope is fine for `os.Logger` (Sendable), but file-internal `let` global is technically OK in Swift 6 only because Logger is Sendable.
-
-### `Logging/Slog.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `disabled = true` by default. With no public way to enable on `instance` other than `setEnabled`, the actor swallows all `record` calls silently until enabled. Document or default to enabled.
-- **[Concurrency]** `slog(_:color:)` fires `Task { ... }` with no ordering guarantee — log lines can land out of order. Use a serial queue/actor pattern that preserves order, or document.
-- **[Convention]** `let logger = Logger(subsystem: "suite", category: "general")` is initialized but never used — dead code.
-- **[Bug]** `setEchoCallback` keeps a `@MainActor (String) -> Void` closure that may capture `self` of the caller — leak risk if not cleared. Document `clearEchoCallback`.
-- **[Concurrency]** `printLogs = Gestalt.isAttachedToDebugger` reads at actor init off any task; if `Gestalt` is `MainActor`-isolated, this would race. Verify.
-
-### `Logging/SlogButton.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Convention]** Filename header says "File.swift" — copy-paste leftover.
-- **[Platform]** `#if os(iOS) || os(macOS)` excludes watchOS/tvOS/visionOS; SlogScreen has same gating, ok.
-
-### `Logging/SlogScreen.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `Picker` selection of `Slog.File?` with `Optional.some(file).tag(...)` will not have a tag for `nil` — picker may be in undefined state when current is `nil`. Add a `.tag(Slog.File?.none)` row or supply a Sentinel.
-- **[Bug]** "Clear Log" calls `current.removeLog()` (nonisolated) immediately, but if the current file is the actively-logging `Slog.instance.file`, the actor will continue writing and resurrect the file. Should also clear/replace the active file.
-- **[Bug]** `files.remove(current)` — relies on `Hashable`/`Equatable` on `Slog.File` (an actor). Actors are Equatable/Hashable here via custom impl (`==` on URL), good.
-- **[Concurrency]** `current = await Slog.instance.file ?? files.first` — fine.
-
-### `Logging/SlogView.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `await file.load()` early-returns when `lines` is non-empty (see Slog.File.load), which is not communicated; on second `onChange`, you may show stale data. Maybe intended.
-- **[Convention]** `ForEach(lines.indices, id: \.self)` is anti-pattern; use `ForEach(lines) { line in ... }` with `Identifiable` (Line conforms). Index-based ForEach breaks animation on insertion.
-
-### `Logging/SuiteLogger.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Convention]** 169 lines — over the ~100 LOC guideline.
-- **[Concurrency]** `OldSuiteLogger` is `@unchecked Sendable` with `var fileURL`, `var prefix`, `var showTimestamps`, `var redirected`, `var level` — all mutable from any thread without locking. Only `log(_:level:)` takes the lock. Race conditions on every other accessor.
-- **[Memory]** `_lock` is allocated but never `deinitialize`d / `deallocate`d (singleton is forever, so OK in practice).
-- **[Bug]** `write(_:to:)` opens `FileHandle(forUpdating:)` for every line of output — costly. Also, on error code `4` it sets `logFileExists = false` and silently drops the message; for any other error, recurses into `OldSuiteLogger.instance.log(error:...)` which will call `write` again and could infinite-loop on persistent failure.
-- **[Concurrency/Convention]** Uses GCD-style file APIs (FileHandle synchronously), but no async/await. Project guideline: use async/await.
-- **[Bug]** `force-unwrap` `"\n".data(using: .utf8)!` and `"".data(using: .utf8)!` — safe in practice but `try?` would be cleaner.
-- **[API]** All public globals (`logg`, `dlogg`, etc.) lack documentation and there are many overloads with subtle behavior differences (e.g., `dlogg(_ msg:)` is identical to `logg(_ msg:)`).
-- **[Bug]** `logg<Failure>(completion:)`: prints only on `.failure`, but `.finished` case falls through silently. Document.
-- **[Bug]** `level` lazy var reads `Gestalt.distribution` and `Gestalt.isAttachedToDebugger` at first use; if invoked off main actor where Gestalt requires it, could deadlock or race. Verify Gestalt's isolation.
-- **[Concurrency]** `@preconcurrency import CoreData` masks Sendable warnings; the `NSManagedObject.logObject` extension uses `dlogg(desc, level)` capturing `self` indirectly — fine but worth noting.
-
-## Property Wrappers
-
-
-### `Property Wrappers/CodableFileStorage.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Default `equal(_:_:)` returns `false` always (when StoredValue is not Equatable). This means non-Equatable types perform a write on *every* `set` — even setting the same value re-writes the file. Compare encoded data instead, or document.
-- **[Bug]** `data == "null".data(using: .utf8)` is intended to delete the file when value is `nil` — but JSONEncoder may emit `null\n` or with surrounding whitespace depending on options; comparison is fragile. Better: in the Optional convenience init, explicitly check `newValue == nil`.
-- **[Bug]** `try? data.write(to: url)` — non-atomic write; partial writes can corrupt the file. Use `.atomic`.
-- **[Bug]** No directory creation: if `url`'s parent directory doesn't exist, the write silently fails (because of `try?`). Either log or pre-create the dir.
-- **[Suggestion]** No file-coordination — concurrent processes (extension + app) writing to the same URL can race.
-
-### `Property Wrappers/NonIsolatedWrapper.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[API]** Wraps a `ThreadsafeMutex` in `@State`. SwiftUI `@State` re-uses storage across view rebuilds, but `State` is itself not thread-safe; the wrapper relies on `ThreadsafeMutex.value` for synchronization which is fine. Setting `wrappedValue` does not call `value.objectWillChange` or anything to trigger re-renders — name suggests it's deliberately non-observed, which is correct. Document that.
-
-### `Property Wrappers/ObservedValue.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `update()` is called from `init`, which spawns a `Task { @MainActor in ... }` referencing `_wrappedValue` — that's `@State` storage not yet attached to a view. SwiftUI guidance: do not write to `@State` from `init`. May produce a runtime warning ("Modifying state during view update is not allowed") or be lost.
-- **[Bug]** `MutableObservedValue.projectedValue` setter spawns a detached `Task { ... }` that calls `set(target, value)` — but `wrappedValue` (the `@State`) is not optimistically updated, so the binding's get returns the stale value until the next `update()` after the ObservableObject's publisher fires. UI feels laggy.
-- **[Concurrency]** `Task { await self.set(self.target, value) }` captures `self` by value (struct). Fine for a struct property wrapper, but ensure `Target` and `closure` Sendability holds.
-- **[Memory]** `@ObservedObject var target: Target` — the property wrapper holds a strong reference to `target`; if the calling view owns `target`, no cycle, but if `target` later captures the view, watch out.
-- **[API]** Two property wrappers in one file share a lot of code; suggest factoring or document.
-
-## Widgets
-
-
-### `Widgets/WidgetFamily.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Convention]** 111 lines — borderline. Many hard-coded dimensions per device — but as widget sizes are a published Apple table, this is correct usage. Still flagging:
-- **[Convention]** Hard-coded dimensions throughout. The framework guideline says "avoid hard-coded dimensions"; here they're justified because Apple specifies widget sizes per device, but the table is incomplete (no iPhone 16, no 13 series, no iPad mini after 6th gen, no `accessoryRectangular`/`accessoryCircular`/`accessoryInline` cases). Will return wrong sizes silently for new devices.
-- **[Platform]** Uses `UIScreen.main` — deprecated since iOS 16 in multi-scene apps. `UIScreen.main.bounds.size` returns the screen of the first connected scene; widgets typically run in their own process anyway, where `UIScreen.main` is the host's screen. Behavior is questionable.
-- **[Bug]** `case .iPhone15Pro, .iPhone14Pro` reused with `iPhone12` for systemMedium and systemLarge — those phones have different screen sizes (iPhone 14 Pro is 393×852, 15 Pro is 393×852, 12 is 390×844). Lumping all into 338×158 is incorrect.
-- **[Bug]** `.systemExtraLarge` on iPhone falls through `default: return CGSize(width: 360, height: 379)` — but `.systemExtraLarge` is iPad-only; should not be reachable for iPhone screens. If reached returns something that looks like systemLarge.
-- **[Platform]** `#if canImport(WidgetKit) && !os(visionOS) && !os(tvOS)` — does not exclude watchOS even though `WidgetFamily` on watchOS uses `accessory*` cases that aren't switched here. The `#if os(watchOS)` branch uses a constant 40×40 regardless of family — inaccurate.
-- **[API]** `@MainActor` extension forces all callers onto the main actor for what is essentially a constant lookup.
 
 ## SwiftData
 
