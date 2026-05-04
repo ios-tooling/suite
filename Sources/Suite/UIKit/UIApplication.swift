@@ -9,8 +9,8 @@
 
 import UIKit
 
-@available(iOS 13.0, *)
-public extension UIApplication {
+@available(iOS 13.0, tvOS 13.0, visionOS 1.0, *)
+@MainActor public extension UIApplication {
 	var currentScene: UIWindowScene? {
 		let scene = self.connectedScenes
 			.filter { $0.activationState == .foregroundActive }
@@ -26,7 +26,7 @@ public extension UIApplication {
 	}
 }
 
-public extension UIApplication {
+@MainActor public extension UIApplication {
     var currentWindow: UIWindow? {
 		 if let window = currentScene?.frontWindow { return window }
 

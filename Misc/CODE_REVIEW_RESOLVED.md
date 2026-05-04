@@ -1277,3 +1277,78 @@ Entries are grouped by directory and tagged at finding-level: `[FIXED]`, `[FIXED
 - **[API]** `lastStoredView` O(n log n) — **[FIXED]** changed `views.values.sorted().last` to `views.values.max()` (still O(n) but no allocation).
 - **[Suggestion]** Manual `objectWillChange.send` vs `@Published` — **[KEPT-AS-IS]** equivalent behavior; manual control is fine.
 - File header `SwiftUIView.swift` — **[FIXED]** corrected to `ViewStorage.swift`.
+
+## UIKit (re-audit)
+
+### `UIKit/Error+UIKit.swift` — **[CLOSED]** _UIKit re-audit_
+- **[Concurrency]** `MainActor.run` shim — **[FIXED]** marked the `Error` extension `@MainActor` and dropped the wrapper; the whole method is now main-actor isolated.
+- **[API]** Silent no-op on nil controller — **[KEPT-AS-IS]** breaking signature change.
+
+### `UIKit/SelfContainedRefreshControl.swift` — **[CLOSED]** _UIKit re-audit; no changes_
+- **[Concurrency]** Closure-based completion — **[KEPT-AS-IS]** `UIRefreshControl` is implicitly `@MainActor`; converting to async is a public API redesign.
+- **[API]** Two-call init pattern — **[KEPT-AS-IS]** documented usage.
+- **[Memory]** `[weak self]` correct — confirmed.
+
+### `UIKit/UIAlertController.swift` — **[CLOSED]** _UIKit re-audit_
+- Bonus: marked the convenience-init extension `@MainActor` for strict-concurrency hygiene.
+
+### `UIKit/UIApplication.swift` — **[CLOSED]** _UIKit re-audit_
+- **[Deprecated]** `self.windows.first` fallback — **[KEPT-AS-IS]** required for legacy AppDelegate-only apps on iOS 13/14; the modern path (`currentScene?.frontWindow`) wins on iOS 13+ scene-based apps.
+- **[Concurrency]** Not `@MainActor` — **[FIXED]** both `UIApplication` extensions are now `@MainActor`.
+- **[Platform]** `currentScene` gated only `iOS 13.0` — **[FIXED]** added `tvOS 13.0, visionOS 1.0` to the availability list.
+
+### `UIKit/UIBarButtonItem.swift` — **[CLOSED]** _UIKit re-audit_
+- **[Convention]** Hard-coded `width: 44, height: 20` — **[KEPT-AS-IS]** bar-button defaults; `width` already a parameter.
+- **[Concurrency]** Not `@MainActor` — **[FIXED]** added.
+
+### `UIKit/UICollectionView.swift` — **[CLOSED]** _UIKit re-audit_
+- **[Suggestion]** `nib` assumes XIB exists — **[KEPT-AS-IS]** documented contract.
+- **[Concurrency]** Not `@MainActor` — **[FIXED]** both extensions now `@MainActor`.
+
+### `UIKit/UIControl.swift` — **[CLOSED]** _UIKit re-audit_
+- **[Concurrency]** Not `@MainActor` — **[FIXED]**.
+
+### `UIKit/UILabel.swift` — **[CLOSED]** _UIKit re-audit_
+- **[Concurrency]** Not `@MainActor` — **[FIXED]**.
+
+### `UIKit/UIScene.swift` — **[CLOSED]** _UIKit re-audit_
+- **[Concurrency]** Not `@MainActor` — **[FIXED]** added; also broadened availability to iOS 13 / tvOS 13 / visionOS 1.
+- **[API]** `frontWindow` vs `mainWindow` naming — **[FIXED]** added doc comments distinguishing key-window-with-overlay vs underlying-app-content semantics.
+
+### `UIKit/UIStackView.swift` — **[CLOSED]** _UIKit re-audit_
+- **[Concurrency]** Not `@MainActor` — **[FIXED]**.
+- **[Bug]** `setup(inScrollView:withMargins:)` missing `bottomAnchor` — **[FIXED]** added the bottom-anchor constraint so vertical scroll content size derives correctly from the stack view.
+
+### `UIKit/UITableView.swift` — **[CLOSED]** _UIKit re-audit_
+- **[Concurrency]** Not `@MainActor` — **[FIXED]** both extensions now `@MainActor`.
+- **[Bug]** Force-cast `as!` in `dequeueCell(type:indexPath:)` — **[FIXED]** changed to `guard let ... as? T else { preconditionFailure(...) }` with a message that names the missing-registration case.
+
+### `UIKit/UITextField.swift` — **[CLOSED]** _UIKit re-audit_
+- **[Concurrency]** Not `@MainActor` — **[FIXED]**.
+
+### `UIKit/UITraitCollection.swift` — **[UNAUDITED]** _no findings reported_
+- No issues.
+
+### `UIKit/UIView+BlockingView.swift` — **[CLOSED]** _UIKit re-audit_
+- **[Memory]** Strong-self in animation closures — **[FIXED]** both `UIView.animate` callbacks now use `[weak self]`.
+- **[Concurrency]** Not `@MainActor` — **[FIXED]** extension now `@MainActor`.
+- **[API]** Returns `UIView` not `SA_BlockingView` — **[KEPT-AS-IS]** breaking signature change.
+- **[Bug]** `blockingView` returns first match — **[KEPT-AS-IS]** documented behavior.
+
+### `UIKit/UIView.swift` — **[CLOSED]** _UIKit re-audit_
+- **[Deprecated]** `UIScreen.main.scale` — **[KEPT-AS-IS]** Tier B item; multi-scene migration deferred.
+- **[Concurrency]** `static let screenScale` lazy eval — **[FIXED]** both extensions now `@MainActor`, so first access is isolated.
+- **[Concurrency]** `isResigningFirstResponderOnAll` global var — **[FIXED]** by the same `@MainActor` annotation.
+- **[Bug]** `frontSafeAreaInsets` returns root view's safe area — **[KEPT-AS-IS]** documented approximation.
+- **[Convention]** 230 lines — **[KEPT-AS-IS]** logical unit.
+- **[Memory]** `responder!` force-unwrap — **[FIXED]** rewrote loop with `while let current = responder` pattern.
+- **[Bug]** `addActivityView` constraint orientation reversed — **[KEPT-AS-IS]** equality is symmetric; behavior is correct.
+- **[Bug]** `rotatedBy(degrees:)` obfuscated — **[FIXED]** simplified `(angle * .pi * 2) / 360` → `angle * .pi / 180`.
+
+### `UIKit/UIViewController.swift` — **[CLOSED]** _UIKit re-audit_
+- **[Bug]** `last!` after `components(separatedBy: ".")` — **[KEPT-AS-IS]** Swift class names always contain a dot; for legacy `@objc` classes the call yields the full name (not a crash).
+- **[Bug]** `as! T` in storyboard init — **[KEPT-AS-IS]** the storyboard's class is the caller's contract; failing fast is the right behavior.
+- **[Bug]** `fromXIB` nibName fallback — **[KEPT-AS-IS]** matches `UIViewController` default behavior.
+- **[Concurrency]** Not `@MainActor` — **[FIXED]** all three extensions now `@MainActor`.
+- **[Platform]** `UIActivityViewController` on visionOS — **[FALSE-POSITIVE]** the `share` extension is gated `#if !os(tvOS)`; the parent file's `!os(visionOS)` exclusion handles visionOS.
+- **[API]** `presentedest` typo — **[FIXED 74ce1eb]** renamed to `topPresentedViewController` in earlier typos pass.

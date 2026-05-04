@@ -8,19 +8,19 @@
 #if canImport(UIKit) && !os(watchOS)
 import UIKit
 
-public extension UIView {
+@MainActor public extension UIView {
 	var blockingView: SA_BlockingView? {
 		for view in self.subviews {
 			if let blocker = view as? SA_BlockingView { return blocker }
 		}
 		return nil
 	}
-	
+
 	func removeBlockingView(duration: TimeInterval, completion: (() -> Void)? = nil) {
-		UIView.animate(withDuration: duration, animations: {
-			self.blockingView?.alpha = 0
-		}, completion: { complete in
-			self.blockingView?.removeFromSuperview()
+		UIView.animate(withDuration: duration, animations: { [weak self] in
+			self?.blockingView?.alpha = 0
+		}, completion: { [weak self] _ in
+			self?.blockingView?.removeFromSuperview()
 			completion?()
 		})
 	}

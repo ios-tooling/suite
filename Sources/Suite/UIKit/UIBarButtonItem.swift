@@ -9,7 +9,7 @@
 
 import UIKit
 
-extension UIBarButtonItem {
+@MainActor extension UIBarButtonItem {
 	public convenience init(activityIndicator style: UIActivityIndicatorView.Style, width: CGFloat = 44) {
 		let container = UIView(frame: CGRect(x: 0, y: 0, width: width, height: 20))
 		let activity = UIActivityIndicatorView(frame: .zero)

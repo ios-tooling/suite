@@ -9,7 +9,7 @@
 import UIKit
 
 #if !os(visionOS)
-public extension UIViewController {
+@MainActor public extension UIViewController {
 	class func fromStoryboard(_ name: String? = nil, bundle: Bundle? = nil) -> Self {
 		let storyboardName = name ?? NSStringFromClass(self).components(separatedBy: ".").last!
 		return self.fromStoryboard(class: self, name: storyboardName, bundle: bundle ?? Bundle(for: self))
@@ -42,9 +42,9 @@ public extension UIViewController {
 }
 #endif
 
-public extension UIViewController {
+@MainActor public extension UIViewController {
 	var isInDarkMode: Bool { return self.traitCollection.isInDarkMode }
-	
+
 	@discardableResult
 	func turnOffCardModalPresentation() -> Self {
 		self.isModalInPresentation = true
@@ -63,7 +63,7 @@ public extension UIViewController {
 
 #if !os(tvOS)
 @available(iOSApplicationExtension, unavailable)
-public extension UIViewController {
+@MainActor public extension UIViewController {
 	func share(something: [Any], fromItem barButtonItem: UIBarButtonItem? = nil, fromView: UIView? = nil, position: CGRect.Placement = .topRight) {
 		guard !something.isEmpty else { return }
 		let activityVC = UIActivityViewController(activityItems: something, applicationActivities: nil)

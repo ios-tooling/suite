@@ -8,16 +8,17 @@
 #if canImport(UIKit) && !os(watchOS)
 import UIKit
 
-public extension UIStackView {
+@MainActor public extension UIStackView {
 	@discardableResult
 	func setup(inScrollView scrollView: UIScrollView, withMargins margins: CGFloat = 0) -> Self {
 		scrollView.add(subview: self)
-		
+
 		self.translatesAutoresizingMaskIntoConstraints = false
 		self.widthAnchor.constraint(equalTo: scrollView.widthAnchor, constant: -(margins * 2)).isActive = true
 		self.centerXAnchor.constraint(equalTo: scrollView.centerXAnchor).isActive = true
 
 		self.topAnchor.constraint(equalTo: scrollView.topAnchor).isActive = true
+		self.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor).isActive = true
 
 		return self
 	}

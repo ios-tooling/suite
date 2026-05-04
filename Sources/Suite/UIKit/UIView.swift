@@ -8,7 +8,7 @@
 #if canImport(UIKit) && !os(watchOS)
 import UIKit
 
-public extension UIView {
+@MainActor public extension UIView {
 	static var isResigningFirstResponderOnAll = false
 	static let screenScale: CGFloat = {
 		#if os(visionOS)
@@ -48,12 +48,10 @@ public extension UIView {
 
 	var viewController: UIViewController? {
 		var responder = self.next
-		
-		while responder != nil {
-			if let controller = responder as? UIViewController { return controller }
-			responder = responder!.next
+		while let current = responder {
+			if let controller = current as? UIViewController { return controller }
+			responder = current.next
 		}
-		
 		return nil
 	}
 	
@@ -107,7 +105,7 @@ public extension UIView {
 	}
 }
 
-public extension UIView {
+@MainActor public extension UIView {
 	@discardableResult
 	func add<T: UIView>(subview: T) -> T {
 		self.addSubview(subview)
@@ -146,7 +144,7 @@ public extension UIView {
 	}
 	
 	@discardableResult func rotatedBy(degrees angle: CGFloat) -> Self {
-		self.transform(CGAffineTransform(rotationAngle: (angle * .pi * 2) / 360))
+		self.transform(CGAffineTransform(rotationAngle: angle * .pi / 180))
 	}
 	
 	@discardableResult func isOpaque(_ isOpaque: Bool) -> Self {

@@ -9,13 +9,13 @@
 import UIKit
 
 
-extension UICollectionViewCell {
+@MainActor extension UICollectionViewCell {
 	public class var identifier: String { return String(describing: self) }
 	public class var nib: UINib { return UINib(nibName: self.defaultNibName, bundle: Bundle(for: self)) }
 	public class var defaultNibName: String { return String(describing: self) }
 }
 
-extension UICollectionView {
+@MainActor extension UICollectionView {
 	public func register(cellClass: UICollectionViewCell.Type) {
 		self.register(cellClass.nib, forCellWithReuseIdentifier: cellClass.identifier)
 	}

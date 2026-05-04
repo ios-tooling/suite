@@ -8,7 +8,7 @@
 #if canImport(UIKit) && !os(watchOS)
 import UIKit
 
-public extension UILabel {
+@MainActor public extension UILabel {
 	@discardableResult func text(_ text: String?) -> Self {
 		self.text = text
 		return self

@@ -7,13 +7,13 @@
 #if canImport(UIKit) && !os(watchOS) && !os(visionOS)
 import UIKit
 
-extension UITableViewCell {
+@MainActor extension UITableViewCell {
 	public class var identifier: String { return String(describing: self) }
 	public class var nib: UINib { return UINib(nibName: self.defaultNibName, bundle: Bundle(for: self)) }
 	public class var defaultNibName: String { return String(describing: self) }
 }
 
-extension UITableView {
+@MainActor extension UITableView {
 	public func register(cellClass: UITableViewCell.Type) {
 		self.register(cellClass.nib, forCellReuseIdentifier: cellClass.identifier)
 	}
@@ -25,7 +25,10 @@ extension UITableView {
     }
 
     func dequeueCell<T>(type: T.Type, indexPath: IndexPath) -> T where T: UITableViewCell {
-        return self.dequeueReusableCell(withIdentifier: T.identifier, for: indexPath) as! T
+        guard let cell = self.dequeueReusableCell(withIdentifier: T.identifier, for: indexPath) as? T else {
+            preconditionFailure("Dequeued cell at \(indexPath) is not a \(T.self); is \(T.identifier) registered for the right class?")
+        }
+        return cell
     }
 
     /// dequeue plain `UITableViewCell`

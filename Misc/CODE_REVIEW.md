@@ -165,9 +165,9 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 
 # Detailed Findings (file-by-file) — Open Work
 
-> **Status:** 105 file sections still labeled `[UNAUDITED]` here — the original review snapshot, not yet re-verified against current code. The other ~196 file sections have been resolved (fixed, false positives, kept-as-is with reasoning, or rendered moot by other refactors) and moved to **`CODE_REVIEW_RESOLVED.md`** in this directory.
+> **Status:** 89 file sections still labeled `[UNAUDITED]` here — the original review snapshot, not yet re-verified against current code. The other ~212 file sections have been resolved (fixed, false positives, kept-as-is with reasoning, or rendered moot by other refactors) and moved to **`CODE_REVIEW_RESOLVED.md`** in this directory.
 >
-> Re-audit passes that have produced finding-level tags so far: macros, Foundation M-Z, Utilities, Foundation A-K, SwiftUI batch C, SwiftUI batch B, SwiftUI batch A, SwiftUI batch D.
+> Re-audit passes that have produced finding-level tags so far: macros, Foundation M-Z, Utilities, Foundation A-K, SwiftUI batch C, SwiftUI batch B, SwiftUI batch A, SwiftUI batch D, UIKit.
 
 
 ## Package
@@ -353,82 +353,6 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 
 ### `SwiftUI/Other Views/CalendarMonthView/CalendarWeekDayLabel.swift` — **[UNAUDITED]** _no findings reported_
 - No issues.
-
-## UIKit
-
-
-### `UIKit/Error+UIKit.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** `display(in:title:)` uses `MainActor.run { ... }` (the project helper that fires-and-forgets a `Task`). The closure captures non-`Sendable` `UIViewController` and `Error`; under Swift 6 strict concurrency this will warn/error. Marking `display` itself `@MainActor` (or making it `async`) is cleaner than dispatching internally (line 15).
-- **[API]** Method is named `display` but it silently no-ops if `controller` is nil. Consider making the parameter non-optional or renaming to `tryDisplay`.
-
-### `UIKit/SelfContainedRefreshControl.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** `refreshed()` is `@objc` (called on main, fine), but it forwards the `closure` synchronously and then schedules a delayed `endRefreshing()`. Modern API: convert `closure` to an `async` closure and `await` it before calling `endRefreshing()`. Avoids passing completion handlers around.
-- **[API]** Two distinct callers can mutate `closure`/`delay` on the existing refresh control (line 33-35), which is fine; but the convenience initializer also wires up `addTarget` only once — replacing the closure later via `addRefreshControl` works, but if someone constructs the class via `init()` and assigns `closure` directly, no target is wired. Document or guard.
-- **[Memory]** `[ weak self]` capture is correct.
-
-### `UIKit/UIAlertController.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- No issues.
-
-### `UIKit/UIApplication.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Deprecated]** Line 37 falls back to `self.windows.first` which is deprecated on iOS 15+. Should be removed entirely now that the `currentScene?.frontWindow` path covers iOS 13+. The `delegate?.window` fallback also relies on AppDelegate's `window` property which is rarely set in scene-based apps.
-- **[Concurrency]** `UIApplication` access should be `@MainActor`. These computed properties are not annotated; under strict concurrency they'll warn. Mark the extensions `@MainActor`.
-- **[Platform]** `currentScene` is gated on `iOS 13.0` only, but the file compiles on tvOS too where `UIScene` is also iOS 13+/tvOS 13+. Availability annotation should include tvOS/visionOS/Mac Catalyst for clarity.
-
-### `UIKit/UIBarButtonItem.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Convention]** Hard-coded dimensions (`width: 44`, `height: 20`) — `width` is a parameter but the height is fixed. Acceptable since these are bar button defaults, but flag per CLAUDE.md guidance.
-- **[Concurrency]** Should be `@MainActor`; touches UIView and Auto Layout.
-
-### `UIKit/UICollectionView.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Suggestion]** `UICollectionViewCell.nib` assumes a XIB exists for every cell type (line 14); if there is no nib, `register(cellClass:)` will crash at runtime. The `UIView+Convenience` typically guards this.
-- **[Concurrency]** Should be `@MainActor`.
-
-### `UIKit/UIControl.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** Should be `@MainActor`.
-
-### `UIKit/UILabel.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** Should be `@MainActor`.
-
-### `UIKit/UIScene.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** Should be `@MainActor`. `UIWindowScene.windows` is main-thread only.
-- **[API]** `frontWindow` and `mainWindow` look almost identical; `mainWindow` filters by `windowLevel == .normal`, `frontWindow` by `isKeyWindow`. The naming is unclear; document the difference.
-
-### `UIKit/UIStackView.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** Should be `@MainActor`.
-- **[Bug]** `setup(inScrollView:withMargins:)` (line 13) sets `widthAnchor`, `centerXAnchor`, `topAnchor` but **not** `bottomAnchor`. The scroll view's content size will not be derived from the stack view's bottom, so vertical scrolling won't size correctly. Likely a bug.
-
-### `UIKit/UITableView.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** Should be `@MainActor`.
-- **[Bug]** `dequeueCell(type:indexPath:)` uses `as!` (force cast) on line 28 — will crash at runtime if the cell wasn't registered or the type doesn't match. Acceptable only with a precondition; consider `as?` with a more helpful crash message.
-
-### `UIKit/UITextField.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** Should be `@MainActor`.
-
-### `UIKit/UITraitCollection.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- No issues.
-
-### `UIKit/UIView+BlockingView.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Memory]** `removeBlockingView(duration:completion:)` captures `self` strongly in two animation closures (lines 20-25). For long durations or if the view is removed mid-animation, this retains `self` until the animation completes. Use `[weak self]`.
-- **[Concurrency]** Should be `@MainActor`. Also, `tappedClosure` and `excludedRects` are stored properties on a `UIView` subclass — which means they're touched only on main. Fine, but mark the class explicitly.
-- **[API]** `blockingView(excluding:tappedClosure:)` returns `UIView` not `SA_BlockingView` — caller can't access excluded rects after creation without casting (line 28).
-- **[Bug]** `blockingView` getter loops through subviews and returns the first `SA_BlockingView`, but if multiple exist (e.g. due to race or programmer error) this hides the issue. Minor.
-
-### `UIKit/UIView.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Deprecated]** `UIScreen.main.scale` (line 17) is deprecated in iOS 16+. Use the trait collection's `displayScale` from a window/scene. Critical because `screenScale` is a static let computed at first access and cached forever — if the app is multi-screen (iPad with external display) this will be wrong.
-- **[Concurrency]** Static let `screenScale` evaluates `UIScreen.main.scale` lazily — accessing it from a background thread on first access would crash. Mark the whole extension `@MainActor`, or eagerly compute on a main-thread init.
-- **[Concurrency]** `isResigningFirstResponderOnAll` is a `static var` — non-isolated mutable global state. Data race. Either mark `@MainActor` or use a lock.
-- **[Bug]** `frontSafeAreaInsets` chain (line 45) walks `currentScene?.frontWindow?.rootViewController?.view.safeAreaInsets`. If the front window's root is a navigation/tab controller, the topmost visible view's safe area may differ from root's. Acceptable approximation; document.
-- **[Convention]** File is 230 lines. Should be split (e.g. UIView+Builder, UIView+Activity, UIView+Image).
-- **[Memory]** `viewController` walks `responder.next` with a `responder!` force-unwrap (line 54) inside a `while responder != nil` loop — safe because the loop guard ensures non-nil, but `responder?.next` is cleaner and matches Swift idiom.
-- **[Bug]** `addActivityView(color:)`: constraint orientation is reversed — `self.centerXAnchor.constraint(equalTo: spinner.centerXAnchor)` (line 85) is written backward. This works mathematically (equality is symmetric) but is non-idiomatic; usually reads `spinner.centerXAnchor.constraint(equalTo: self.centerXAnchor)`.
-- **[Bug]** `rotatedBy(degrees:)` formula `(angle * .pi * 2) / 360` is just `angle * .pi / 180`; the current form is `angle * 2π / 360 = angle * π / 180`, which is equivalent — OK but unnecessarily obfuscated (line 149).
-
-### `UIKit/UIViewController.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `fromStoryboard()` force-unwraps `components(separatedBy: ".").last!` (line 14). Class names always contain a dot for Swift classes, so this works, but for `@objc` Obj-C-style classes registered without a module prefix (e.g. legacy code) `last!` returns the whole string — not actually a crash, but worth noting.
-- **[Bug]** `fromStoryboard(class:name:bundle:)` uses `instantiateInitialViewController()` which returns optional, then force-casts via `as! T` (line 22). Crash if storyboard has no initial VC or wrong class. Minor.
-- **[Bug]** `fromXIB`: passes `bndle` as `bundle:` but `nibName` defaults to `self.nibName` (the class var defined below). If `nibName` is nil and the user didn't override, `init(nibName: nil, bundle:)` will look for a XIB with the same name as the class — UIViewController's default behavior. OK but worth a comment.
-- **[Concurrency]** Extensions should be `@MainActor`.
-- **[Platform]** `share(something:...)` is gated `#if !os(tvOS)` and uses `UIApplication.shared.currentWindow?.rootViewController?.presentedest.view`. On Mac Catalyst, this works; visionOS is excluded via the parent file's gate. Looks fine, but `UIActivityViewController` is unavailable on visionOS — verify the surrounding `#if`.
-- **[API]** `presentedest` typo-ish; suggest `topPresentedViewController` (line 55).
 
 ## Combine & Async
 

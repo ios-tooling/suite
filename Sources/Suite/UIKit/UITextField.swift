@@ -8,7 +8,7 @@
 #if canImport(UIKit) && !os(watchOS)
 import UIKit
 
-public extension UITextField {
+@MainActor public extension UITextField {
 	@discardableResult func text(_ text: String?) -> Self {
 		self.text = text
 		return self
