@@ -17,25 +17,23 @@ public protocol DisplayableError: Error {
 public extension Error {
 	var isFileNotFound: Bool {
 		let error = self as NSError
-		
-		return error.domain == NSCocoaErrorDomain && error.code == 260
+		return error.domain == NSCocoaErrorDomain && error.code == CocoaError.Code.fileNoSuchFile.rawValue
 	}
-	
+
 	var isCancellation: Bool {
 		if self is CancellationError { return true }
-        
 		let error = self as NSError
-		
-		return abs(error.code) == 999
+		return abs(error.code) == abs(URLError.cancelled.rawValue)
 	}
-	
+
 	var isOffline: Bool {
-		return (self as NSError).code == -1009
+		(self as NSError).code == URLError.notConnectedToInternet.rawValue
 	}
-	
+
 	var isTimeOut: Bool {
 		if let urlError = self as? URLError, urlError.code == .timedOut { return true }
-		return (self as NSError).domain == NSURLErrorDomain && (self as NSError).code == -1001
+		let error = self as NSError
+		return error.domain == NSURLErrorDomain && error.code == URLError.timedOut.rawValue
 	}
 
 	var decodingDescription: String? {

@@ -171,7 +171,8 @@ public extension Date {
 	}
 	
 	init(_ date: Date.Day, _ time: Date.Time?) {
-		self = Date(calendar: .current, timeZone: .current, year: date.year, month: date.month.rawValue, day: date.day, hour: time?.isNever == false ? time?.hour : nil, minute: time?.isNever == false ? time?.minute : nil) ?? Date()
+		let usableTime: Date.Time? = (time?.isNever == true) ? nil : time
+		self = Date(calendar: .current, timeZone: .current, year: date.year, month: date.month.rawValue, day: date.day, hour: usableTime?.hour, minute: usableTime?.minute) ?? Date()
 	}
 }
 

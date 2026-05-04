@@ -46,12 +46,13 @@ public extension FixedWidthInteger {
 }
 
 public extension UInt32 {
+	/// Big-endian four-character code (Apple FourCC convention). For `0x41424344` returns `"ABCD"`.
 	var fourCharacterCode: String {
-		let utf16 = [
-			UInt16((self & 0xFF)),
-			UInt16((self >> 8) & 0xFF),
-			UInt16((self >> 16) & 0xFF),
+		let utf16: [UInt16] = [
 			UInt16((self >> 24) & 0xFF),
+			UInt16((self >> 16) & 0xFF),
+			UInt16((self >> 8) & 0xFF),
+			UInt16(self & 0xFF),
 		]
 		return String(utf16CodeUnits: utf16, count: 4)
 	}

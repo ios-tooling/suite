@@ -39,14 +39,16 @@ public extension Array {
 	}
 
 	func first(_ number: Int) -> [Element] {
+		if number <= 0 { return [] }
 		if number >= count { return self }
-		
+
 		return Array(self[0..<number])
 	}
 
 	func last(_ number: Int) -> [Element] {
+		if number <= 0 { return [] }
 		if number >= count { return self }
-		
+
 		return Array(self[count - number..<count])
 	}
 }
@@ -68,14 +70,10 @@ public extension Array where Element: BinaryFloatingPoint {
 }
 public extension Array where Element: Equatable {
 	func removingDuplicates() -> [Element] {
-		guard let first = self.first else { return [] }
-		
-		var result = [first]
-		
+		var result: [Element] = []
 		for item in self {
 			if !result.contains(item) { result.append(item) }
 		}
-		
 		return result
 	}
 	
@@ -85,6 +83,19 @@ public extension Array where Element: Equatable {
 		} else {
 			append(element)
 		}
+	}
+}
+
+public extension Array where Element: Hashable {
+	/// Order-preserving duplicate removal. O(n) via `Set` membership.
+	func removingDuplicates() -> [Element] {
+		var seen: Set<Element> = []
+		var result: [Element] = []
+		result.reserveCapacity(count)
+		for item in self where seen.insert(item).inserted {
+			result.append(item)
+		}
+		return result
 	}
 }
 
@@ -117,6 +128,8 @@ public extension Array {
 	}
 	
 	func breakIntoChunks(ofSize size: Int, growth: Double = 1.0) -> [[Element]] {
+		precondition(size > 0, "chunk size must be positive")
+		precondition(growth >= 1.0, "growth must be >= 1.0 to ensure progress")
 		if self.isEmpty { return [] }
 		if self.count <= size { return [self] }
 
@@ -124,18 +137,17 @@ public extension Array {
 		let count = self.count
 		var start = chunkSize
 		var results: [[Element]] = [Array(self[0..<chunkSize])]
-		
+
 		while (count - start) >= chunkSize {
 			results.append(Array(self[start..<(start + chunkSize)]))
 			start += chunkSize
-			chunkSize = Int(Double(chunkSize) * growth)
+			chunkSize = Swift.max(1, Int(Double(chunkSize) * growth))
 		}
-		
-		
+
 		if start < count {
 			results.append(Array(self[start..<count]))
 		}
-		
+
 		return results
 	}
 }

@@ -22,7 +22,7 @@ public extension Data {
 		
 		let utf16 = hex.utf16
 		var count = 0
-		var byteArray = Array<UInt8>(repeating: 0, count: hex.count / 2)
+		var byteArray = Array<UInt8>(repeating: 0, count: utf16.count / 2)
 
 		var i = utf16.startIndex
 		let endIndex = utf16.endIndex
@@ -70,7 +70,7 @@ public extension Data {
 	}
 
 	@discardableResult
-	func debug_save(to name: String) -> URL! {
+	func debug_save(to name: String) -> URL? {
 		let url = FileManager.documentsDirectory.appendingPathComponent(name + ".dat")
 		do {
 			try self.write(to: url)

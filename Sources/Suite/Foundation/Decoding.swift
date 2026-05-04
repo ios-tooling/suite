@@ -36,6 +36,11 @@ public struct SafeDecodable<Base: Decodable>: Decodable {
 public struct SafeResult<Kind: Decodable> {
 	public let array: [Kind]
 	public let errors: [Error]
+
+	public init(array: [Kind], errors: [Error]) {
+		self.array = array
+		self.errors = errors
+	}
 }
 
 public extension JSONDecoder {

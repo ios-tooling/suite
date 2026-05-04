@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// A wrapper around a `() -> Void` closure. Equality and hashing are based on the source location at which the box was created (`#file`/`#function`/`#line`); two `FunctionBox`es made at the same call site compare equal regardless of closure contents — useful for de-duplicating repeated registrations.
 public struct FunctionBox: Hashable, Equatable {
 	let line: Int
 	let file: String

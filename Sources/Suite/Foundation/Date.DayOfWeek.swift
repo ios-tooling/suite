@@ -44,13 +44,14 @@ public extension Date {
 		public static func <(lhs: DayOfWeek, rhs: DayOfWeek) -> Bool { return lhs.rawValue < rhs.rawValue }
 		
 		public var description: String { shortName }
+		/// Number of days from `day` forward to `self` (0...6). Direction is forward in week order, not absolute.
 		public func days(since day: DayOfWeek) -> Int {
 			if day == self { return 0 }
 			let weekdays = Self.weekdays
 			let firstIndex = weekdays.firstIndex(of: day) ?? 0
 			let lastIndex = weekdays.firstIndex(of: self) ?? 0
-			
-			return abs(lastIndex - firstIndex)
+
+			return (lastIndex - firstIndex + 7) % 7
 		}
 	}
 }

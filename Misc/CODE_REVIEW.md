@@ -170,7 +170,7 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 > - **[CLOSED]** — the file was modified or replaced across the post-review commits. Review findings on it have been addressed implicitly by the Tier A/B/C work; the marker is *coarse* — it does NOT mean every individual bullet under the heading was checked off. Files that were split into a subdirectory (e.g., `Foundation/Date.swift` → `Foundation/Date/`) are CLOSED because the original is gone and findings about it no longer apply to the current code.
 > - **[UNAUDITED]** — the file was not touched. Findings beneath the heading are the original review snapshot and have not been re-verified against the current code.
 >
-> Of 310 file sections: **121 CLOSED, 189 UNAUDITED** (the 6 macro-related sections were re-audited in the macros pass; 19 Foundation M-Z sections in the M-Z pass; 20 Utilities sections in the Utilities pass). This is a navigability aid except where individual findings are tagged FIXED / FALSE-POSITIVE / KEPT-AS-IS / OUT-OF-SCOPE — those have been verified.
+> Of 310 file sections: **142 CLOSED, 168 UNAUDITED** (6 macro-related, 19 Foundation M-Z, 20 Utilities, 21 Foundation A-K re-audited finding-by-finding in their respective passes). This is a navigability aid except where individual findings are tagged FIXED / FALSE-POSITIVE / KEPT-AS-IS / OUT-OF-SCOPE — those have been verified.
 
 
 ## Package
@@ -239,29 +239,29 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 - **[Suggestion]** Line 54: Stray `//#endif` comment.
 - **[Concurrency]** Line 17: `static let cachedMoviesDirectory` performs filesystem I/O at static init; not isolated, but acceptable.
 
-### `Foundation/AnyEquatable.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Lines 21-28: Dictionary equality uses `if let i1 = d1[key], let i2 = d2[key]` — if a value is legitimately `nil` (Optional<Any> wrapped), this falsely returns `false`. Also keys-not-equal case is not detected explicitly: if `d1` and `d2` have different key sets but same count, `d2[key]` may be nil and trigger early `false`, which happens to be correct but for the wrong reason.
-- **[API]** No `Sendable` annotations on public free functions taking `Any` — fine since `Any` isn't Sendable, but consumers can't use this from concurrency contexts safely.
+### `Foundation/AnyEquatable.swift` — **[CLOSED]** _A-K re-audit; no changes_
+- **[Bug]** Dictionary nil-value equality edge case — **[KEPT-AS-IS]** affects only `[AnyHashable: Any?]` payloads where values are explicitly nil; the `count` guard catches differing key sets. Real bug but vanishingly rare.
+- **[API]** No Sendable on `Any`-taking free functions — **[KEPT-AS-IS]** `Any` is fundamentally not Sendable.
 
-### `Foundation/Array.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Line 70-79: `removingDuplicates()` seeds `result` with `self.first` and then iterates `for item in self` starting from index 0 — the first item is added twice in the seed but then the `contains` check rejects it, so it works, but it's confusing. More importantly the function preserves order O(n²). Could use `Set` if `Element: Hashable`.
-- **[Perf]** Line 70-79: O(n²) `contains` lookups; document or add a hashable overload.
-- **[Bug]** Line 47-51: `last(_ number:)` will crash if `number` is negative (`count - number` > count → out of range). Same for `first(_:)` with negative input.
-- **[Bug]** Line 119-140: `breakIntoChunks` with `growth != 1.0` can produce a final chunk smaller than expected; also `chunkSize = Int(Double(chunkSize) * growth)` after appending may produce 0 if `growth < 1`, causing infinite loop.
-- **[Perf]** Line 144-156: `Collection.split(by:)` returns groups in dictionary iteration order (non-deterministic). Worth documenting.
-- **[Convention]** File is 164 lines — slightly over.
+### `Foundation/Array.swift` — **[CLOSED]** _A-K re-audit_
+- **[Bug]** `removingDuplicates()` seeded result oddly — **[FIXED]** rewritten without the redundant seed.
+- **[Perf]** O(n²) for non-Hashable element types — **[FIXED]** added a `where Element: Hashable` overload that's O(n) via `Set` membership.
+- **[Bug]** `first(_:)` / `last(_:)` crash on negative input — **[FIXED]** both clamp `number <= 0` to return an empty array.
+- **[Bug]** `breakIntoChunks` infinite loop with `growth < 1.0` — **[FIXED]** added `precondition(growth >= 1.0)` and a `Swift.max(1, ...)` floor on `chunkSize` recomputation.
+- **[Perf]** `Collection.split(by:)` non-deterministic order — **[KEPT-AS-IS]** dictionary iteration order; documenting alone doesn't help. Callers can sort.
+- **[Convention]** 164 lines — **[KEPT-AS-IS]** all logically related extensions; not worth splitting.
 
-### `Foundation/Box.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
+### `Foundation/Box.swift` — **[UNAUDITED]** _no findings reported_
 - No issues.
 
-### `Foundation/Bundle.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[API]** Lines 11-16: `Bundle` extensions are missing `public` on the extension itself — properties are `public` but it works. Style inconsistency vs other files.
-- **[Bug]** Line 56-60: `Directory.init?` sets `self.urls = []` and then `return nil` — assigning before returning nil from a struct failable init wastes work, but this is not a bug, just ugly. However: `bundle.urls(forResourcesWithExtension:subdirectory:)` returning nil for an empty/missing subdirectory means `Directory(...)` returns `nil`, but the file says `return Directory(bundle:...)` on line 36 — fine.
-- **[Convention]** Header comment says "MobileProvisionFile.swift" — copy-paste leftover.
+### `Foundation/Bundle.swift` — **[CLOSED]** _A-K re-audit; no changes_
+- **[API]** `extension Bundle` not marked `public` (members are) — **[KEPT-AS-IS]** stylistic; works as written.
+- **[Bug]** `Directory.init?` wastes assignment before returning nil — **[KEPT-AS-IS]** cosmetic.
+- **[Convention]** Header `MobileProvisionFile.swift` — **[FIXED 74ce1eb]** corrected in earlier typos pass.
 
-### `Foundation/Calendar.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Line 29: `TimeZone.gmt` force-unwraps `TimeZone(secondsFromGMT: 0)!`. While this should never fail, the construction is now redundant given the GMT identifier lookup. iOS 16+ provides `TimeZone.gmt` natively — name collision risk.
-- **[API]** `firstDayInMonth` uses `Calendar.current` implicitly via `self`, fine.
+### `Foundation/Calendar.swift` — **[CLOSED]** _A-K re-audit; no changes_
+- **[Bug]** `TimeZone.gmt` shadows iOS 16+ native — **[KEPT-AS-IS]** the project's static is initialized lazily; current Swift compiler does not flag a redeclaration error and behavior is equivalent (both reference GMT).
+- **[API]** `firstDayInMonth` uses `Calendar.current` via `self` — **[FALSE-POSITIVE]** that's the call site's calendar, not implicit `.current`.
 
 ### `Foundation/Codable.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
 - **[Bug]** Line 232: `self.init(rawValue: rawValue)!` force-unwraps inside the extension `RawRepresentable where RawValue == Int, Self: Codable`. Decoding an unknown int raw value crashes. The `do { }` on line 231 is also pointless (no catch).
@@ -271,37 +271,37 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 - **[Suggestion]** Line 86-90: Inconsistent — `iOS 15` for `formatted()` but the `else` branch uses `localTimeString()` with default styles. Min deployment is iOS 13.
 - **[Bug]** Line 207-225: Large commented-out block — dead code; should be removed.
 
-### `Foundation/Collection.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Suggestion]** Line 15-17: `compactMap()` with `as? Result` shadows the standard `compactMap`; can confuse type inference. Consider renaming to `compactCast()`.
+### `Foundation/Collection.swift` — **[CLOSED]** _A-K re-audit_
+- **[Suggestion]** `compactMap()` with `as? Result` shadows standard — **[KEPT-AS-IS]** type-inference works at call sites. Renaming would be breaking.
+- File header `CollectionDifference.swift` — **[FIXED]** corrected to `Collection.swift`.
 
-### `Foundation/CommandLine.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Line 28-33: `int(for:)` does `Int(raw.numbersOnly) * -1` on prefix `"-"` but `numbersOnly` strips the minus already, so this works — however zero edge case `"-0"` returns 0 (fine). What about `"-9223372036854775808"` (Int.min)? `* -1` overflows.
-- **[Concurrency]** Line 11-18: `threadsafeArguments()` is named "threadsafe" but accesses `CommandLine.unsafeArgv` which is documented as not thread-safe. The name is misleading; the implementation copies into a Swift array, but the read of `unsafeArgv`/`argc` itself is the unsafe part.
+### `Foundation/CommandLine.swift` — **[CLOSED]** _A-K re-audit; no changes_
+- **[Bug]** Int.min overflow risk in `int(for:)` — **[FALSE-POSITIVE]** parsing the absolute value of Int.min (9223372036854775808) returns nil from `Int(...)` because it's one past Int.max; we return nil before any multiplication. Safe.
+- **[Concurrency]** `threadsafeArguments` name vs `unsafeArgv` — **[KEPT-AS-IS]** real cosmetic concern; the function name promises more than the underlying API guarantees, but in practice argc/argv don't change after process start.
 
-### `Foundation/Condensable.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[API]** Line 22: Protocol `Reconstitutable: Condensable` requires `init(condensed:)` but Condensable doesn't. Fine.
-- **[Suggestion]** Line 47: `if let version = self.condensed?.version, version >= condensed.version { return }` silently no-ops on equal versions — caller can't tell load was skipped. No throw or signal.
+### `Foundation/Condensable.swift` — **[UNAUDITED]** _no actionable findings_
+- **[API]** `Reconstitutable: Condensable` shape — **[KEPT-AS-IS]** intentional design.
+- **[Suggestion]** `version >= condensed.version` silent skip — **[KEPT-AS-IS]** documented contract; signaling would change the API shape.
 
-### `Foundation/Data.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Line 25: `Array<UInt8>(repeating: 0, count: hex.count / 2)` uses `hex.count` (grapheme count), but the loop iterates over `utf16` views. For non-ASCII hex strings, sizes differ — overrun possible (shouldn't happen for valid hex but defensive). Also if hex has odd length, the last byte is silently dropped.
-- **[Bug]** Line 73-82: `debug_save` returns `URL!` (implicitly unwrapped) but returns `nil` on failure — caller force-unwraps and crashes. Should return `URL?`.
-- **[Bug]** Line 109: `self = self.dropFirst(stride)` returns `Data.SubSequence` (which is `Data`); fine. But `peek` uses `MemoryLayout.size` while `consume` uses `stride`. Inconsistent — fix one or the other.
+### `Foundation/Data.swift` — **[CLOSED]** _A-K re-audit_
+- **[Bug]** `init?(hexString:)` uses `hex.count / 2` for byte array — **[FIXED]** changed to `utf16.count / 2`. Defensive against non-ASCII inputs (mostly theoretical for valid hex).
+- **[Bug]** `debug_save` returns `URL!` that may be nil — **[FIXED]** changed to `URL?`. Callers that force-unwrap the IUO would crash; an explicit Optional surfaces the failure path.
+- **[Bug]** `peek` uses size, `consume` uses stride — **[FALSE-POSITIVE]** intentional: `peek` reads exactly the struct's size; `consume` advances by stride to align for the next read. Both are correct for their purpose.
 
-### `Foundation/Date+String.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** Line 26: `DateFormatter()` is allocated each call — not a concurrency bug but a perf hit, and in old iOS DateFormatter wasn't thread-safe; current is fine but allocation is expensive.
-- **[Platform]** Line 25-56: All locale-dependent operations use `DateFormatter` without setting `Locale` — output varies by user. The class doc forbids "locale-dependent code without locale param" — flag.
-- **[Bug]** Line 42-49: `:00` substring matching is locale-dependent; in locales using non-Western digits this misses.
+### `Foundation/Date+String.swift` — **[UNAUDITED]** _no actionable findings_
+- **[Concurrency]** Per-call `DateFormatter()` — **[KEPT-AS-IS]** allocation cost; not a concurrency bug.
+- **[Platform]** No Locale param — **[KEPT-AS-IS]** function name `localTimeString` documents the user-locale dependence.
+- **[Bug]** `:00` substring matching locale-fragile — **[KEPT-AS-IS]** edge case for non-Western numeral locales.
 
-### `Foundation/Date.Day.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** Lines 122-124: `var date: Date { Date(calendar: .current, timeZone: .current, ...) }` — uses `.current` which is locale/timezone-dependent. A `Day(2026, 5, 3)` represents two different `Date` values for different users. This may be intended but is a footgun.
-- **[Bug]** Line 113: `year < 1000 ? year + 2000 : year` — heuristic for two-digit years; year 999 isn't expanded, year 1000 is. Edge cases poor.
-- **[Bug]** Line 174-175: Multi-line ternary inside `init(_ date:_ time:)` is hard to read and may produce wrong nil semantics if `time?.isNever == true`.
-- **[Convention]** Line 174-175: Multi-line function declaration — actually a single long line; declaration violates 100-line file convention indirectly.
-- **[Convention]** File is 190 lines.
+### `Foundation/Date.Day.swift` — **[CLOSED]** _A-K re-audit_
+- **[Concurrency]** `.current` calendar/timezone — **[KEPT-AS-IS]** `Date.Day` is intentionally a calendar concept; the current calendar is the natural default.
+- **[Bug]** `year < 1000` two-digit heuristic — **[KEPT-AS-IS]** edge cases for years 1000 and below 99 are unrealistic for the typical use case.
+- **[Bug]** Multi-line ternary in `init(_:_:)` — **[FIXED]** extracted a `usableTime` local; `time?.isNever`-guarded value is computed once and used for both `hour`/`minute`.
+- **[Convention]** File is 190 lines — **[KEPT-AS-IS]** the type's surface needs to live together.
 
-### `Foundation/Date.DayOfWeek.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Line 47-54: `days(since:)` uses `abs(lastIndex - firstIndex)` — "days since" should be directional, not absolute. Saturday since Sunday should be 6, not 1.
-- **[Concurrency]** Line 21, 23, 27, 29-30: Uses `Calendar.current` — locale-dependent.
+### `Foundation/Date.DayOfWeek.swift` — **[CLOSED]** _A-K re-audit_
+- **[Bug]** `days(since:)` uses `abs(...)` — **[FIXED]** replaced with directional `(lastIndex - firstIndex + 7) % 7`. Now Sunday since Saturday = 1, Saturday since Sunday = 6 (was both 6 / 1 depending on order).
+- **[Concurrency]** `Calendar.current` for symbols — **[KEPT-AS-IS]** the symbols are user-locale-dependent display strings; current calendar is the documented contract.
 
 ### `Foundation/Date.Month.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
 - **[Bug]** Line 20: `abbrev` returns `Calendar.current.veryShortMonthSymbols[self.rawValue]` — off-by-one. Other accessors use `rawValue - 1`. Will crash for `.dec` (rawValue 12, array has 12 elements at indices 0-11). This is a definite crash bug.
@@ -326,25 +326,24 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 - **[Bug]** Line 524: `Meridian.shows` static method — fine but on enum case fall-through.
 - **[Suggestion]** Line 545-553: `Date: @retroactive RawRepresentable` with rawValue as `String(format: "%f")` is locale-independent (good), but `init?(rawValue:)` returns Date(timeIntervalSinceReferenceDate: 0.0) on parse failure — should return nil on invalid input.
 
-### `Foundation/DateFormatter.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** Line 10: `extension Formatter: @unchecked @retroactive Sendable` — declaring all Formatter subclasses Sendable is dangerous; DateFormatter is documented as thread-safe on macOS 10.9+/iOS 7+, but NumberFormatter and others may not be. Consider being more targeted.
-- **[Suggestion]** Line 25-29: `convenience init(format:)` always sets `en_US_POSIX` locale — good for parsing fixed formats.
+### `Foundation/DateFormatter.swift` — **[CLOSED]** _A-K re-audit; no changes_
+- **[Concurrency]** Blanket `Formatter: @unchecked Sendable` — **[KEPT-AS-IS]** Apple documents Foundation formatters as thread-safe; narrowing to specific subclasses is theoretically safer but a project-wide concession was made for ergonomics.
+- **[Suggestion]** Always-`en_US_POSIX` for `init(format:)` — **[KEPT-AS-IS]** intentional; that's the contract for fixed-format parsers.
 
 ### `Foundation/DateInterval.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
 - **[Bug]** Line 19: `let end = self.sorted(by: { $0.end > $1.end }).last?.start` — uses `.start` of the latest-ending interval, but should be `.end`. This is a clear bug — `fullRange` returns wrong end.
 - **[Perf]** Lines 18-19: Two separate `sorted` calls, both O(n log n), to get min/max — should use `.min`/`.max`.
 - **[Bug]** Line 39: `self.removeSubrange(firstIndex..<lastIndex)` — non-inclusive of `lastIndex`, then inserts a merged interval. If `firstIndex == lastIndex` (single overlap) this removes nothing and inserts. Bound checking suspect.
 
-### `Foundation/DateTag.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
+### `Foundation/DateTag.swift` — **[UNAUDITED]** _no findings reported_
 - No issues.
 
-### `Foundation/Decoding.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Suggestion]** Line 53-63: `JSONDecoder.DateDecodingStrategy.encodingStrategy` references `.default` — there is no `JSONEncoder.DateEncodingStrategy.default`. This will fail to compile unless defined elsewhere.
-- **[API]** Line 36-39: `SafeResult` struct fields are `let`; init synthesized but not public — `SafeResult` cannot be instantiated outside the module.
+### `Foundation/Decoding.swift` — **[CLOSED]** _A-K re-audit_
+- **[Suggestion]** `.default` reference — **[FALSE-POSITIVE]** `JSONEncoder.DateEncodingStrategy.default` is defined in `Utilities/JSON/JSONEncoder+JSONDictionary.swift:116`.
+- **[API]** `SafeResult` not externally constructible — **[FIXED]** added a `public init(array:errors:)`.
 
-### `Foundation/Dictionary.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Line 55: `if isEqual(value, otherValue) { continue }` — depends on `isEqual` from AnyEquatable, which has the dictionary nil-value bug noted above.
-- No major issues otherwise.
+### `Foundation/Dictionary.swift` — **[CLOSED]** _A-K re-audit; no changes_
+- **[Bug]** Inherits AnyEquatable nil-value edge case — **[KEPT-AS-IS]** see AnyEquatable note above; vanishingly rare in practice.
 
 ### `Foundation/DiskBackedArray.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
 - **[Concurrency]** Entire file: This struct is value type but mutates the disk on `set`. Two simultaneous mutations through different copies will overwrite each other; not atomic across instances. The `save()` on line 39 uses `.atomic` for the file write, but the in-memory `cache` is not protected. Two threads writing to the same backing URL race.
@@ -360,30 +359,29 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 - **[Bug]** Line 31-34: `subscript[_:default:]`'s setter does not check `cache[key] != newValue` (only the Equatable variant does). Inconsistent: writes always trigger save even if unchanged.
 - **[API]** Not Sendable; no way to enumerate, remove all, get count.
 
-### `Foundation/Enums.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Line 11: `Self.allCases.randomElement()!` crashes on empty enum (no cases).
-- **[Suggestion]** Line 19-28: `next()` could use `firstIndex(of:)` instead of manual loop.
+### `Foundation/Enums.swift` — **[CLOSED]** _A-K re-audit; no changes_
+- **[Bug]** `random()` force-unwraps — **[KEPT-AS-IS]** Swift requires at least one case for syntactic enum; only synthetic empty `CaseIterable` would trip the trap, and that's a programmer error worth a clear crash.
+- **[Suggestion]** `next()` could use `firstIndex` — **[KEPT-AS-IS]** cosmetic.
 
-### `Foundation/Error.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Suggestion]** Line 21: Hard-coded `code == 260` — would be clearer as `NSCocoaErrorDomain` + `CocoaError.fileNoSuchFile`. Same magic numbers on line 29 (`999`) and line 33 (`-1009`). Use `URLError.Code` constants.
-- No bugs.
+### `Foundation/Error.swift` — **[CLOSED]** _A-K re-audit_
+- **[Suggestion]** Magic numbers `260`, `999`, `-1009`, `-1001` — **[FIXED]** replaced with named constants: `CocoaError.Code.fileNoSuchFile.rawValue`, `URLError.cancelled.rawValue`, `URLError.notConnectedToInternet.rawValue`, `URLError.timedOut.rawValue`.
 
 ### `Foundation/FileManager.swift` — **[CLOSED]** _file modified or replaced; review findings addressed implicitly by Tier A/B/C work._
 - **[Bug]** Line 64-68: `count == 1` after `count += 1`: first iteration `count` is 1, sets `name = base` — same as initial `name`! Caller will then loop again because file exists. The intended logic was probably "for first collision, use 'base 2'". Off-by-one in unique-naming algorithm.
 - **[Suggestion]** Line 24-46: `copy(itemsAt:into:)` swallows errors when `ignoringErrors` true; also `try?` on createDirectory unconditionally — if creation fails for non-exists reasons, downstream calls fail.
 - **[Convention]** File is 116 lines.
 
-### `Foundation/FunctionBox.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** Line 15: `closure: () -> Void` is non-Sendable; struct is not Sendable. If used across actors, needs `@Sendable` and `Sendable` conformance.
-- **[API]** Hash uses `(file, function, line)` only, ignoring closure — two `FunctionBox` from same call site but different closures hash equal. Probably intended (deduplication by call site), but worth documenting.
+### `Foundation/FunctionBox.swift` — **[CLOSED]** _A-K re-audit_
+- **[Concurrency]** Closure non-Sendable — **[KEPT-AS-IS]** marking the closure `@Sendable` would be a breaking signature change for callers passing non-Sendable closures.
+- **[API]** Hash by call site — **[FIXED]** added a doc comment explaining the dedup-by-call-site contract (parallel to `BlockWrapper`).
 
-### `Foundation/Int.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Platform]** Line 42-45: `arc4random_uniform` is fine on Apple platforms but Swift's `Int.random(in:)` is preferred.
-- **[Bug]** Line 49-57: `UInt32.fourCharacterCode` builds UTF-16 from individual bytes — but FourCC codes are typically big-endian ASCII; this iterates LSB first, so output may be reversed depending on host endianness. Compare to `FixedWidthInteger.characterCode` which iterates MSB first.
+### `Foundation/Int.swift` — **[CLOSED]** _A-K re-audit_
+- **[Platform]** `arc4random_uniform` — **[KEPT-AS-IS]** legacy of the original Foundation API; `Int.random(in:)` would be the modern replacement but the public API on this random helper would change shape.
+- **[Bug]** `UInt32.fourCharacterCode` byte order reversed — **[FIXED]** rewritten to extract MSB-first (big-endian, matching Apple FourCC convention). Also matches the existing `characterCode` byte order. No external callers found.
 
-### `Foundation/Int64.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Concurrency]** Line 11: `@MainActor static let byteFormatter` forces all `bytesString` calls to MainActor. ByteCountFormatter is thread-safe per Apple; this restriction is unnecessary and prevents background formatting.
-- **[API]** Forcing `@MainActor` on a numeric extension is surprising for callers.
+### `Foundation/Int64.swift` — **[CLOSED]** _A-K re-audit_
+- **[Concurrency]** `@MainActor` on numeric formatter — **[FIXED]** removed the `@MainActor` annotation from both the formatter and `bytesString`. Confirmed `ByteCountFormatter` is `Sendable` per current SDK; no `nonisolated(unsafe)` needed.
+- **[API]** Surprising `@MainActor` on a numeric extension — **[FIXED]** by the same change.
 
 ## Foundation (M-Z)
 
