@@ -14,26 +14,26 @@ extension GKMersenneTwisterRandomSource: @retroactive @unchecked Sendable { }
 
 public struct SeededRandomNumberGenerator: RandomNumberGenerator, Sendable {
 	private let mersenne: GKMersenneTwisterRandomSource
-	
-	static let queue = DispatchSerialQueue.global()
+
+	private static let lock = NSLock()
 	nonisolated(unsafe) private static var sharedGenerator = SeededRandomNumberGenerator()
-	
+
 	public nonisolated static func reseed(seed: Int) {
-		queue.sync {
-			sharedGenerator = SeededRandomNumberGenerator(seed: seed)
-		}
+		lock.lock()
+		defer { lock.unlock() }
+		sharedGenerator = SeededRandomNumberGenerator(seed: seed)
 	}
-	
+
 	public nonisolated static func reseed(seed: UInt64) {
 		reseed(seed: Int(seed))
 	}
-	
+
 	public nonisolated static func next() -> UInt64 {
-		queue.sync {
-			sharedGenerator.next()
-		}
+		lock.lock()
+		defer { lock.unlock() }
+		return sharedGenerator.next()
 	}
-	
+
 	private nonisolated static var anyRNG: any RandomNumberGenerator {
 		get { sharedGenerator }
 		set {
@@ -44,9 +44,9 @@ public struct SeededRandomNumberGenerator: RandomNumberGenerator, Sendable {
 	}
 
 	public nonisolated static func with<T>(_ block: (inout any RandomNumberGenerator) -> T) -> T {
-		queue.sync {
-			block(&anyRNG)
-		}
+		lock.lock()
+		defer { lock.unlock() }
+		return block(&anyRNG)
 	}
 
 	public mutating func next() -> UInt64 {
