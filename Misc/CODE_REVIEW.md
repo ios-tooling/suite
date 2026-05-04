@@ -170,7 +170,7 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 > - **[CLOSED]** — the file was modified or replaced across the post-review commits. Review findings on it have been addressed implicitly by the Tier A/B/C work; the marker is *coarse* — it does NOT mean every individual bullet under the heading was checked off. Files that were split into a subdirectory (e.g., `Foundation/Date.swift` → `Foundation/Date/`) are CLOSED because the original is gone and findings about it no longer apply to the current code.
 > - **[UNAUDITED]** — the file was not touched. Findings beneath the heading are the original review snapshot and have not been re-verified against the current code.
 >
-> Of 310 file sections: **76 CLOSED, 234 UNAUDITED**. This is a navigability aid, not a re-audit. To convert an UNAUDITED entry to genuinely closed, each finding under it would need to be checked individually.
+> Of 310 file sections: **82 CLOSED, 228 UNAUDITED** (the 6 macro-related sections were re-audited finding-by-finding in a focused pass). This is a navigability aid, not a re-audit. To convert an UNAUDITED entry to genuinely closed, each finding under it would need to be checked individually.
 
 
 ## Package
@@ -185,14 +185,11 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 
 ## Macro Declarations
 
-### `Suite/SuiteMacros.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug/Diagnostics]** `CLAUDE.md` documents five macros (`@GeneratedEnvironmentKey`, `@GeneratedPreferenceKey`, `@AppSettings`, `@AppSettingsProperty`, `@NonisolatedContainer`), but only `GeneratedPreferenceKey` and `NonisolatedContainer` are declared here. The other three macros do not exist in the codebase. Either the docs are stale or the macros were removed/never finished — should be reconciled.
-- **[API]** `@freestanding(declaration, names: arbitrary)` for `GeneratedPreferenceKey` is required because the generated `GeneratedPreferenceKey_<name>` type and `<name>` accessor are dynamic. Correct.
-- **[API]** Module name `"SuiteMacrosImpl"` and type names match `Sources/SuiteMacrosImpl/SuiteMacros.swift` providingMacros list. Correct.
-- **[Concurrency]** No `@available` annotations. The generated `PreferenceKey` requires SwiftUI (iOS 13/macOS 10.15) — the package platform minimums cover this, so no per-macro `@available` is needed. OK.
-- **[API]** `@NonisolatedContainer(observing: Bool = false)` — parameter name `observing` is a bit ambiguous; "observing what?" The implementation drives `objectWillChange.sendOnMain()`. A clearer name like `publishChanges:` (matches the internal variable) or `observable:` would self-document. Suggestion only.
-- **[API]** Peer-name prefix `prefixed(nonIsolatedBackingContainer_)` matches the implementation's `"private nonisolated let nonIsolatedBackingContainer_\(identifier)"`. Correct.
-- **[Suggestion]** `GeneratedPreferenceKey<V>` declares a generic but the implementation extracts the type from the `type:` argument string description — the generic parameter `V` exists only for type-checking the `defaultValue:` argument. That is fine, but means callers must double-specify (`type: Int.self, defaultValue: 0`). Could be tightened in a future revision.
+### `Suite/SuiteMacros.swift` — **[CLOSED]** _macro pass; see notes_
+- ~~CLAUDE.md macro list drift~~ — addressed in `74ce1eb`.
+- API correctness items (`@freestanding`/`@attached` declarations, module/type-name matching, peer prefix, `@available` not needed) — confirmed correct, no change.
+- ~~`observing:` parameter name ambiguity~~ — kept as-is. Renaming is a breaking API change for callers.
+- ~~`GeneratedPreferenceKey<V>` requires double-specification (caller passes `V` and `type:`)~~ — kept. Removing the generic loses caller-side type-checking on `defaultValue:`.
 
 ## Exported Modules
 
@@ -201,46 +198,38 @@ Tiered for triage. **Tier A** = small, clear fixes done in a focused pass. **Tie
 
 ## Macro Implementations
 
-### `SuiteMacrosImpl/SuiteMacros.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** `providingMacros` lists only `NonisolatedContainerGenerator` and `PreferenceKeyGenerator`. Matches `Suite/SuiteMacros.swift`. OK.
-- No issues.
+### `SuiteMacrosImpl/SuiteMacros.swift` — **[CLOSED]** _no issues; confirmed in macro pass_
 
-### `SuiteMacrosImpl/MacroFeedback.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Diagnostics]** `diagnosticID` uses `id: message` — the human-readable message string. Two diagnostics with identical text would collide. Better to use a stable `id` per case (e.g., `"noDefaultArgument"`, `"missingAnnotation"`). Currently low-impact since each case has unique text, but `.error(...)` and `.message(...)` carry arbitrary strings and could collide.
-- **[Convention]** `severity` falls into `default: .error` for `.noDefaultArgument`, `.missingAnnotation`, `.notAnIdentifier`, `.notVariableSyntax`. Explicit cases would read better, but functionally fine.
-- **[Convention]** Mixed indentation (tabs + spaces). Cosmetic.
+### `SuiteMacrosImpl/MacroFeedback.swift` — **[CLOSED]** _macro pass_
+- `diagnosticID` colliding-on-message bug — **fixed**: each case now has a stable string id (`"noDefaultArgument"`, `"missingAnnotation"`, etc.) so `.message(...)` and `.error(...)` no longer collide on identical text.
+- `severity` redundant-default cleaned up to explicit cases.
 
-### `SuiteMacrosImpl/PreferenceKeyGenerator.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** Generated `struct GeneratedPreferenceKey_<name>` is missing `public` — but inside it, `defaultValue` and `reduce(...)` are declared `public`. A non-public struct cannot have public members; Swift allows the syntax but the effective access is internal, which can cause access-mismatch warnings/errors in strict modes. The struct itself should be `public` OR the members should drop `public`. (Current behavior: in macro-expansion contexts the struct is emitted into the caller's scope, so it inherits caller scope — but the explicit `public` on members is misleading and inconsistent.)
-- **[Bug]** Missing `Sendable` / `@MainActor` consideration. `PreferenceKey` requires `defaultValue` to be a static constant; under Swift 6 strict concurrency, `static let` of non-Sendable type produces warnings. Generated code does not annotate. Worth adding `nonisolated(unsafe)` or requiring `V: Sendable` where possible.
-- **[Bug]** Generated accessor `var <keyName>: <keyType>.Type` is declared at file scope (freestanding declaration). It is unqualified — risk of name collisions if two preference keys share a name across files. Acceptable, but consider documenting the scoping behavior.
-- **[Bug]** `name(from:)` returns `segment.description` which still contains the string-literal segment as a `StringSegmentSyntax` description — typically the raw text with surrounding whitespace/quotes stripped, but does NOT validate that the string is a valid Swift identifier. A name like `"my key"` would generate invalid syntax. Add validation and a diagnostic.
-- **[Bug]** `type(from:)` indexes via `args[args.index(after: args.startIndex)]` — assumes there are at least 2 arguments. If only `name:` is provided, this will crash with an index-out-of-bounds at compile time of the macro. Should guard `args.count >= 2`.
-- **[Bug]** `defaultValue(from:)` requires `args.count == 3` — exactly. If user passes a labeled argument with extra trivia/whitespace causing different child counts, this could miscount. Counting `LabeledExprSyntax` children directly via `node.arguments` (which is `LabeledExprListSyntax`) is more reliable than `.children(viewMode:)`.
-- **[Bug]** The `.self` stripping (`String(typeString.prefix(typeString.count - 5))`) does not trim trailing whitespace before the suffix check. `Int .self` (with whitespace) would not be detected. Minor.
-- **[Diagnostics]** No diagnostic emitted for empty/whitespace `name`. Recommend validating identifier syntax and emitting a clear error.
-- **[Concurrency]** Generated `reduce` is not annotated. SwiftUI's `PreferenceKey.reduce` is implicitly nonisolated/static, so this is fine.
-- **[Convention]** Indentation mixes tabs and spaces.
-- **[Suggestion]** The macro emits a stored variable `var <keyName>: <keyType>.Type { ... }` that is computed (returns `.self`). The name doesn't read naturally — it's effectively a typealias-shaped accessor. Consider emitting a `typealias` or naming the variable to clarify intent.
+### `SuiteMacrosImpl/PreferenceKeyGenerator.swift` — **[CLOSED]** _macro pass_
+- `type(from:)` index-out-of-bounds when only `name:` is provided — **fixed**: now guards `args.count >= 2`.
+- `name(from:)` doesn't validate identifier — **fixed**: empty/whitespace/non-identifier names emit a clear diagnostic before expansion.
+- `.self` stripping doesn't trim whitespace — **fixed**: trims before the suffix check.
+- `defaultValue(from:)` brittle child-count match — **fixed**: now uses `node.arguments.count` directly (counts `LabeledExprSyntax`).
+- Generated members `public` while struct is implicitly internal — **fixed**: dropped `public` from `defaultValue` and `reduce` so the access modifiers are consistent. The struct's effective scope follows the call site.
+- Macro template re-indented to plain 4-space (was tab/space-mixed) for predictable expansion output.
+- Real expansion tests added under `Tests/SuiteTests/MacroTests.swift` covering the success and diagnostic paths.
+- ~~Sendable / `@MainActor` consideration on generated `static let defaultValue`~~ — left for caller (Suite generally doesn't enforce strict concurrency on emitted preference keys).
+- ~~Unqualified file-scope accessor `var <keyName>: <keyType>.Type` collision risk~~ — kept; freestanding declaration macros can only emit at the caller's scope. Documented as a limitation rather than fixed.
+- ~~Suggestion: emit `typealias` rather than `var keyName: KeyType.Type`~~ — kept; changing the shape is a breaking API change.
 
-### `SuiteMacrosImpl/NonIsolatedActorAccessorGenerator.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Bug]** In the `PeerMacro` `expansion`, after detecting absence of `nonisolated`, the macro emits a diagnostic but continues to generate the backing container (`if !hasNonisolatedKeyword { ... diagnose }` falls through). It should `return []` to fail fast, otherwise the generated peer plus the missing keyword can produce duplicate confusing errors.
-- **[Bug]** `let hasDefaultValue = patternBinding.initializer != nil` is computed inside `if let initializer = patternBinding.initializer { ... }` — by definition it is always `true` at that point. The guard `guard isOptional || hasDefaultValue` is therefore tautological. Likely a logic bug; the intent seems to be "if there's no initializer AND not optional, error" — but that branch is handled later by the `if let optionalType` else fall-through (which silently emits nothing). A non-optional, no-initializer var will produce no peer and the accessor will reference an undefined `nonIsolatedBackingContainer_X`. Should diagnose.
-- **[Bug]** `patternBinding.pattern = PatternSyntax(IdentifierPatternSyntax(identifier: .identifier("defaultValue")))` mutates a local copy that is never used again. Dead code.
-- **[Bug]** Optional handling: `optionalSyntaxType` returns the unwrapped `wrappedType`. The macro then re-wraps it as `ThreadsafeMutex<\(optionalType)?>` — i.e., `String??` for `var x: String?`. That's a double-optional. Should be `ThreadsafeMutex<\(optionalType)?>` only when the *original* type was optional and we want to store an optional — but we already had `optionalType` = `String`, so `\(optionalType)?` is `String?`, not `String??`. OK on inspection, but the variable naming (`optionalType` holding the unwrapped type) is misleading. Verify with a test for `@NonisolatedContainer var x: String?` — it should produce `ThreadsafeMutex<String?>`.
-- **[Bug]** When the variable has an optional type and no initializer, the macro emits `.init(nil)`. Good. But when the variable has a non-optional type with an initializer, the `if let optionalType` check passes only if optional — so non-optional types with initializers fall to the `else` branch and emit `\(accessorName) = ThreadsafeMutex(\(trimmedInitializer))` with no explicit type. Type inference will work, but explicit typing would be safer (and matches the optional path).
-- **[Bug]** Detection of `nonisolated` keyword iterates `varDecl.children(viewMode: .all)` and grabs the first `DeclModifierListSyntax` modifier. If multiple modifiers appear (e.g., `public nonisolated`), only the first is checked. Should iterate the full modifier list.
-- **[Diagnostics]** Many error paths use generic messages (`MacroFeedback.notAnIdentifier`, `.missingAnnotation`) that don't tell the user how to fix the issue. Adding a fix-it would help.
-- **[Concurrency]** Generated backing storage is `private nonisolated let ... = ThreadsafeMutex(...)`. `ThreadsafeMutex<T: Sendable>` requires `T: Sendable`. If the wrapped type isn't Sendable, the generated code won't compile. Acceptable but the diagnostic from Swift will point at the macro expansion, which is confusing — consider emitting a clearer diagnostic when the type isn't obviously Sendable, or document the requirement.
-- **[Concurrency]** `objectWillChange.sendOnMain()` is called inside `set` of the generated accessor when `observing: true`. That assumes the enclosing type conforms to `ObservableObject` — there is no compile-time check or diagnostic. If the user sets `observing: true` on a non-`ObservableObject` type, error at the call site is misleading.
-- **[API]** `expansion` for `AccessorMacro` parses `node.arguments` looking for the first labeled boolean expression. It does not match by label `observing:`, so any boolean literal in the first position would flip behavior. Low risk (only one arg defined) but fragile.
-- **[Convention]** `extension IdentifierTypeSyntax { var type: SyntaxProtocol? { ... } }` — declared but never used in this file. Dead code? Worth verifying.
-- **[Convention]** Mixed tabs/spaces indentation throughout.
+### `SuiteMacrosImpl/NonIsolatedActorAccessorGenerator.swift` — **[CLOSED]** _macro pass; major rewrite_
+- Missing `nonisolated` keyword: was diagnosed but expansion fell through, generating a peer with the wrong shape and an accessor referencing an undefined backing container. **Fixed**: validation now suppresses *both* peer and accessor when invalid, so the user sees one clean diagnostic instead of cascade errors.
+- Tautological `hasDefaultValue` guard inside `if let initializer` — **fixed** (logic restructured around shared `validate(node:declaration:context:)` helper).
+- Dead `patternBinding.pattern = ...` mutation — **removed**.
+- Non-optional + no-initializer case silently produced no peer — **fixed**: now emits `"@NonisolatedContainer requires either an initializer or an optional type"` diagnostic and skips expansion.
+- `nonisolated` detection only checked first modifier, missing `public nonisolated` etc. — **fixed**: now iterates the full modifier list via `varDecl.modifiers.contains { ... }`.
+- `observing:` argument matched by position instead of label — **fixed**: now matches by label so the macro is robust to future arguments.
+- Dead `IdentifierTypeSyntax.type` extension — **removed**.
+- Real expansion tests added covering optional/non-optional, `observing: true`, missing-`nonisolated`, and missing-initializer paths.
+- ~~Diagnostics-with-fix-its for generic error messages~~ — kept as-is for now; messages are clearer post-rewrite.
+- ~~Sendable/ObservableObject conformance pre-checks~~ — kept; downstream errors are clear enough.
 
-### `SuiteMacrosImpl/Syntax Tree Samples.swift` — **[UNAUDITED]** _original review snapshot; not re-verified._
-- **[Convention]** This file is just commented-out documentation/AST samples and a stub `import Foundation`. It bloats the macro plugin binary trivially. Could be moved to a `.txt` or `Documentation/` resource, but harmless as-is.
-- **[Convention]** Filename contains a space (`Syntax Tree Samples.swift`). Some tools (older `swift build` configurations, certain CI systems) handle spaces in filenames poorly. Renaming to `SyntaxTreeSamples.swift` would be safer.
-- **[Convention]** Header comment says `File.swift` instead of the actual filename.
+### `SuiteMacrosImpl/SyntaxTreeSamples.swift` — **[CLOSED]** _macro pass_
+- File renamed from `Syntax Tree Samples.swift` (space removed) so build tooling that mishandles spaces in filenames is happy. Header comment fixed to match the new filename. Contents (commented-out AST samples) kept as developer reference.
 
 ## Foundation (A-K)
 

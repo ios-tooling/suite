@@ -30,7 +30,9 @@ let package = Package(
 				"Suite",
 				"SuiteMacrosImpl",
 				.product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
-				.product(name: "SwiftCompilerPlugin", package: "swift-syntax")
+				.product(name: "SwiftSyntaxMacroExpansion", package: "swift-syntax"),
+				.product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
+				.product(name: "SwiftSyntaxMacrosGenericTestSupport", package: "swift-syntax"),
 		  ]),
 
 			.macro(

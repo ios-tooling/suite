@@ -62,25 +62,50 @@ Tests/
 
 ## Macros
 
-**File:** `Sources/Suite/SuiteMacros.swift`
+**Public declarations:** `Sources/Suite/SuiteMacros.swift`
 **Implementations:** `Sources/SuiteMacrosImpl/`
+**Expansion tests:** `Tests/SuiteTests/MacroTests.swift` (uses `SwiftSyntaxMacrosGenericTestSupport`)
 
-### `@GeneratedPreferenceKey`
-Generates a complete SwiftUI `PreferenceKey` type including a `reduce` function.
+### `#GeneratedPreferenceKey`
+
+Freestanding declaration macro. Generates a SwiftUI `PreferenceKey` type plus a top-level `Type`-typed accessor named after `name:`.
 
 ```swift
-@GeneratedPreferenceKey(name: "ItemHeight", type: CGFloat.self, defaultValue: 0)
+#GeneratedPreferenceKey(name: "ItemHeight", type: CGFloat.self, defaultValue: 0)
+// Expands to:
+//   struct GeneratedPreferenceKey_ItemHeight: PreferenceKey {
+//       static let defaultValue: CGFloat = 0
+//       static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { ... }
+//   }
+//   var ItemHeight: GeneratedPreferenceKey_ItemHeight.Type { GeneratedPreferenceKey_ItemHeight.self }
 ```
+
+`defaultValue:` is required for non-optional types and optional for `T?` types (defaults to `nil`). The `name:` argument must be a valid Swift identifier — invalid names produce a clear diagnostic at expansion time. The macro depends on a `preferenceReduce(value:nextValue:)` helper being in scope (provided by Suite).
 
 ### `@NonisolatedContainer`
-Generates thread-safe `nonisolated` accessors using `ThreadsafeMutex`. Set `observing: true` to also call `objectWillChange`.
+
+Attached macro (peer + accessor) that wraps a stored property in a `ThreadsafeMutex`-backed nonisolated accessor pair. Use it on `nonisolated` `var`s where you need a thread-safe getter/setter without an actor hop.
 
 ```swift
-@NonisolatedContainer(observing: true)
-var count: Int = 0
+class Counter {
+    @NonisolatedContainer
+    nonisolated var count: Int = 0
+
+    @NonisolatedContainer(observing: true)        // also calls objectWillChange.sendOnMain()
+    nonisolated var label: String = ""
+
+    @NonisolatedContainer
+    nonisolated var optional: String?              // optional types may omit the initializer
+}
 ```
 
-**Runtime dependency:** `Sources/Suite/Property Wrappers/NonIsolatedWrapper.swift`
+The macro requires the `nonisolated` keyword on the variable, and either an initializer or an optional type — it diagnoses both cases at expansion time and skips emission, so you don't get cascade "cannot find" errors at the call site. `observing: true` makes the setter call `objectWillChange.sendOnMain()` after each write (assumes the enclosing type conforms to `ObservableObject`).
+
+**Runtime dependencies:**
+- `ThreadsafeMutex` — `Sources/Suite/Foundation/ThreadsafeMutex.swift`. **iOS 16+, macOS 14+, watchOS 9+, tvOS 17+** (uses `OSAllocatedUnfairLock`). Types using `@NonisolatedContainer` need a matching `@available` annotation.
+- `objectWillChange.sendOnMain()` (only when `observing: true`) — provided by Suite.
+
+If you need a `@MainActor`-isolated property wrapper variant rather than the macro, see `@NonIsolatedValue` in `Sources/Suite/Property Wrappers/NonIsolatedWrapper.swift`.
 
 ---
 

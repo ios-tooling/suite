@@ -1,6 +1,8 @@
 //
-//  File.swift
-//  
+//  SyntaxTreeSamples.swift
+//
+//  Reference SwiftSyntax AST samples used while authoring the macro
+//  expansions. Not consumed by code; kept as documentation.
 //
 //  Created by Ben Gottlieb on 6/9/24.
 //
