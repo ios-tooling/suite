@@ -76,9 +76,13 @@ public struct DiskBackedDictionary<Key: Hashable & Codable, Value: Codable> {
 	}
 }
 
+extension DiskBackedDictionary: Equatable where Key: Equatable, Value: Equatable {
+	public static func ==(lhs: Self, rhs: Self) -> Bool {
+		lhs.cache == rhs.cache
+	}
+}
 
 extension DiskBackedDictionary where Value: Equatable {
-	
 	public subscript(_ key: Key, `default` def: Value) -> Value {
 		get { cache[key] ?? def }
 		set {

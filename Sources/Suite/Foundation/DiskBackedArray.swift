@@ -96,6 +96,12 @@ public extension DiskBackedArray {
 	}
 }
 
+extension DiskBackedArray: Equatable where Element: Equatable {
+	public static func ==(lhs: Self, rhs: Self) -> Bool {
+		lhs.cache == rhs.cache
+	}
+}
+
 public extension DiskBackedArray where Element: Equatable {
 	func contains(_ element: Element) -> Bool {
 		cache.contains(element)
