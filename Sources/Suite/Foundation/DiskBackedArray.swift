@@ -6,14 +6,15 @@
 //
 
 
-public struct DiskBackedArray<Value: Codable> {
+public struct DiskBackedArray<Element: Codable>: ExpressibleByArrayLiteral {
 	let cacheURL: URL
 	let encoder: JSONEncoder
 	let decoder: JSONDecoder
+	let uniqueElements: Bool
 	
-	var cache: [Value] = []
+	var cache: [Element] = []
 	
-	public subscript(_ index: Int) -> Value {
+	public subscript(_ index: Int) -> Element {
 		get { cache[index] }
 		set {
 			cache[index] = newValue
@@ -21,15 +22,25 @@ public struct DiskBackedArray<Value: Codable> {
 		}
 	}
 	
-	public init(cacheURL: URL, encoder: JSONEncoder = .init(), decoder: JSONDecoder = .init(), cache: [Value] = []) {
+	public init(arrayLiteral elements: Element...) {
+		self.cacheURL = URL.caches.appendingPathComponent("\(String(describing: Element.self))_cache.json")
+		self.encoder = .init()
+		self.decoder = .init()
+		self.uniqueElements = true
+		self.cache = elements
+	}
+	
+	
+	public init(cacheURL: URL, encoder: JSONEncoder = .init(), decoder: JSONDecoder = .init(), cache: [Element] = [], uniqueElements: Bool = true) {
 		self.cacheURL = cacheURL
 		self.decoder = decoder
 		self.encoder = encoder
 		self.cache = cache
+		self.uniqueElements = uniqueElements
 		
 		try? FileManager.default.createDirectory(at: cacheURL.deletingLastPathComponent(), withIntermediateDirectories: true)
 		if let data = try? Data(contentsOf: cacheURL) {
-			self.cache = (try? decoder.decode([Value].self, from: data)) ?? []
+			self.cache = (try? decoder.decode([Element].self, from: data)) ?? []
 		}
 	}
 	
@@ -39,33 +50,86 @@ public struct DiskBackedArray<Value: Codable> {
 			try data.write(to: cacheURL, options: .atomic)
 		} catch {
 			if #available(iOS 16, macOS 14, tvOS 16, watchOS 9, *) {
-				print("Failed to write [\(String(describing: Value.self)) to \(cacheURL.path(percentEncoded: false)): \(error.localizedDescription)")
+				print("Failed to write [\(String(describing: Element.self)) to \(cacheURL.path(percentEncoded: false)): \(error.localizedDescription)")
 			} else {
-				print("Failed to write [\(String(describing: Value.self)) to \(cacheURL): \(error.localizedDescription)")
+				print("Failed to write [\(String(describing: Element.self)) to \(cacheURL): \(error.localizedDescription)")
 			}
 		}
 	}
 	
-	public var values: [Value] { cache }
-	public var snapshot: [Value] { cache }
+	public var values: [Element] { cache }
+	public var snapshot: [Element] { cache }
 	public var isEmpty: Bool { cache.isEmpty }
 	public var count: Int { cache.count }
-
+	
 	public mutating func removeAll() {
 		guard !cache.isEmpty else { return }
 		cache.removeAll()
 		save()
 	}
-
+	
+	mutating public func append(_ array: [Element]) {
+		cache += array
+	}
+	
+	mutating public func append(_ element: Element) {
+		cache.append(element)
+	}
+	
+	mutating public func replace(with new: [Element]) {
+		cache = new
+		save()
+	}
 }
 
-extension DiskBackedArray where Value: Equatable {
-	public subscript(_ index: Int) -> Value {
+public extension DiskBackedArray {
+	func filter(_ isIncluded: (Element) throws -> Bool) rethrows -> [Element] {
+		try cache.filter(isIncluded)
+	}
+
+	mutating func remove(at index: Int) {
+		cache.remove(at: index)
+	}
+	
+	func first(where predicate: (Element) throws -> Bool) rethrows -> Element? {
+		try cache.first(where: predicate)
+	}
+}
+
+public extension DiskBackedArray where Element: Equatable {
+	func contains(_ element: Element) -> Bool {
+		cache.contains(element)
+	}
+	
+	mutating func insert(_ element: Element) {
+		if uniqueElements, let index = cache.firstIndex(of: element) {
+			self[index] = element
+		} else {
+			cache.append(element)
+		}
+	}
+	
+	subscript(_ index: Int) -> Element {
 		get { cache[index] }
 		set {
 			if cache[index] == newValue { return }
 			cache[index] = newValue
 			save()
 		}
+	}
+	
+	mutating func append(_ array: [Element]) {
+		if uniqueElements {
+			for element in array {
+				if !contains(element) { cache.append(element) }
+			}
+		} else {
+			cache += array
+		}
+	}
+	
+	
+	mutating func append(_ element: Element) {
+		if !uniqueElements || !contains(element) { cache.append(element) }
 	}
 }
