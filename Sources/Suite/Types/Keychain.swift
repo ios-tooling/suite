@@ -379,7 +379,7 @@ extension Keychain {
 		This is not recommended for application use. Items with this attribute do not migrate to a new device. Thus, after restoring from a backup of a different device, these items will not be present.
 		
 		*/
-		case accessibleAlwaysThisDeviceOnly
+		case accessibleAlwaysWhenPasscodeSetThisDeviceOnly
 		
 		static var defaultOption: AccessOptions {
 			return .accessibleAfterFirstUnlock
@@ -393,7 +393,7 @@ extension Keychain {
 			case .accessibleAfterFirstUnlockThisDeviceOnly: return self.toString(kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly)
 			//case .accessibleAlways: return self.toString(kSecAttrAccessibleAlways)
 			case .accessibleWhenPasscodeSetThisDeviceOnly: return self.toString(kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly)
-			case .accessibleAlwaysThisDeviceOnly: return self.toString(kSecAttrAccessibleAlwaysThisDeviceOnly)
+			case .accessibleAlwaysWhenPasscodeSetThisDeviceOnly: return self.toString(kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly)
 			}
 		}
 		

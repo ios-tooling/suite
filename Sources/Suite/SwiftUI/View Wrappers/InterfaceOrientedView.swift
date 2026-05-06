@@ -34,9 +34,11 @@ import UIKit
 		NotificationCenter.default.removeObserver(self)
 	}
 
-	@Published public var orientation: UIInterfaceOrientation
+	nonisolated(unsafe) public private(set) var orientation: UIInterfaceOrientation { didSet {
+		objectWillChange.sendOnMain()
+	}}
 
-	public var isLandscape: Bool { return self.orientation.isLandscape }
+	nonisolated public var isLandscape: Bool { return self.orientation.isLandscape }
 	public override var description: String { return self.isLandscape ? "Landscape" : "Portrait" }
 }
 
