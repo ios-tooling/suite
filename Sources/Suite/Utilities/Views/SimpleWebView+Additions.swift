@@ -9,15 +9,8 @@
 import SwiftUI
 import WebKit
 
-struct WebViewDidFinishLoadingEnvironmentKey: EnvironmentKey {
-	nonisolated(unsafe) static let defaultValue: WebViewErrorCallback? = nil
-}
-
 public extension EnvironmentValues {
-	var webViewDidFinishLoading: WebViewErrorCallback?  {
-		get { self[WebViewDidFinishLoadingEnvironmentKey.self] }
-		set { self[WebViewDidFinishLoadingEnvironmentKey.self] = newValue }
-	}
+	@Entry var webViewDidFinishLoading: WebViewErrorCallback? = nil
 }
 
 @available(macOS 11.0, iOS 14, *)

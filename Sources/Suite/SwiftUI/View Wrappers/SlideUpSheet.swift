@@ -41,20 +41,8 @@ import Combine
 }
 
 @available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
-struct SlideUpSheetPresentation: EnvironmentKey {
-	static let defaultValue: Binding<Bool> = .constant(true)
-}
-
-@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
 extension EnvironmentValues {
-	 public var slideUpSheetPresentation: Binding<Bool> {
-		  get {
-				return self[SlideUpSheetPresentation.self]
-		  }
-		  set {
-				self[SlideUpSheetPresentation.self] = newValue
-		  }
-	 }
+	@Entry public var slideUpSheetPresentation: Binding<Bool> = .constant(true)
 }
 
 

@@ -7,15 +7,8 @@
 
 import SwiftUI
 
-public struct ShowViewLabelsEnvironmentKey: EnvironmentKey {
-	public static let defaultValue = false
-}
-
 public extension EnvironmentValues {
-	var showViewLabels: Bool {
-		get { self[ShowViewLabelsEnvironmentKey.self] }
-		set { self[ShowViewLabelsEnvironmentKey.self] = newValue }
-	}
+	@Entry var showViewLabels: Bool = false
 }
 
 public extension View {

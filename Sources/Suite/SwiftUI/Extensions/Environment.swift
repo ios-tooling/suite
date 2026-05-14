@@ -1,28 +1,11 @@
 //
 //  Environment.swift
-//  
+//
 //
 //  Created by Ben Gottlieb on 3/19/23.
 //
 
 import SwiftUI
-
-public struct IsEditingEnvironmentKey: EnvironmentKey {
-	public static let defaultValue = false
-}
-
-@available(iOS 16.0, macOS 13, watchOS 9, tvOS 16, *)
-public struct NavigationPathEnvironmentKey: EnvironmentKey {
-	nonisolated(unsafe) public static let defaultValue = Binding.constant(NavigationPath())
-}
-
-public struct IsScrollingEnvironmentKey: EnvironmentKey {
-	public static let defaultValue = false
-}
-
-public struct DismissParentEnvironmentKey: EnvironmentKey {
-	nonisolated(unsafe) public static let defaultValue: () -> Void = { }
-}
 
 @available(iOS 14, macOS 11, watchOS 7, tvOS 16, *)
 extension EnvironmentValues {
@@ -31,27 +14,11 @@ extension EnvironmentValues {
 
 @available(iOS 16.0, macOS 13, watchOS 9, tvOS 16, *)
 public extension EnvironmentValues {
-	var navigationPath: Binding<NavigationPath> {
-		get { self[NavigationPathEnvironmentKey.self] }
-		set { self[NavigationPathEnvironmentKey.self] = newValue }
-	}
+	@Entry var navigationPath: Binding<NavigationPath> = .constant(NavigationPath())
 }
 
 public extension EnvironmentValues {
-	var dismissParent: () -> Void {
-		get { self[DismissParentEnvironmentKey.self] }
-		set { self[DismissParentEnvironmentKey.self] = newValue }
-	}
-	
-	var isEditing: Bool {
-		get { self[IsEditingEnvironmentKey.self] }
-		set { self[IsEditingEnvironmentKey.self] = newValue }
-	}
-	
-	var isScrolling: Bool {
-		get { self[IsScrollingEnvironmentKey.self] }
-		set { self[IsScrollingEnvironmentKey.self] = newValue }
-	}
+	@Entry var isEditing: Bool = false
+	@Entry var isScrolling: Bool = false
+	@Entry var dismissParent: () -> Void = { }
 }
-
-

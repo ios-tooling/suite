@@ -7,15 +7,8 @@
 
 import SwiftUI
 
-public struct TitleBarFontKey: EnvironmentKey {
-	public static let defaultValue = Font.title
-}
-
 public extension EnvironmentValues {
-	var titleBarFont: Font {
-		get { self[TitleBarFontKey.self] }
-		set { self[TitleBarFontKey.self] = newValue }
-	}
+	@Entry var titleBarFont: Font = .title
 }
 
 public struct TitleBar<Leading: View, Trailing: View, Title: View>: View {

@@ -1,5 +1,5 @@
 //
-//  DragContainer+Environment.swift
+//  w
 //  Internal
 //
 //  Created by Ben Gottlieb on 3/14/23.
@@ -31,26 +31,7 @@ import SwiftUI
 
 
 @available(OSX 13, iOS 15, watchOS 8, tvOS 15, *)
-struct CurrentDragPositionEnvironmentKey: EnvironmentKey {
-	static let defaultValue: CGPoint? = nil
-}
-
-@available(OSX 13, iOS 15, watchOS 8, tvOS 15, *)
-struct DragAndDropEnabledEnvironmentKey: EnvironmentKey {
-	static let defaultValue = false
-}
-
-@available(OSX 13, iOS 15, watchOS 8, tvOS 15, *)
 extension EnvironmentValues {
-	public var currentDragPosition: CGPoint? {
-		get { self[CurrentDragPositionEnvironmentKey.self] }
-		set { self[CurrentDragPositionEnvironmentKey.self] = newValue }
-	}
-
-	public var isDragAndDropEnabled: Bool {
-		get { self[DragAndDropEnabledEnvironmentKey.self] }
-		set { self[DragAndDropEnabledEnvironmentKey.self] = newValue }
-	}
-
-	
+	@Entry public var currentDragPosition: CGPoint? = nil
+	@Entry public var isDragAndDropEnabled: Bool = false
 }
