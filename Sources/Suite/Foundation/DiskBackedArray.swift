@@ -86,13 +86,17 @@ public extension DiskBackedArray {
 	func filter(_ isIncluded: (Element) throws -> Bool) rethrows -> [Element] {
 		try cache.filter(isIncluded)
 	}
-
+	
 	mutating func remove(at index: Int) {
 		cache.remove(at: index)
 	}
 	
 	func first(where predicate: (Element) throws -> Bool) rethrows -> Element? {
 		try cache.first(where: predicate)
+	}
+	
+	mutating func remove(where matching: (Element) -> Bool) {
+		cache = cache.filter { !matching($0) }
 	}
 }
 
