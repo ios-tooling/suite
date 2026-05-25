@@ -16,7 +16,7 @@ public typealias DropPhaseChangedCallback = (@Sendable (DragPhase) -> Void)
 @available(OSX 13, iOS 15, tvOS 13, watchOS 9, *)
 public extension View {
 	@ViewBuilder func makeDraggable(enabled: Bool = true, type: String, object: Any, hideWhenDragging: Bool = true, draggedOpacity: Double = 1.0, phaseChanged:  DropPhaseChangedCallback? = nil) -> some View {
-		if #available(iOS 16, *) {
+		if #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) {
 			DraggableView(enabled: enabled, content: self, type: type, object: object, hideWhenDragging: hideWhenDragging, draggedOpacity: draggedOpacity, phaseChanged: phaseChanged)
 		} else {
 			self
@@ -24,7 +24,7 @@ public extension View {
 	}
 }
 
-@available(OSX 13, iOS 16, tvOS 13, watchOS 9, *)
+@available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
 struct DraggableView<Content: View>: View {
 	var enabled = true
 	let content: Content

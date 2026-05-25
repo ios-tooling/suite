@@ -1,6 +1,6 @@
 //
 //  View+SizeReporting.swift
-//  
+//
 //
 //  Created by ben on 4/5/20.
 //
@@ -10,165 +10,85 @@
 
 import SwiftUI
 
-@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
+@available(iOS 17.0, macOS 14, tvOS 17, watchOS 10, *)
 public struct SizeViewModifier: ViewModifier {
-    @Binding var size: CGSize
-    
-    public func body(content: Content) -> some View {
-		content.background(
-			GeometryReader() { geo -> Color in
-				Task { @MainActor in size = geo.size }
-				return Color.clear
-			}
-		)
-    }
-}
+	@Binding var size: CGSize
 
-@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
-fileprivate struct SizePreferenceKey: PreferenceKey {
-	static let defaultValue: CGSize = .zero
-	static func reduce(value: inout CGSize, nextValue: () -> CGSize) { }
-}
-
-@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
-fileprivate struct FramePreferenceKey: PreferenceKey {
-	static let defaultValue: CGRect = .zero
-	static func reduce(value: inout CGRect, nextValue: () -> CGRect) { }
-}
-
-@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
-struct SizeReporter<Content: View>: View {
-	var size: Binding<CGSize>?
-	let content: Content
-	
-	var body: some View {
-		content
-			.background(
-				GeometryReader() { geo in
-					Color.clear
-						.preference(key: SizePreferenceKey.self, value: geo.size)
-				}
-			)
-			.onPreferenceChange(SizePreferenceKey.self) { newSize in
-				size?.wrappedValue = newSize
-			}
+	public func body(content: Content) -> some View {
+		content.onGeometryChange(for: CGSize.self, of: \.size) { size = $0 }
 	}
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
-public extension View {		// Tracks the size available for the view
+@available(iOS 17.0, macOS 14, tvOS 17, watchOS 10, *)
+public extension View {
 	func sizeReporting(_ size: Binding<CGSize>) -> some View {
-		SizeReporter(size: size, content: self)
+		onGeometryChange(for: CGSize.self, of: \.size) { size.wrappedValue = $0 }
 	}
 
 	func frameReporting(_ frame: Binding<CGRect>, in space: CoordinateSpace = .global, firstTimeOnly: Bool = false) -> some View {
-		self
-			.background(GeometryReader() { geo -> Color in
-				let rect = geo.frame(in: space)
-				Task { @MainActor in
-					if (!firstTimeOnly || frame.wrappedValue == .zero) && frame.wrappedValue != rect  { frame.wrappedValue = rect }
-				}
-				return Color.clear
-			})
-	}
-	
-	@ViewBuilder func frameReporting<Key: Hashable & Sendable>(_ frames: Binding<[Key: CGRect]>, key: Key, in space: CoordinateSpace = .global, firstTimeOnly: Bool = false) -> some View {
-		
-		self
-			.background(GeometryReader() { geo -> Color in
-				let rect = geo.frame(in: space)
-				Task { @MainActor in
-					if (!firstTimeOnly || frames[key].wrappedValue == nil) && frames.wrappedValue[key] != rect { frames.wrappedValue[key] = rect }
-				}
-				return Color.clear
-			})
-	}
-	
-	func reportGeometry(frame: Binding<CGRect?>? = nil, size: Binding<CGSize?>? = nil, in space: CoordinateSpace = .global) -> some View {
-		self
-			.background(
-				GeometryReader { geo in
-					let myFrame = geo.frame(in: space)
-					
-					if #available(iOS 17.0, macOS 14, watchOS 10, tvOS 17, *) {
-						Color.clear
-							.onChange(of: myFrame, initial: true) {
-								frame?.wrappedValue = myFrame
-								size?.wrappedValue = myFrame.size
-							}
-					} else {
-						Color.clear
-							.onAppear {
-								frame?.wrappedValue = myFrame
-								size?.wrappedValue = myFrame.size
-							}
-					}
-				}
-			)
-	}
-	
-	func sizeReporting(_ callback: @escaping (CGSize) -> Void) -> some View {
-		self.background(
-			GeometryReader() { geo in
-				Color.clear
-					.onAppear { callback(geo.size) }
+		onGeometryChange(for: CGRect.self, of: { $0.frame(in: space) }) { newRect in
+			if (!firstTimeOnly || frame.wrappedValue == .zero) && frame.wrappedValue != newRect {
+				frame.wrappedValue = newRect
 			}
-		)
+		}
+	}
+
+	func frameReporting<Key: Hashable & Sendable>(_ frames: Binding<[Key: CGRect]>, key: Key, in space: CoordinateSpace = .global, firstTimeOnly: Bool = false) -> some View {
+		onGeometryChange(for: CGRect.self, of: { $0.frame(in: space) }) { newRect in
+			if (!firstTimeOnly || frames[key].wrappedValue == nil) && frames.wrappedValue[key] != newRect {
+				frames.wrappedValue[key] = newRect
+			}
+		}
+	}
+
+	func reportGeometry(frame: Binding<CGRect?>? = nil, size: Binding<CGSize?>? = nil, in space: CoordinateSpace = .global) -> some View {
+		onGeometryChange(for: CGRect.self, of: { $0.frame(in: space) }) { newFrame in
+			frame?.wrappedValue = newFrame
+			size?.wrappedValue = newFrame.size
+		}
+	}
+
+	func sizeReporting(_ callback: @escaping (CGSize) -> Void) -> some View {
+		onGeometryChange(for: CGSize.self, of: \.size) { callback($0) }
 	}
 
 	func sizeLogging(_ logString: String) -> some View {
-		self.background(
-			GeometryReader() { geo -> Color in
-				let size = geo.size
-				logg("\(logString): \(size)")
-				return Color.clear
-			}
-		)
+		onGeometryChange(for: CGSize.self, of: \.size) { logg("\(logString): \($0)") }
 	}
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
+@available(iOS 17.0, macOS 14, tvOS 17, watchOS 10, *)
 public extension View {
 	func sizeDisplaying(text: Color = .white, fill: Color = .red) -> some View {
-		self
-			.overlay(SizeOverlay(dimensionsTextColor: text, dimensionsColor: fill))
+		self.overlay(SizeOverlay(dimensionsTextColor: text, dimensionsColor: fill))
 	}
 
 	func positionDisplaying(text: Color = .white, fill: Color = .red) -> some View {
-		self
-			.overlay(PositionOverlay(dimensionsTextColor: text, dimensionsColor: fill))
+		self.overlay(PositionOverlay(dimensionsTextColor: text, dimensionsColor: fill))
 	}
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
+@available(iOS 17.0, macOS 14, tvOS 17, watchOS 10, *)
 struct SizeOverlay: View {
 	@State var size: CGSize?
-	
+
 	var dimensionsTextColor = Color.white
 	var dimensionsColor = Color.red
 	var dimensionThickness = 1.0
-	
+
 	var aspectRatioString: String {
-		if let size = size {
-			return String(format: "%.2f", size.width / size.height)
-		} else {
-			return ""
-		}
+		guard let size else { return "" }
+		return String(format: "%.2f", size.width / size.height)
 	}
-	
+
 	var body: some View {
-		ZStack() {
-			GeometryReader { geo in
-				Color.clear
-					.preference(key: SizePreferenceKey.self, value: geo.size)
-			}
-			.onPreferenceChange(SizePreferenceKey.self) { [$size] newSize in
-				$size.wrappedValue = newSize
-			}
-			
-			if let size = size {
+		ZStack {
+			Color.clear
+				.onGeometryChange(for: CGSize.self, of: \.size) { size = $0 }
+
+			if let size {
 				HStack(spacing: 0) {
-					ZStack() {
+					ZStack {
 						Text("\(Int(size.height))")
 							.foregroundColor(dimensionsTextColor)
 							.padding(.horizontal, 6)
@@ -181,7 +101,7 @@ struct SizeOverlay: View {
 				}
 
 				VStack(spacing: 0) {
-					ZStack() {
+					ZStack {
 						Text("\(Int(size.width)), \(aspectRatioString)")
 							.foregroundColor(dimensionsTextColor)
 							.padding(.horizontal, 6)
@@ -196,38 +116,33 @@ struct SizeOverlay: View {
 		.overlay(dimension.padding(-dimensionThickness / 2))
 		.font(.system(size: 10, weight: .semibold))
 	}
-	
+
 	var dimension: some View {
 		Rectangle()
 			.strokeBorder(dimensionsColor, style: StrokeStyle(lineWidth: dimensionThickness, dash: [dimensionThickness]))
 	}
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
+@available(iOS 17.0, macOS 14, tvOS 17, watchOS 10, *)
 struct PositionOverlay: View {
 	@State var viewFrame: CGRect?
 	var coordinateSpace = CoordinateSpace.global
-	
+
 	var dimensionsTextColor = Color.white
 	var dimensionsColor = Color.red
-	
+
 	var body: some View {
-		ZStack() {
-			GeometryReader { geo in
-				Color.clear
-					.preference(key: FramePreferenceKey.self, value: geo.frame(in: coordinateSpace))
-			}
-			.onPreferenceChange(FramePreferenceKey.self) { [$viewFrame] newFrame in
-				$viewFrame.wrappedValue = newFrame
-			}
-			
+		ZStack {
+			Color.clear
+				.onGeometryChange(for: CGRect.self, of: { $0.frame(in: coordinateSpace) }) { viewFrame = $0 }
+
 			if let frame = viewFrame {
-					Text("(\(Int(frame.minX)), \(Int(frame.minY)))")
-						.foregroundColor(dimensionsTextColor)
-						.padding(.horizontal, 6)
-						.padding(.vertical, 3)
-						.background(Capsule().fill(dimensionsColor))
-						.padding(1)
+				Text("(\(Int(frame.minX)), \(Int(frame.minY)))")
+					.foregroundColor(dimensionsTextColor)
+					.padding(.horizontal, 6)
+					.padding(.vertical, 3)
+					.background(Capsule().fill(dimensionsColor))
+					.padding(1)
 			}
 		}
 		.font(.system(size: 10, weight: .semibold))

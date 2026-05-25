@@ -8,7 +8,7 @@
 #if canImport(Combine) && !os(tvOS)
 import SwiftUI
 
-@available(macOS 10.15, iOS 13.0, watchOS 7.0, *)
+@available(iOS 17.0, macOS 14, tvOS 17, watchOS 10, *)
 public extension View {
     func addSwipeActions<TrailingViews: View>(trailing: TrailingViews, id: String) -> some View {
         SwipeActions(content: self, leading: EmptyView(), trailing: trailing, id: id)
@@ -19,7 +19,7 @@ public extension View {
 @MainActor private var currentCellID: String?
 @MainActor private var activeCellID: String?
 
-@available(macOS 10.15, iOS 13.0, watchOS 7.0, *)
+@available(iOS 17.0, macOS 14, tvOS 17, watchOS 10, *)
 @MainActor struct SwipeActions<Content: View, LeadingViews: View, TrailingViews: View>: View {
     let content: Content
     let leading: LeadingViews
@@ -133,7 +133,7 @@ public extension View {
 }
 
 #if os(iOS) || os(macOS)
-	@available(macOS 10.15, iOS 13.0, *)
+	@available(iOS 17.0, macOS 14, tvOS 17, watchOS 10, *)
 	struct SwipeActions_Previews: PreviewProvider {
 			struct Row: View {
 					var body: some View {

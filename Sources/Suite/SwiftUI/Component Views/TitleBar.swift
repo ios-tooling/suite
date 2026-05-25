@@ -11,22 +11,23 @@ public extension EnvironmentValues {
 	@Entry var titleBarFont: Font = .title
 }
 
+@available(iOS 17.0, macOS 14, tvOS 17, watchOS 10, *)
 public struct TitleBar<Leading: View, Trailing: View, Title: View>: View {
 	let title: () -> Title
 	@ViewBuilder var leading: () -> Leading
 	@ViewBuilder var trailing: () -> Trailing
-	
+
 	@State private var leadingFrame: CGRect?
 	@State private var trailingFrame: CGRect?
 
 	@Environment(\.titleBarFont) var titleBarFont
-	
+
 	public init(title: @escaping () -> Title, @ViewBuilder leading: @escaping () -> Leading, @ViewBuilder trailing: @escaping () -> Trailing) {
 		self.title = title
 		self.leading = leading
 		self.trailing = trailing
 	}
-	
+
 	public var body: some View {
 		ZStack {
 			leading()
@@ -52,48 +53,56 @@ public struct TitleBar<Leading: View, Trailing: View, Title: View>: View {
 	}
 }
 
+@available(iOS 17.0, macOS 14, tvOS 17, watchOS 10, *)
 extension TitleBar where Leading == EmptyView {
 	public init(title: @escaping () -> Title, @ViewBuilder trailing: @escaping () -> Trailing) {
 		self.init(title: title, leading: { EmptyView() }, trailing: trailing)
 	}
 }
 
+@available(iOS 17.0, macOS 14, tvOS 17, watchOS 10, *)
 extension TitleBar where Trailing == EmptyView {
 	public init(title: @escaping () -> Title, @ViewBuilder leading: @escaping () -> Leading) {
 		self.init(title: title, leading: leading, trailing: { EmptyView() })
 	}
 }
 
+@available(iOS 17.0, macOS 14, tvOS 17, watchOS 10, *)
 extension TitleBar where Trailing == EmptyView, Leading == EmptyView {
 	public init(title: @escaping () -> Title) {
 		self.init(title: title, leading: { EmptyView() }, trailing: { EmptyView() })
 	}
 }
 
+@available(iOS 17.0, macOS 14, tvOS 17, watchOS 10, *)
 extension TitleBar where Title == Text {
 	public init(_ title: String, @ViewBuilder leading: @escaping () -> Leading, @ViewBuilder trailing: @escaping () -> Trailing) {
 		self.init(title: { Text(title) }, leading: leading, trailing: trailing)
 	}
 }
 
+@available(iOS 17.0, macOS 14, tvOS 17, watchOS 10, *)
 extension TitleBar where Leading == EmptyView, Title == Text {
 	public init(_ title: String, @ViewBuilder trailing: @escaping () -> Trailing) {
 		self.init(title: { Text(title) }, leading: { EmptyView() }, trailing: trailing)
 	}
 }
 
+@available(iOS 17.0, macOS 14, tvOS 17, watchOS 10, *)
 extension TitleBar where Trailing == EmptyView, Title == Text {
 	public init(_ title: String, @ViewBuilder leading: @escaping () -> Leading) {
 		self.init(title: { Text(title) }, leading: leading, trailing: { EmptyView() })
 	}
 }
 
+@available(iOS 17.0, macOS 14, tvOS 17, watchOS 10, *)
 extension TitleBar where Trailing == EmptyView, Leading == EmptyView, Title == Text {
 	public init(_ title: String) {
 		self.init(title: { Text(title) }, leading: { EmptyView() }, trailing: { EmptyView() })
 	}
 }
 
+@available(iOS 17.0, macOS 14, tvOS 17, watchOS 10, *)
 struct TitleBar_Previews: PreviewProvider {
 	static var previews: some View {
 		TitleBar("Title")

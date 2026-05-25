@@ -7,11 +7,12 @@
 
 import SwiftUI
 
+@available(iOS 17.0, macOS 14, tvOS 17, watchOS 10, *)
 public extension View {
 	func makeEqualSized(axis: Axis.Set = .horizontal, alignment: Alignment = .center) -> some View {
 		self.modifier(EqualSizeModifier(axis: axis, alignment: alignment))
 	}
-	
+
 	func makeEqualSizedSubviews() -> some View {
 		self.modifier(EqualSizedChildrenModifier())
 	}
@@ -38,6 +39,7 @@ extension [CGSize] {
 	}
 }
 
+@available(iOS 17.0, macOS 14, tvOS 17, watchOS 10, *)
 struct EqualSizeModifier: ViewModifier {
 	let axis: Axis.Set
 	let alignment: Alignment
@@ -52,6 +54,7 @@ struct EqualSizeModifier: ViewModifier {
 	}
 }
 
+@available(iOS 17.0, macOS 14, tvOS 17, watchOS 10, *)
 struct EqualSizedChildrenModifier: ViewModifier {
 	@State private var reportedSubviewSizes: [CGSize] = []
 	
