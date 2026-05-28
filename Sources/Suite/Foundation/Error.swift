@@ -17,7 +17,9 @@ public protocol DisplayableError: Error {
 public extension Error {
 	var isFileNotFound: Bool {
 		let error = self as NSError
-		return error.domain == NSCocoaErrorDomain && error.code == CocoaError.Code.fileNoSuchFile.rawValue
+		guard error.domain == NSCocoaErrorDomain else { return false }
+		guard error.code == CocoaError.Code.fileNoSuchFile.rawValue || error.code == CocoaError.Code.fileReadNoSuchFile.rawValue else { return false }
+		return true
 	}
 
 	var isCancellation: Bool {
