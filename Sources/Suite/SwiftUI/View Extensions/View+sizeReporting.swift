@@ -10,6 +10,12 @@
 
 import SwiftUI
 
+// this is a hack to get around the weird senability around CoordinateSpace. Hopefully removable in the future
+@available(iOS 17.0, macOS 14, tvOS 17, watchOS 10, *)
+private struct _SendableSpace: @unchecked Sendable {
+	let value: CoordinateSpace
+}
+
 @available(iOS 17.0, macOS 14, tvOS 17, watchOS 10, *)
 public struct SizeViewModifier: ViewModifier {
 	@Binding var size: CGSize
@@ -26,7 +32,8 @@ public extension View {
 	}
 
 	func frameReporting(_ frame: Binding<CGRect>, in space: CoordinateSpace = .global, firstTimeOnly: Bool = false) -> some View {
-		onGeometryChange(for: CGRect.self, of: { $0.frame(in: space) }) { newRect in
+		let s = _SendableSpace(value: space)
+		return onGeometryChange(for: CGRect.self, of: { $0.frame(in: s.value) }) { newRect in
 			if (!firstTimeOnly || frame.wrappedValue == .zero) && frame.wrappedValue != newRect {
 				frame.wrappedValue = newRect
 			}
@@ -34,7 +41,8 @@ public extension View {
 	}
 
 	func frameReporting<Key: Hashable & Sendable>(_ frames: Binding<[Key: CGRect]>, key: Key, in space: CoordinateSpace = .global, firstTimeOnly: Bool = false) -> some View {
-		onGeometryChange(for: CGRect.self, of: { $0.frame(in: space) }) { newRect in
+		let s = _SendableSpace(value: space)
+		return onGeometryChange(for: CGRect.self, of: { $0.frame(in: s.value) }) { newRect in
 			if (!firstTimeOnly || frames[key].wrappedValue == nil) && frames.wrappedValue[key] != newRect {
 				frames.wrappedValue[key] = newRect
 			}
@@ -42,7 +50,8 @@ public extension View {
 	}
 
 	func reportGeometry(frame: Binding<CGRect?>? = nil, size: Binding<CGSize?>? = nil, in space: CoordinateSpace = .global) -> some View {
-		onGeometryChange(for: CGRect.self, of: { $0.frame(in: space) }) { newFrame in
+		let s = _SendableSpace(value: space)
+		return onGeometryChange(for: CGRect.self, of: { $0.frame(in: s.value) }) { newFrame in
 			frame?.wrappedValue = newFrame
 			size?.wrappedValue = newFrame.size
 		}
@@ -132,9 +141,10 @@ struct PositionOverlay: View {
 	var dimensionsColor = Color.red
 
 	var body: some View {
+		let s = _SendableSpace(value: coordinateSpace)
 		ZStack {
 			Color.clear
-				.onGeometryChange(for: CGRect.self, of: { $0.frame(in: coordinateSpace) }) { viewFrame = $0 }
+				.onGeometryChange(for: CGRect.self, of: { $0.frame(in: s.value) }) { viewFrame = $0 }
 
 			if let frame = viewFrame {
 				Text("(\(Int(frame.minX)), \(Int(frame.minY)))")
