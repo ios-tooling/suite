@@ -70,10 +70,12 @@ public struct DiskBackedArray<Element: Codable>: ExpressibleByArrayLiteral {
 	
 	mutating public func append(_ array: [Element]) {
 		cache += array
+		save()
 	}
 	
 	mutating public func append(_ element: Element) {
 		cache.append(element)
+		save()
 	}
 	
 	mutating public func replace(with new: [Element]) {
@@ -89,6 +91,7 @@ public extension DiskBackedArray {
 	
 	mutating func remove(at index: Int) {
 		cache.remove(at: index)
+		save()
 	}
 	
 	func first(where predicate: (Element) throws -> Bool) rethrows -> Element? {
@@ -97,6 +100,7 @@ public extension DiskBackedArray {
 	
 	mutating func remove(where matching: (Element) -> Bool) {
 		cache = cache.filter { !matching($0) }
+		save()
 	}
 }
 
@@ -117,6 +121,7 @@ public extension DiskBackedArray where Element: Equatable {
 		} else {
 			cache.append(element)
 		}
+		save()
 	}
 	
 	subscript(_ index: Int) -> Element {
@@ -143,6 +148,9 @@ public extension DiskBackedArray where Element: Equatable {
 	
 	
 	mutating func append(_ element: Element) {
-		if !uniqueElements || !contains(element) { cache.append(element) }
+		if !uniqueElements || !contains(element) {
+			cache.append(element)
+			save()
+		}
 	}
 }
