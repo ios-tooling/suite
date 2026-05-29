@@ -131,11 +131,14 @@ public extension DiskBackedArray where Element: Equatable {
 	mutating func append(_ array: [Element]) {
 		if uniqueElements {
 			for element in array {
-				if !contains(element) { cache.append(element) }
+				if !contains(element) {
+					cache.append(element)
+				}
 			}
 		} else {
 			cache += array
 		}
+		save()
 	}
 	
 	
