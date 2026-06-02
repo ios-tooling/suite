@@ -13,6 +13,8 @@ extension Bundle {
 	public var buildNumber: String { return self.infoDictionary?["CFBundleVersion"] as? String ?? "" }
 	public var name: String { return self.infoDictionary?["CFBundleName"] as? String ?? "" }
 	public var copyright: String { return self.infoDictionary?["NSHumanReadableCopyright"] as? String ?? "" }
+	
+	public var versionAndBuild: String { "v\(version) (\(buildNumber))"}
 }
 
 extension NSObject {
