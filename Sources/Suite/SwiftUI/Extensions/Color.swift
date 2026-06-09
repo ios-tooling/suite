@@ -33,6 +33,31 @@ public extension Color {
         self.init(red: (hex >> 16) & 0xFF, green: (hex >> 8) & 0xFF, blue: hex & 0xFF, alpha: alpha)
     }
 
+	/// Creates a color that adapts between light and dark appearances.
+	/// `light` and `dark` are 24-bit RGB hex values (e.g. `0xFF5733`).
+	@available(iOS 14, macOS 12, tvOS 14, watchOS 7, *)
+	init(light: Int, dark: Int, opacity: Double = 1.0) {
+		#if os(macOS)
+		self.init(nsColor: NSColor(name: nil) { appearance in
+			let hex = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? dark : light
+			return NSColor(srgbRed: CGFloat((hex >> 16) & 0xFF) / 255,
+			               green: CGFloat((hex >> 8) & 0xFF) / 255,
+			               blue: CGFloat(hex & 0xFF) / 255,
+			               alpha: CGFloat(opacity))
+		})
+		#elseif os(iOS) || os(visionOS) || os(tvOS)
+		self.init(uiColor: UIColor { traits in
+			let hex = traits.userInterfaceStyle == .dark ? dark : light
+			return UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255,
+			               green: CGFloat((hex >> 8) & 0xFF) / 255,
+			               blue: CGFloat(hex & 0xFF) / 255,
+			               alpha: CGFloat(opacity))
+		})
+		#else
+		self.init(hex: light, alpha: opacity)
+		#endif
+	}
+
 	static var random: Color {
 		Color(red: Int.random(in: 0...255), green: Int.random(in: 0...255), blue: Int.random(in: 0...255))
 	}
