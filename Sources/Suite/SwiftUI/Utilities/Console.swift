@@ -18,6 +18,22 @@ import SwiftUI
 	public static func print(_ content: String) {
 		instance.print(content)
 	}
+	
+	@available(iOS 16.0, *)
+	public func writeToFile() -> URL {
+		let url = FileManager.default.temporaryDirectory.appending(path: "Exported Instascope Log.txt", directoryHint: .notDirectory)
+		try? FileManager.default.removeItem(at: url)
+		
+		var text = ""
+		for message in messages {
+			text += message.body + "\n"
+		}
+		
+		try? text.data(using: .utf8)?.write(to: url)
+		
+		return url
+	}
+
 
 	public struct Message: Identifiable {
 		public let id = UUID()

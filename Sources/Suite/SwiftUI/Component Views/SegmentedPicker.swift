@@ -7,7 +7,7 @@ import SwiftUI
 
 /// A segmented control built from SwiftUI primitives.
 /// Works on all Apple platforms and respects the system separator color.
-@available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
+@available(iOS 17, macOS 12, tvOS 15, watchOS 8, *)
 public struct SegmentedPicker<T: Hashable>: View {
 	public let options: [T]
 	@Binding public var selection: T
@@ -54,7 +54,7 @@ public struct SegmentButtonStyle: ButtonStyle {
 }
 
 #if DEBUG
-@available(iOS 15, macOS 12, tvOS 15, watchOS 8, *)
+@available(iOS 17, macOS 12, tvOS 15, watchOS 8, *)
 #Preview {
 	SegmentedPicker(["One", "Two", "Three"], selection: .constant("Two")) { $0 }
 		.padding()

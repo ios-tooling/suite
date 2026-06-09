@@ -16,7 +16,7 @@ public extension View {
     }
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13, watchOS 6, *)
+@available(OSX 10.15, iOS 15.0, tvOS 13, watchOS 6, *)
 public extension Color {
 	init?(hex: String?) {
 		guard let values = hex?.extractedHexValues else { return nil }
@@ -35,7 +35,7 @@ public extension Color {
 
 	/// Creates a color that adapts between light and dark appearances.
 	/// `light` and `dark` are 24-bit RGB hex values (e.g. `0xFF5733`).
-	@available(iOS 14, macOS 12, tvOS 14, watchOS 7, *)
+	@available(iOS 15, macOS 12, tvOS 14, watchOS 7, *)
 	init(light: Int, dark: Int, opacity: Double = 1.0) {
 		#if os(macOS)
 		self.init(nsColor: NSColor(name: nil) { appearance in
@@ -76,7 +76,7 @@ public extension Color {
 	static let rainbow: [Color] = [.red, .orange, .yellow, .green, .blue, .indigo, .purple]
 	
 	#if os(iOS)
-		@available(iOS 14.0, watchOS 8.0, visionOS 2.0, *)
+		@available(iOS 15.0, watchOS 8.0, visionOS 2.0, *)
 		var withFullOpacity: Color {
 			let uic = UIColor(self)
 			guard let components = uic.cgColor.components, components.count >= 3 else {
