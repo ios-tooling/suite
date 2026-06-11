@@ -19,7 +19,7 @@ import SwiftUI
 		instance.print(content)
 	}
 	
-	@available(iOS 16.0, *)
+	@available(iOS 16.0, macOS 13.0, *)
 	public func writeToFile() -> URL {
 		let url = FileManager.default.temporaryDirectory.appending(path: "Exported Instascope Log.txt", directoryHint: .notDirectory)
 		try? FileManager.default.removeItem(at: url)
