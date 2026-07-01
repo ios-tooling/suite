@@ -22,25 +22,45 @@ public struct DiskBackedArray<Element: Codable>: ExpressibleByArrayLiteral {
 		}
 	}
 	
+	static func defaultEncoder(debug: Bool) -> JSONEncoder {
+		let encoder = JSONEncoder()
+		encoder.dateEncodingStrategy = .iso8601
+		encoder.outputFormatting = debug ? [ .withoutEscapingSlashes, .prettyPrinted, .sortedKeys ] : [ .sortedKeys ]
+		return encoder
+	}
+	
+	static func defaultDecoder(debug: Bool) -> JSONDecoder {
+		let decoder = JSONDecoder()
+		decoder.dateDecodingStrategy = .iso8601
+		return decoder
+	}
+	
 	public init(arrayLiteral elements: Element...) {
+		self.init(debug: false, array: elements)
+	}
+
+	public init(debug: Bool, array elements: [Element]) {
 		self.cacheURL = URL.caches.appendingPathComponent("\(String(describing: Element.self))_cache.json")
-		self.encoder = .init()
-		self.decoder = .init()
+
+
+		decoder = Self.defaultDecoder(debug: debug)
+		encoder = Self.defaultEncoder(debug: debug)
+
 		self.uniqueElements = true
 		self.cache = elements
 	}
+
 	
-	
-	public init(cacheURL: URL, encoder: JSONEncoder = .init(), decoder: JSONDecoder = .init(), cache: [Element] = [], uniqueElements: Bool = true) {
+	public init(debug: Bool = false, cacheURL: URL, encoder: JSONEncoder? = nil, decoder: JSONDecoder? = nil, cache: [Element] = [], uniqueElements: Bool = true) {
 		self.cacheURL = cacheURL
-		self.decoder = decoder
-		self.encoder = encoder
+		self.decoder = decoder ?? Self.defaultDecoder(debug: debug)
+		self.encoder = encoder ?? Self.defaultEncoder(debug: debug)
 		self.cache = cache
 		self.uniqueElements = uniqueElements
 		
 		try? FileManager.default.createDirectory(at: cacheURL.deletingLastPathComponent(), withIntermediateDirectories: true)
 		if let data = try? Data(contentsOf: cacheURL) {
-			self.cache = (try? decoder.decode([Element].self, from: data)) ?? []
+			self.cache = (try? self.decoder.decode([Element].self, from: data)) ?? []
 		}
 	}
 	
