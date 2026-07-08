@@ -111,6 +111,18 @@ struct OutboxTests {
 		StorageRegistry.clearAllRegistered()
 		#expect(outbox.isEmpty)
 	}
+
+	@Test("replace persists the new contents")
+	func replaceContents() {
+		guard #available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *) else { return }
+		let location = tempFile()
+		let outbox = Outbox<Entry>(name: "test", location: location)
+		outbox.append(Entry(id: 1, date: .now))
+		outbox.replace(with: [Entry(id: 5, date: .now), Entry(id: 6, date: .now)])
+
+		#expect(outbox.pending.map(\.id) == [5, 6])
+		#expect(Outbox<Entry>(name: "test", location: location).pending.map(\.id) == [5, 6])
+	}
 }
 
 @Suite("Journal")

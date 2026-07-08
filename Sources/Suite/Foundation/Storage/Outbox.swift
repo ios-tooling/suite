@@ -82,6 +82,16 @@ public final class Outbox<Element: Codable & Sendable>: Sendable, SweepableStora
 		}
 	}
 
+	/// Replaces the entire contents — for owners that mutate a working copy
+	/// and persist it wholesale.
+	public func replace(with items: [Element]) {
+		state.withLock { current in
+			current.items = items
+			if let cap, current.items.count > cap { current.items.removeFirst(current.items.count - cap) }
+			noteMutation(&current)
+		}
+	}
+
 	/// Removes the first `count` items — the ones included in an upload snapshot —
 	/// preserving anything appended since the snapshot was taken.
 	public func removeFirst(_ count: Int) {
