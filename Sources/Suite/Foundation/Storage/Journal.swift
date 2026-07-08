@@ -107,7 +107,9 @@ public final class Journal<Element: Codable & Sendable>: Sendable, SweepableStor
 
 	public func clearForSignOut() { clear() }
 
-	func url(for day: Date.Day) -> URL {
+	/// The on-disk file for a day — for exporting/sharing. Call `flush()` first
+	/// if today's entries must be included.
+	public func url(for day: Date.Day) -> URL {
 		directory.appendingPathComponent(day.ymdString("-") + ".json")
 	}
 
