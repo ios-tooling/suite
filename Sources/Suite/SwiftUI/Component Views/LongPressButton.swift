@@ -64,7 +64,7 @@ public struct LongPressButton<Label: View>: View {
 	}
 	
 	public var body: some View {
-		let longPressStartedAt = _longPressStartedAt
+		let longPressStartedAt = $longPressStartedAt
 		let longPressed = longPressed
 		let delay = delay
 		
