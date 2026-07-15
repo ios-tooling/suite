@@ -8,20 +8,7 @@
 #if canImport(SwiftUI)
 import SwiftUI
 
-#if os(macOS)
-public extension View {
-	func fullScreenCover<Content: View>(isPresented: Binding<Bool>, @ViewBuilder content: @escaping () -> Content) -> some View {
-		self
-			.sheet(isPresented: isPresented, content: content)
-	}
-	
-	func fullScreenCover<Item: Identifiable, Content: View>(item: Binding<Item?>, @ViewBuilder content: @escaping (Item) -> Content) -> some View {
-		self
-			.sheet(item: item, content: content)
-	}
-}
-
-#endif
+// the macOS fullScreenCover polyfill moved to CrossPlatformKit (1.1.4)
 
 #if os(iOS)
 @available(iOS 14.0, watchOS 8.0, *)
