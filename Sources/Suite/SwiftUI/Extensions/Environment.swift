@@ -20,5 +20,16 @@ public extension EnvironmentValues {
 public extension EnvironmentValues {
 	@Entry var isEditing: Bool = false
 	@Entry var isScrolling: Bool = false
-	@Entry var dismissParent: () -> Void = { }
+
+	// A hand-rolled key rather than @Entry: closures aren't comparable, and
+	// the macro's storage would invalidate dependents on every update.
+	var dismissParent: () -> Void {
+		get { self[DismissParentKey.self] }
+		set { self[DismissParentKey.self] = newValue }
+	}
+}
+
+private struct DismissParentKey: EnvironmentKey {
+	// An immutable empty closure; safe to share despite the non-Sendable type.
+	nonisolated(unsafe) static let defaultValue: () -> Void = { }
 }

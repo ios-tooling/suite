@@ -75,7 +75,7 @@ public extension View {
 							.transition(.opacity)
 					}
 				}
-				.animation(animation)
+				.animation(animation, value: item.wrappedValue == nil)
 			)
 			.modifier(OverlayModifier(item: item, overlay: overlayBuilder))
 	}
@@ -94,7 +94,7 @@ public extension View {
 							.transition(.opacity)
 					}
 				}
-				.animation(animation)
+				.animation(animation, value: isPresented.wrappedValue)
 			)
 			.modifier(OverlayModifier(isPresented: isPresented, overlay: overlayBuilder))
 	}
@@ -141,8 +141,7 @@ public struct BottomSheet<Content: View, Background: View>: View {
 			}
 			.edgesIgnoringSafeArea(.bottom)
 		}
-		.animation(animation)
-		.transition(.move(edge: .bottom))
+		.transition(.move(edge: .bottom).animation(animation))
 	}
 }
 

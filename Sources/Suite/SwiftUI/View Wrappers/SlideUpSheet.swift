@@ -133,7 +133,8 @@ public struct SlideUpSheet<Content: View>: View {
 			.shadow(color: .black, radius: 5, x: 3, y: 3)
 			.padding()
 			.offset(y: show ? dragOffset.height : screenHeight * 2)
-			.animation(.default)
+			.animation(.default, value: show)
+			.animation(.default, value: dragOffset)
 			.transition(.slide)
 			.gesture(
 				DragGesture()

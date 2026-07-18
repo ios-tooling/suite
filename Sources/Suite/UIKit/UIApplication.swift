@@ -34,7 +34,10 @@ import UIKit
 		 #if os(visionOS)
 			return nil
 		 #else
-			return self.windows.first
+			return connectedScenes
+				.compactMap { $0 as? UIWindowScene }
+				.flatMap(\.windows)
+				.first
 		 #endif
     }
 

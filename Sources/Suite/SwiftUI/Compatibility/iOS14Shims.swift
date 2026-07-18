@@ -9,33 +9,29 @@ import SwiftUI
 
 @available(OSX 12, iOS 13.0, watchOS 8.0, tvOS 14, *)
 public extension View {
-	@ViewBuilder func monospacedDigit14() -> some View {
+	func monospacedDigit14() -> some View {
 		if #available(iOS 15.0, tvOS 15, *) {
-			monospacedDigit()
-		} else {
-			self
+			return AnyView(monospacedDigit())
 		}
+		return AnyView(self)
 	}
-	
-	@ViewBuilder func alignedOverlay<Content: View>(_ alignment: Alignment, content: @escaping () -> Content) -> some View {
-		if #available(iOS 15.0, tvOS 15, *) {
-			overlay(alignment: alignment, content: content)
-		} else {
-			overlay(
-				HStack {
-					if alignment == .trailing || alignment == .topTrailing || alignment == .bottomTrailing { Spacer() }
-					VStack {
-						if alignment == .bottom || alignment == .bottomTrailing || alignment == .bottomLeading { Spacer() }
 
-						content()
-						
-						if alignment == .top || alignment == .topTrailing || alignment == .topLeading { Spacer() }
-					}
-					if alignment == .leading || alignment == .topLeading || alignment == .bottomLeading { Spacer() }
-				}
-			)
+	func alignedOverlay<Content: View>(_ alignment: Alignment, content: @escaping () -> Content) -> some View {
+		if #available(iOS 15.0, tvOS 15, *) {
+			return AnyView(overlay(alignment: alignment, content: content))
 		}
-			
-			
+		return AnyView(overlay(
+			HStack {
+				if alignment == .trailing || alignment == .topTrailing || alignment == .bottomTrailing { Spacer() }
+				VStack {
+					if alignment == .bottom || alignment == .bottomTrailing || alignment == .bottomLeading { Spacer() }
+
+					content()
+
+					if alignment == .top || alignment == .topTrailing || alignment == .topLeading { Spacer() }
+				}
+				if alignment == .leading || alignment == .topLeading || alignment == .bottomLeading { Spacer() }
+			}
+		))
 	}
 }

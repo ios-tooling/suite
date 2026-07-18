@@ -51,6 +51,7 @@ public extension UIButton {
 		return self
 	}
 	
+	@available(iOS, introduced: 13, deprecated: 15, message: "showsTouchWhenHighlighted is ignored when using UIButtonConfiguration")
 	@discardableResult func showsTouchWhenHighlighted(_ shows: Bool) -> Self {
 		#if !os(visionOS) && !os(tvOS)
 			self.showsTouchWhenHighlighted = shows
