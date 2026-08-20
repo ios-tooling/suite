@@ -39,6 +39,16 @@ public enum StorageRegistry {
 		for box in current { box.storage?.clearForSignOut() }
 	}
 
+	/// Whether this object is registered for the sweep. Lets a test prove that a store's
+	/// init wired itself up without calling `clearAllRegistered()`, which would clear
+	/// every other registered store in the process along the way.
+	public static func isRegistered(_ storage: some SweepableStorage) -> Bool {
+		boxes.withLock { list in
+			list.removeAll { $0.storage == nil }
+			return list.contains { $0.storage === storage }
+		}
+	}
+
 	/// Called when an outbox/journal fails to read or write its file. Set once
 	/// at app startup to route errors to your reporting system.
 	public static func setErrorHandler(_ handler: (@Sendable (Error, String) -> Void)?) {
