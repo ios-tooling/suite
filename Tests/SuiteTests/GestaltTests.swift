@@ -90,6 +90,17 @@ struct GestaltTests {
 	}
 	#endif
 
+	#if os(macOS)
+	@Test("Mac model name is present and clean")
+	func macModelName() {
+		// Apple Silicon returns the marketing name; Intel falls back to the model
+		// identifier. Either way it must be non-empty and free of the IO registry's
+		// NUL terminator, which travels with anything that reports it.
+		#expect(!Gestalt.modelName.isEmpty)
+		#expect(!Gestalt.modelName.contains("\0"))
+	}
+	#endif
+
 	@Test("UI tests flag")
 	func uiTestsDetection() {
 		// Should be false in unit tests

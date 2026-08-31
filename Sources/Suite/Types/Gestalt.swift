@@ -99,7 +99,31 @@ public struct Gestalt: Sendable {
 			}
 			return ""
 	}()
-	
+
+		/// The Mac's marketing name — "Mac Studio (2025)", "MacBook Pro (16-inch,
+		/// 2021)" — to pair with `rawDeviceType`'s "Mac15,14".
+		///
+		/// Apple Silicon publishes it in the device tree's `product` node. Intel
+		/// Macs have no such node, and the mapping from identifier to marketing
+		/// name is a table that goes stale with every product Apple ships, so
+		/// those fall back to the identifier rather than to "unknown": it is
+		/// always present and still says which Mac this is.
+		public static let modelName: String = {
+			let service = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceNameMatching("product"))
+			guard service != 0 else { return withoutTrailingNull(rawDeviceType) }
+			defer { IOObjectRelease(service) }
+			guard let data = IORegistryEntryCreateCFProperty(service, "product-name" as CFString, kCFAllocatorDefault, 0)?.takeRetainedValue() as? Data,
+					let name = String(data: data, encoding: .utf8) else { return withoutTrailingNull(rawDeviceType) }
+			let trimmed = withoutTrailingNull(name)
+			return trimmed.isEmpty ? withoutTrailingNull(rawDeviceType) : trimmed
+		}()
+
+		/// IO registry byte strings carry their C NUL terminator, and it survives
+		/// a plain UTF-8 decode into anything that displays or transmits them.
+		private static func withoutTrailingNull(_ value: String) -> String {
+			value.trimmingCharacters(in: CharacterSet(charactersIn: "\0"))
+		}
+
 	static public let deviceName: String = { rawDeviceType }()
 	#endif
 	
