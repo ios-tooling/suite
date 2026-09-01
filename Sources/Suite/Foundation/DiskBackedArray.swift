@@ -10,6 +10,7 @@ public struct DiskBackedArray<Element: Codable>: ExpressibleByArrayLiteral {
 	let cacheURL: URL
 	let encoder: JSONEncoder
 	let decoder: JSONDecoder
+	let writer: DiskBackedFileWriter
 	let uniqueElements: Bool
 	
 	var cache: [Element] = []
@@ -42,7 +43,7 @@ public struct DiskBackedArray<Element: Codable>: ExpressibleByArrayLiteral {
 	public init(debug: Bool, array elements: [Element]) {
 		self.cacheURL = URL.caches.appendingPathComponent("\(String(describing: Element.self))_cache.json")
 
-
+		self.writer = .init(url: cacheURL)
 		decoder = Self.defaultDecoder(debug: debug)
 		encoder = Self.defaultEncoder(debug: debug)
 
@@ -51,23 +52,33 @@ public struct DiskBackedArray<Element: Codable>: ExpressibleByArrayLiteral {
 	}
 
 	
-	public init(debug: Bool = false, cacheURL: URL, encoder: JSONEncoder? = nil, decoder: JSONDecoder? = nil, cache: [Element] = [], uniqueElements: Bool = true) {
+	/// Pass `loadsFromDisk: false` when `cache` has already been read — see
+	/// `loading(from:)`, which does that read off the calling thread.
+	public init(debug: Bool = false, cacheURL: URL, encoder: JSONEncoder? = nil, decoder: JSONDecoder? = nil, cache: [Element] = [], uniqueElements: Bool = true, loadsFromDisk: Bool = true) {
 		self.cacheURL = cacheURL
 		self.decoder = decoder ?? Self.defaultDecoder(debug: debug)
 		self.encoder = encoder ?? Self.defaultEncoder(debug: debug)
 		self.cache = cache
+		self.writer = .init(url: cacheURL)
 		self.uniqueElements = uniqueElements
 		
+		guard loadsFromDisk else { return }
 		try? FileManager.default.createDirectory(at: cacheURL.deletingLastPathComponent(), withIntermediateDirectories: true)
 		if let data = try? Data(contentsOf: cacheURL) {
 			self.cache = (try? self.decoder.decode([Element].self, from: data)) ?? []
 		}
 	}
 	
+	/// Writes anything still waiting on the coalescing timer. Backgrounding and
+	/// termination already do this; call it when you need the file up to date now.
+	public func flushToDisk() {
+		writer.writePendingData()
+	}
+	
 	func save() {
 		do {
 			let data = try encoder.encode(cache)
-			try data.write(to: cacheURL, options: .atomic)
+			writer.save(data)
 		} catch {
 			if #available(iOS 16, macOS 14, tvOS 16, watchOS 9, *) {
 				print("Failed to write [\(String(describing: Element.self)) to \(cacheURL.path(percentEncoded: false)): \(error.localizedDescription)")

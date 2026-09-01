@@ -10,6 +10,7 @@ public struct DiskBackedDictionary<Key: Hashable & Codable, Value: Codable> {
 	let cacheURL: URL
 	let encoder: JSONEncoder
 	let decoder: JSONDecoder
+	let writer: DiskBackedFileWriter
 	
 	var cache: [Key: Value] = [:]
 	
@@ -50,22 +51,32 @@ public struct DiskBackedDictionary<Key: Hashable & Codable, Value: Codable> {
 		save()
 	}
 
-	public init(cacheURL: URL, encoder: JSONEncoder = .init(), decoder: JSONDecoder = .init(), cache: [Key: Value] = [:]) {
+	/// Pass `loadsFromDisk: false` when `cache` has already been read — see
+	/// `loading(from:)`, which does that read off the calling thread.
+	public init(cacheURL: URL, encoder: JSONEncoder = .init(), decoder: JSONDecoder = .init(), cache: [Key: Value] = [:], loadsFromDisk: Bool = true) {
 		self.cacheURL = cacheURL
 		self.decoder = decoder
 		self.encoder = encoder
 		self.cache = cache
+		self.writer = .init(url: cacheURL)
 		
+		guard loadsFromDisk else { return }
 		try? FileManager.default.createDirectory(at: cacheURL.deletingLastPathComponent(), withIntermediateDirectories: true)
 		if let data = try? Data(contentsOf: cacheURL) {
 			self.cache = (try? decoder.decode([Key: Value].self, from: data)) ?? [:]
 		}
 	}
 	
+	/// Writes anything still waiting on the coalescing timer. Backgrounding and
+	/// termination already do this; call it when you need the file up to date now.
+	public func flushToDisk() {
+		writer.writePendingData()
+	}
+	
 	func save() {
 		do {
 			let data = try encoder.encode(cache)
-			try data.write(to: cacheURL, options: .atomic)
+			writer.save(data)
 		} catch {
 			if #available(iOS 16, macOS 14, tvOS 16, watchOS 9, *) {
 				print("Failed to write [\(String(describing: Key.self)):\(String(describing: Value.self)) to \(cacheURL.path(percentEncoded: false)): \(error.localizedDescription)")
