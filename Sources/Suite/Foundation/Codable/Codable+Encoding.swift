@@ -8,10 +8,6 @@
 import Foundation
 
 public extension Encodable {
-	var stringValue: String? {
-		stringValue(from: JSONEncoder.default)
-	}
-
 	var prettyJSON: String? {
 		do {
 			let encoder = JSONEncoder()
