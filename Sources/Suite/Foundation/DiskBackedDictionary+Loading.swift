@@ -13,7 +13,7 @@ public extension DiskBackedDictionary where Key: Sendable, Value: Sendable {
 	/// actor blocks it for a file read plus a JSON decode.
 	static func loading(from cacheURL: URL, encoder: JSONEncoder = .init(), decoder: JSONDecoder = .init()) async -> Self {
 		// Only the detached task touches the decoder, and only until it returns.
-		nonisolated(unsafe) let decoder = decoder
+		let decoder = decoder
 
 		let cache = await Task.detached(priority: .utility) { () -> [Key: Value] in
 			try? FileManager.default.createDirectory(at: cacheURL.deletingLastPathComponent(), withIntermediateDirectories: true)

@@ -14,7 +14,7 @@ public extension DiskBackedArray where Element: Sendable {
 	static func loading(from cacheURL: URL, debug: Bool = false, encoder: JSONEncoder? = nil, decoder: JSONDecoder? = nil, uniqueElements: Bool = true) async -> Self {
 		let loader = decoder ?? Self.defaultDecoder(debug: debug)
 		// Only the detached task touches the decoder, and only until it returns.
-		nonisolated(unsafe) let unsafeLoader = loader
+		let unsafeLoader = loader
 
 		let cache = await Task.detached(priority: .utility) { () -> [Element] in
 			try? FileManager.default.createDirectory(at: cacheURL.deletingLastPathComponent(), withIntermediateDirectories: true)
