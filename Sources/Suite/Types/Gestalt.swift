@@ -90,7 +90,7 @@ public struct Gestalt: Sendable {
 		public static let isOnMac: Bool = true
 		
 		public static let rawDeviceType: String = {
-			let service: io_service_t = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
+			let service: io_service_t = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
 			defer { IOObjectRelease(service) }
 			let cfstr = "model" as CFString
 			if let model = IORegistryEntryCreateCFProperty(service, cfstr, kCFAllocatorDefault, 0)?.takeRetainedValue() as? Data,
@@ -109,7 +109,7 @@ public struct Gestalt: Sendable {
 		/// those fall back to the identifier rather than to "unknown": it is
 		/// always present and still says which Mac this is.
 		public static let modelName: String = {
-			let service = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceNameMatching("product"))
+			let service = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceNameMatching("product"))
 			guard service != 0 else { return withoutTrailingNull(rawDeviceType) }
 			defer { IOObjectRelease(service) }
 			guard let data = IORegistryEntryCreateCFProperty(service, "product-name" as CFString, kCFAllocatorDefault, 0)?.takeRetainedValue() as? Data,
@@ -233,7 +233,7 @@ public struct Gestalt: Sendable {
 			set { NSApp.sleepDisabled = newValue }
 		}
 		nonisolated public static let serialNumber: String? = {
-			let platformExpert = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
+			let platformExpert = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
 			defer { IOObjectRelease(platformExpert) }
 
 			let string = IORegistryEntryCreateCFProperty(platformExpert, kIOPlatformSerialNumberKey as CFString, kCFAllocatorDefault, 0)?.takeRetainedValue()
