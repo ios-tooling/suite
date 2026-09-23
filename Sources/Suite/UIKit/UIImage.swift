@@ -17,14 +17,6 @@ public enum ImageFormat: String, Sendable { case PNG = "png", JPEG = "jpeg"
 	}
 }
 
-
-@available(iOS 13.0, watchOS 6.0, *)
-public extension UIImage {
-	convenience init?(_ sfsymbol: SFSymbol) {
-		self.init(systemName: sfsymbol.rawValue)
-	}
-}
-
 public extension UIImage {
 	enum ImageStoreError: Error, Sendable { case nonLocalURL, unableToConverToData }
 	func store(in url: URL) throws {

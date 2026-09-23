@@ -18,17 +18,6 @@ public extension Image {
 	}
 }
 
-@available(OSX 10.16, iOS 13.0, watchOS 6.0, *)
-public extension Image {
-	init(_ sfsymbol: SFSymbol) {
-		self.init(systemName: sfsymbol.rawValue)
-	}
-	
-	static func random() -> Image {
-		Image(SFSymbol.allCases.randomElement()!)
-	}
-}
-
 #if os(iOS)
 @available(iOS 13.0, *)
 public extension Image {
