@@ -40,7 +40,7 @@ struct GestaltTests {
 		#expect(Gestalt.isExtension == false)
 	}
 
-	@Test("Platform detection exclusivity")
+	@Test("Platform detection exclusivity") @MainActor
 	func platformExclusivity() {
 		// At most one platform-family flag should be true.
 		#if os(iOS) || os(visionOS)
