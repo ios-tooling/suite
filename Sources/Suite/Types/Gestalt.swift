@@ -181,8 +181,12 @@ public struct Gestalt: Sendable {
 			#else
 				public static let isOnMac = false
 			#endif
-			@MainActor public static let isOnIPad: Bool = { return UIDevice.current.userInterfaceIdiom == .pad }()
-			@MainActor public static let isOnIPhone: Bool = { return UIDevice.current.userInterfaceIdiom == .phone }()
+			/// The idiom of the hardware the app is running on, ignoring `idiomOverride`.
+			@MainActor public static let deviceIdiom: UIUserInterfaceIdiom = UIDevice.current.userInterfaceIdiom
+			/// Makes `isOnIPad` and `isOnIPhone` report another idiom, e.g. while a debug harness shows an iPhone layout on an iPad. `nil` reports the device's own.
+			@MainActor public static var idiomOverride: UIUserInterfaceIdiom?
+			@MainActor public static var isOnIPad: Bool { (idiomOverride ?? deviceIdiom) == .pad }
+			@MainActor public static var isOnIPhone: Bool { (idiomOverride ?? deviceIdiom) == .phone }
 		 
 			@MainActor public static let osMajorVersion: Int = {
 				return Int(UIDevice.current.systemVersion.components(separatedBy: ".").first ?? "") ?? 0
