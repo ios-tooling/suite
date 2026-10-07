@@ -16,7 +16,7 @@ public struct LongPressButton<Label: View>: View {
 	
 	let label: () -> Label
 	
-	@State private var longPressStartedAt: Date!
+	@State private var longPressStartedAt: Date?
 	@State private var longPressInvalidated = false
 	@State private var longPressTriggered = false
 	@State private var timeOutTask: Task<Void, Never>?
